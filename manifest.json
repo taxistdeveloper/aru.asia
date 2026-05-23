@@ -1,0 +1,80 @@
+{
+  "name": "Aru App",
+  "short_name": "Aru",
+  "description": "Приложение для знакомств и мероприятий",
+  "start_url": "./?utm_source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "72x72",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "128x128",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "144x144",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "152x152",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "384x384",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "dating"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Свидания",
+      "short_name": "Свидания",
+      "description": "Просмотр свиданий",
+      "url": "dates",
+      "icons": [{ "src": "assets/images/logo.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Мероприятия",
+      "short_name": "Мероприятия",
+      "description": "Просмотр мероприятий",
+      "url": "events",
+      "icons": [{ "src": "assets/images/logo.jpg", "sizes": "96x96" }]
+    }
+  ]
+}
+

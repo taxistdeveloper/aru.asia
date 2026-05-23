@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+
+# Блокируем доступ к служебным папкам и файлам
+Disallow: /app/
+Disallow: /database/
+Disallow: /rabota/
+Disallow: /uploads/photos/
+
+# Разрешаем индексацию основных страниц
+Allow: /
+Allow: /platform
+Allow: /events
+Allow: /dates
+Allow: /auth/login
+Allow: /auth/register
+
+# Ссылка на карту сайта
+Sitemap: https://aru.asia/sitemap.xml
+
+# Специальные правила для Yandex
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1
+
+# Специальные правила для Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Специальные правила для Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+

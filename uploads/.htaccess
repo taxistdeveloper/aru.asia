@@ -1,0 +1,26 @@
+# Папка с пользовательскими файлами: доступ к изображениям должен быть открыт.
+# Здесь намеренно без "Options", т.к. на части серверов это вызывает 500.
+
+<IfModule mod_rewrite.c>
+RewriteEngine Off
+</IfModule>
+
+<IfModule mod_authz_core.c>
+Require all granted
+</IfModule>
+
+<IfModule mod_access_compat.c>
+Order allow,deny
+Allow from all
+</IfModule>
+
+# Запрещаем выполнение скриптов из uploads
+<FilesMatch "\.(php|phtml|phar|pl|py|cgi|sh)$">
+<IfModule mod_authz_core.c>
+Require all denied
+</IfModule>
+<IfModule mod_access_compat.c>
+Deny from all
+</IfModule>
+</FilesMatch>
+

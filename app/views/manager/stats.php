@@ -1,0 +1,161 @@
+<?php
+/**
+ * ПАНЕЛЬ МЕНЕДЖЕРА - СТАТИСТИКА
+ */
+
+ob_start();
+?>
+
+<div class="mt-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-graph-up"></i> Статистика</h2>
+            <p class="text-muted mb-0">Сводные показатели и посещения по дням</p>
+        </div>
+        <div class="mt-2 mt-md-0 text-md-end">
+            <small class="text-muted d-block">Обновлено: <?= date('d.m.Y H:i') ?></small>
+        </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Посещений сегодня</div>
+                    <div class="fs-3 fw-semibold"><?= $stats['visits_today'] ?? 0 ?></div>
+                    <div class="text-muted small">Уникальных: <?= $stats['unique_today'] ?? 0 ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Пользователей всего</div>
+                    <div class="fs-3 fw-semibold"><?= $stats['total_users'] ?? 0 ?></div>
+                    <div class="text-muted small">+<?= $stats['users_today'] ?? 0 ?> сегодня</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Мероприятий всего</div>
+                    <div class="fs-3 fw-semibold"><?= $stats['total_events'] ?? 0 ?></div>
+                    <div class="text-muted small">Ожидают: <?= $stats['pending_events'] ?? 0 ?></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Сообщений всего</div>
+                    <div class="fs-3 fw-semibold"><?= $stats['total_messages'] ?? 0 ?></div>
+                    <div class="text-muted small">Активная реклама: <?= $stats['active_ads'] ?? 0 ?></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <strong><i class="bi bi-list-check"></i> Сводка</strong>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted">Пользователи (подтв./неподтв.)</td>
+                                    <td class="text-end">
+                                        <strong><?= $stats['verified_users'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['unverified_users'] ?? 0 ?></strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Новых пользователей (неделя)</td>
+                                    <td class="text-end"><strong><?= $stats['users_week'] ?? 0 ?></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Новых мероприятий (сегодня / неделя)</td>
+                                    <td class="text-end">
+                                        <strong><?= $stats['events_today'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['events_week'] ?? 0 ?></strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Новых свиданий (сегодня)</td>
+                                    <td class="text-end"><strong><?= $stats['dates_today'] ?? 0 ?></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Свиданий всего</td>
+                                    <td class="text-end"><strong><?= $stats['total_dates'] ?? 0 ?></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Реклама (активная / ожидает)</td>
+                                    <td class="text-end">
+                                        <strong><?= $stats['active_ads'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['pending_ads'] ?? 0 ?></strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Менеджеров</td>
+                                    <td class="text-end"><strong><?= $stats['managers'] ?? 0 ?></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong><i class="bi bi-calendar3"></i> Посещения по дням (30 дней)</strong>
+                    <a class="btn btn-sm btn-outline-secondary" href="<?= BASE_URL ?>manager">
+                        <i class="bi bi-arrow-left"></i> Назад
+                    </a>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($daily_visits ?? [])): ?>
+                        <div class="text-muted small">
+                            Данных пока нет (или не применена миграция <code>daily_visits</code>).
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th class="text-end">Посещений</th>
+                                        <th class="text-end">Уникальных</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($daily_visits as $row): ?>
+                                        <tr>
+                                            <td><?= date('d.m.Y', strtotime($row['visit_date'])) ?></td>
+                                            <td class="text-end"><?= (int)($row['visits_total'] ?? 0) ?></td>
+                                            <td class="text-end"><?= (int)($row['unique_total'] ?? 0) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+$content = ob_get_clean();
+$title = 'Статистика - Панель менеджера';
+include __DIR__ . '/../admin_layout.php';
+?>
+
+

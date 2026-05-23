@@ -1,0 +1,586 @@
+/* КАСТОМНЫЕ СТИЛИ ДЛЯ ПРИЛОЖЕНИЯ */
+
+/* Общие стили */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Карточки пользователей */
+.user-card {
+    transition: all 0.3s ease;
+}
+
+.user-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-5px);
+}
+
+.user-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.user-card-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Формы */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Карточки */
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Адаптивные изображения */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ЕДИНЫЙ МОБИЛЬНЫЙ ДИЗАЙН ДЛЯ ВСЕХ ФОРМ И СТРАНИЦ */
+@media (max-width: 767px) {
+    /* Общий контейнер для страниц с формами */
+    .mobile-form-container {
+        margin: 0;
+        padding: 16px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    /* Контейнер для обычных страниц (списки, просмотр) - без градиента */
+    .mobile-page-container {
+        margin: 0;
+        padding: 16px;
+        background: #f8f9fa;
+        min-height: calc(100vh - 70px);
+    }
+
+    /* Заголовки для форм */
+    .mobile-form-container h2,
+    .mobile-form-container h3 {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: #2d3748;
+        text-align: center;
+        letter-spacing: -0.5px;
+        padding-top: 8px;
+    }
+
+    /* Заголовки для обычных страниц - более простые */
+    .mobile-page-container h2,
+    .mobile-page-container h3 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #2d3748;
+    }
+
+    /* Карточки для форм */
+    .mobile-form-container .card {
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border: none;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .mobile-form-container .card-body {
+        padding: 24px 20px;
+    }
+
+    /* Карточки для обычных страниц - более простые */
+    .mobile-page-container .card {
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border: none;
+        background: #ffffff;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .mobile-page-container .card:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .mobile-page-container .card-body {
+        padding: 18px 16px;
+    }
+
+    /* Улучшенные карточки свиданий для мобильных */
+    .mobile-page-container .card.border-primary {
+        border: 2px solid #667eea !important;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+    }
+
+    .mobile-page-container .card .card-img-top {
+        border-radius: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-page-container .card:active .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .mobile-page-container .card .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+
+    .mobile-page-container .card .badge {
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .mobile-page-container .card .text-muted {
+        font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        color: #4a5568 !important;
+    }
+
+    .mobile-page-container .card .text-muted i {
+        margin-right: 6px;
+        color: #667eea;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .mobile-page-container .card .text-muted .bi-geo-alt {
+        color: #e53e3e !important;
+        font-size: 15px;
+    }
+
+    .mobile-page-container .card .btn-sm {
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-page-container .card .btn-sm:active {
+        transform: scale(0.95);
+    }
+
+    .mobile-page-container .card .d-flex.gap-2 {
+        gap: 10px !important;
+    }
+
+    /* Специальные стили для карточек свиданий */
+    .mobile-page-container .date-card {
+        margin-bottom: 20px;
+    }
+
+    .mobile-page-container .date-card .card-img-wrapper {
+        position: relative;
+    }
+
+    .mobile-page-container .date-card .card-img-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
+        pointer-events: none;
+    }
+
+    /* Улучшенные отступы для мобильных карточек */
+    @media (max-width: 767px) {
+        .mobile-page-container .row {
+            margin-left: -8px;
+            margin-right: -8px;
+        }
+
+        .mobile-page-container .row > [class*="col-"] {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .mobile-page-container .date-card {
+            margin-bottom: 16px;
+        }
+
+        .mobile-page-container .date-card .card-body {
+            padding: 16px 14px;
+        }
+
+        .mobile-page-container .date-card .card-title {
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+
+        .mobile-page-container .date-card .text-muted {
+            font-size: 12px;
+            margin-bottom: 14px;
+            color: #4a5568 !important;
+        }
+
+        .mobile-page-container .date-card .text-muted .bi-geo-alt {
+            color: #e53e3e !important;
+            font-size: 14px;
+        }
+
+        .mobile-page-container .date-card .btn-sm {
+            font-size: 13px;
+            padding: 10px 14px;
+        }
+
+        .mobile-page-container .date-card .badge {
+            font-size: 11px;
+            padding: 5px 10px;
+        }
+    }
+
+    /* Формы */
+    .mobile-form-container form .mb-3,
+    .mobile-page-container form .mb-3 {
+        margin-bottom: 24px !important;
+    }
+
+    /* Метки для форм */
+    .mobile-form-container .form-label {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #2d3748;
+        display: block;
+        letter-spacing: -0.2px;
+    }
+
+    .mobile-form-container .form-label::after {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+        margin-top: 4px;
+    }
+
+    /* Метки для обычных страниц - без подчеркивания */
+    .mobile-page-container .form-label {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 8px;
+        color: #2d3748;
+    }
+
+    /* Поля ввода для форм */
+    .mobile-form-container .form-control,
+    .mobile-form-container .form-select {
+        font-size: 16px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        margin-bottom: 0;
+        background-color: #f8fafc;
+        transition: all 0.3s ease;
+        color: #2d3748;
+    }
+
+    /* Поля ввода для обычных страниц - более простые */
+    .mobile-page-container .form-control,
+    .mobile-page-container .form-select {
+        font-size: 16px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-form-container textarea.form-control,
+    .mobile-page-container textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .mobile-form-container .form-control:focus,
+    .mobile-form-container .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        background-color: #ffffff;
+        outline: none;
+    }
+
+    .mobile-page-container .form-control:focus,
+    .mobile-page-container .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .mobile-form-container .form-control::placeholder,
+    .mobile-page-container .form-control::placeholder {
+        color: #a0aec0;
+        font-size: 15px;
+    }
+
+    .mobile-form-container .form-text,
+    .mobile-form-container .text-muted,
+    .mobile-page-container .form-text,
+    .mobile-page-container .text-muted {
+        font-size: 13px;
+        margin-top: 8px;
+        margin-bottom: 0;
+        display: block;
+        color: #718096;
+        line-height: 1.5;
+        padding-left: 4px;
+    }
+
+    /* Алерты */
+    .mobile-form-container .alert,
+    .mobile-page-container .alert {
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 14px;
+        margin-bottom: 20px;
+        border: none;
+        line-height: 1.6;
+    }
+
+    .mobile-form-container .alert-danger,
+    .mobile-page-container .alert-danger {
+        background-color: #fed7d7;
+        color: #c53030;
+    }
+
+    .mobile-form-container .alert-warning,
+    .mobile-page-container .alert-warning {
+        background-color: #feebc8;
+        color: #c05621;
+    }
+
+    .mobile-form-container .alert-info,
+    .mobile-page-container .alert-info {
+        background-color: #bee3f8;
+        color: #2c5282;
+    }
+
+    .mobile-form-container .alert-success,
+    .mobile-page-container .alert-success {
+        background-color: #c6f6d5;
+        color: #22543d;
+    }
+
+    /* Кнопки для форм */
+    .mobile-form-container .btn {
+        font-size: 17px;
+        padding: 16px 24px;
+        border-radius: 14px;
+        font-weight: 700;
+        width: 100%;
+        margin-top: 12px;
+        transition: all 0.3s ease;
+        border: none;
+        text-transform: none;
+        letter-spacing: 0.3px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Кнопки для обычных страниц - более простые */
+    .mobile-page-container .btn {
+        font-size: 16px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-page-container .btn.w-100 {
+        width: 100%;
+    }
+
+    .mobile-form-container .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+    }
+
+    .mobile-form-container .btn-primary:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .mobile-page-container .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        border: none;
+    }
+
+    .mobile-page-container .btn-primary:active {
+        transform: translateY(1px);
+    }
+
+    .mobile-form-container .btn-secondary {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 16px;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: #ffffff;
+        font-weight: 600;
+        border: none;
+        box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+    }
+
+    .mobile-form-container .btn-secondary:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 8px rgba(245, 87, 108, 0.4);
+    }
+
+    .mobile-page-container .btn-secondary {
+        background: #6c757d;
+        color: #ffffff;
+        border: none;
+    }
+
+    .mobile-form-container .btn-outline-secondary {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 16px;
+        margin-top: 12px;
+        margin-left: 0 !important;
+        background: #ffffff;
+        color: #718096;
+        border: 2px solid #e2e8f0;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .mobile-form-container .btn-outline-secondary:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        background-color: #f7fafc;
+    }
+
+    .mobile-page-container .btn-outline-secondary {
+        background: #ffffff;
+        color: #6c757d;
+        border: 1px solid #6c757d;
+    }
+
+    /* Селекты для форм */
+    .mobile-form-container .form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 18px center;
+        background-size: 14px;
+        padding-right: 45px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        cursor: pointer;
+    }
+
+    /* Специальные поля для форм */
+    .mobile-form-container input[type="datetime-local"],
+    .mobile-form-container input[type="number"],
+    .mobile-form-container input[type="file"] {
+        min-height: 52px;
+        cursor: pointer;
+    }
+
+    /* Иконки для форм */
+    .mobile-form-container .bi {
+        margin-right: 8px;
+        font-size: 18px;
+        vertical-align: middle;
+    }
+
+    /* Разделители между секциями - только для форм */
+    .mobile-form-container form .mb-3:not(:last-child) {
+        position: relative;
+    }
+
+    .mobile-form-container form .mb-3:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    }
+
+    /* Карточки с заголовками для форм */
+    .mobile-form-container .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    /* Карточки с заголовками для обычных страниц */
+    .mobile-page-container .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+    }
+
+    /* Ссылки */
+    .mobile-form-container a,
+    .mobile-page-container a {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .mobile-form-container a:hover,
+    .mobile-page-container a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+}
+
