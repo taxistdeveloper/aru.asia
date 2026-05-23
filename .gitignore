@@ -1,0 +1,3 @@
+# Локальные настройки сервера и приложения
+.htaccess
+app/config/config.php
