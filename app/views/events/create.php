@@ -370,9 +370,273 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
     }
 
-    #event-create-submit-btn:disabled {
+    #publishPaymentModal .publish-payment-dialog {
+        max-width: 440px;
+    }
+
+    #publishPaymentModal .publish-payment-modal {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18), 0 8px 16px rgba(79, 70, 229, 0.12);
+    }
+
+    #publishPaymentModal .publish-payment-modal-header {
+        position: relative;
+        padding: 28px 24px 22px;
+        text-align: center;
+        background: linear-gradient(145deg, #4f46e5 0%, #6366f1 45%, #7c3aed 100%);
+        color: #fff;
+    }
+
+    #publishPaymentModal .publish-payment-modal-header .btn-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        filter: brightness(0) invert(1);
+        opacity: 0.85;
+    }
+
+    #publishPaymentModal .publish-payment-modal-header .btn-close:hover {
+        opacity: 1;
+    }
+
+    #publishPaymentModal .publish-payment-modal-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(6px);
+        font-size: 1.5rem;
+    }
+
+    #publishPaymentModal .publish-payment-modal-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    #publishPaymentModal .publish-payment-modal-subtitle {
+        margin: 6px 0 0;
+        font-size: 0.8125rem;
+        opacity: 0.9;
+        line-height: 1.4;
+    }
+
+    #publishPaymentModal .publish-payment-modal-body {
+        padding: 22px 20px 8px;
+        background: #f8fafc;
+    }
+
+    #publishPaymentModal .publish-payment-price-card {
+        text-align: center;
+        padding: 18px 16px;
+        border-radius: 14px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    #publishPaymentModal .publish-payment-price-label {
+        display: block;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    #publishPaymentModal .publish-payment-price-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #4338ca;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+    }
+
+    #publishPaymentModal .publish-payment-price-value small {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    #publishPaymentModal .publish-payment-promo {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #047857;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    #publishPaymentModal .publish-payment-hint {
+        margin: 16px 0 12px;
+        font-size: 0.8125rem;
+        color: #64748b;
+        text-align: center;
+        line-height: 1.45;
+    }
+
+    #publishPaymentModal .publish-payment-hint i {
+        color: #94a3b8;
+    }
+
+    #publishPaymentModal .publish-payment-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    @media (max-width: 400px) {
+        #publishPaymentModal .publish-payment-options {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    #publishPaymentModal .publish-payment-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        padding: 16px 12px;
+        border-radius: 14px;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        text-align: center;
+    }
+
+    #publishPaymentModal .publish-payment-option:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    #publishPaymentModal .publish-payment-option:disabled {
         opacity: 0.65;
-        cursor: not-allowed;
+        cursor: wait;
+    }
+
+    #publishPaymentModal .publish-payment-option-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 1.25rem;
+    }
+
+    #publishPaymentModal .publish-payment-option--free .publish-payment-option-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    #publishPaymentModal .publish-payment-option--free {
+        border-color: #bbf7d0;
+    }
+
+    #publishPaymentModal .publish-payment-option--free:hover:not(:disabled) {
+        border-color: #34d399;
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+    }
+
+    #publishPaymentModal .publish-payment-option--free.btn-publish-demo-active {
+        border-color: #10b981;
+        background: #f0fdf4;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    }
+
+    #publishPaymentModal .publish-payment-option--paid .publish-payment-option-icon {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    #publishPaymentModal .publish-payment-option--paid {
+        border-color: #c7d2fe;
+    }
+
+    #publishPaymentModal .publish-payment-option--paid:hover:not(:disabled) {
+        border-color: #818cf8;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.18);
+    }
+
+    #publishPaymentModal .publish-payment-option--paid.btn-publish-demo-active {
+        border-color: #6366f1;
+        background: #eef2ff;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+    #publishPaymentModal .publish-payment-option-title {
+        font-size: 0.9375rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+
+    #publishPaymentModal .publish-payment-option-desc {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: #94a3b8;
+        line-height: 1.3;
+    }
+
+    #publishPaymentModal .publish-payment-option-tag {
+        margin-top: 2px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 0.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    #publishPaymentModal #publishPaymentDemoStatus {
+        min-height: 0;
+    }
+
+    #publishPaymentModal #publishPaymentDemoStatus .alert {
+        border-radius: 10px;
+        margin-top: 12px;
+        margin-bottom: 0;
+        font-size: 0.8125rem;
+    }
+
+    #publishPaymentModal .publish-payment-modal-footer {
+        justify-content: center;
+        padding: 12px 20px 18px;
+        border-top: none;
+        background: #f8fafc;
+    }
+
+    #publishPaymentModal .publish-payment-cancel-btn {
+        padding: 8px 20px;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: color 0.15s, background 0.15s;
+    }
+
+    #publishPaymentModal .publish-payment-cancel-btn:hover {
+        color: #334155;
+        background: #e2e8f0;
     }
 
     /* Превью баннера — пропорции как у карточки мероприятия в ленте (events/index) */
@@ -408,7 +672,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
         display: none;
     }
 
-  /* Общий слот баннера: одна пропорция для всех превью (как .event-banner в ленте) */
+    /* Общий слот баннера: одна пропорция для всех превью (как .event-banner в ленте) */
     .event-banner-preview-wrap {
         width: 100%;
         max-width: 420px;
@@ -430,7 +694,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
         box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.12);
     }
 
-    .event-banner-slot > img {
+    .event-banner-slot>img {
         width: 100%;
         height: 100%;
         object-fit: fill;
@@ -438,8 +702,8 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
         border-radius: 7.5px;
     }
 
-    #photo-preview.has-image .event-banner-slot > img,
-    .event-live-demo.has-image .event-banner-slot > img {
+    #photo-preview.has-image .event-banner-slot>img,
+    .event-live-demo.has-image .event-banner-slot>img {
         display: block;
     }
 
@@ -924,23 +1188,23 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                                 <span>Так будет выглядеть баннер в карточке:</span>
                             </div>
                             <div class="event-banner-preview-wrap">
-                            <div class="event-banner-slot event-photo-preview-frame">
-                                <img id="photo-preview-img" src="" alt="Предпросмотр баннера">
-                                <div class="event-photo-preview-placeholder">
-                                    <i class="bi bi-image"></i>
-                                    <div style="font-weight: 600; color: #374151; margin-bottom: 4px;">Здесь появится ваш баннер</div>
-                                    <div style="font-size: 12px; max-width: 340px;">Обрезка под пропорции карточки в ленте (<?= (int) $eventBannerAspectW ?>:<?= (int) $eventBannerAspectH ?>)</div>
+                                <div class="event-banner-slot event-photo-preview-frame">
+                                    <img id="photo-preview-img" src="" alt="Предпросмотр баннера">
+                                    <div class="event-photo-preview-placeholder">
+                                        <i class="bi bi-image"></i>
+                                        <div style="font-weight: 600; color: #374151; margin-bottom: 4px;">Здесь появится ваш баннер</div>
+                                        <div style="font-size: 12px; max-width: 340px;">Обрезка под пропорции карточки в ленте (<?= (int) $eventBannerAspectW ?>:<?= (int) $eventBannerAspectH ?>)</div>
+                                    </div>
+                                    <button type="button" class="event-photo-btn-edit" id="eventPhotoEditBtn">
+                                        <i class="bi bi-pencil-square"></i> Редактировать
+                                    </button>
                                 </div>
-                                <button type="button" class="event-photo-btn-edit" id="eventPhotoEditBtn">
-                                    <i class="bi bi-pencil-square"></i> Редактировать
-                                </button>
-                            </div>
                             </div>
 
                         </div>
                     </div>
 
-                    <div class="event-live-demo" id="eventLiveDemo" aria-label="Превью карточки мероприятия в ленте">
+                    <!-- <div class="event-live-demo" id="eventLiveDemo" aria-label="Превью карточки мероприятия в ленте">
                         <div class="event-live-demo-title">
                             <i class="bi bi-phone"></i>
                             Как это увидят пользователи на главной
@@ -971,7 +1235,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                             </div>
                         </div>
                         <p class="event-live-demo-note">Окончательный вид после модерации; в ленте также может отображаться город из адреса.</p>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="mb-3">
@@ -1075,7 +1339,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                     <input type="hidden" id="currency_code" name="currency_code" value="KZT">
                 </div>
 
-                <div class="event-publish-tariff mb-3">
+                <div class="event-publish-tariff mb-3 d-none">
                     <h6><i class="bi bi-wallet2"></i> Оплата размещения на платформе</h6>
                     <div class="event-publish-tariff-amount"><?= number_format($eventPublishPrice, 0, ',', ' ') ?> ₸</div>
                     <p class="event-publish-tariff-note mb-0">
@@ -1090,22 +1354,10 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                             Включена оплата в конфигурации. До подключения платёжного шага создание может быть недоступно — см. администратора.
                         </div>
                     <?php endif; ?>
-
-                    <div class="event-publish-payment-demo">
-                        <div class="event-publish-payment-demo-label">
-                            Имитация оплаты за размещение (без реального списания с карты). Выберите вариант, чтобы продолжить:
-                        </div>
-                        <div class="event-publish-payment-demo-buttons">
-                            <button type="button" class="btn btn-outline-success" id="publishDemoFreeBtn" title="Демо: размещение без оплаты">
-                                <i class="bi bi-gift"></i> Бесплатно
-                            </button>
-                            <button type="button" class="btn btn-outline-primary" id="publishDemoPaidBtn" data-demo-amount="<?= (int) $eventPublishPrice ?>" title="Демо: условная оплата тарифа">
-                                <i class="bi bi-credit-card"></i> <?= number_format($eventPublishPrice, 0, ',', ' ') ?> ₸ (демо)
-                            </button>
-                        </div>
-                        <div id="publishPaymentDemoStatus" class="mt-2 small"></div>
-                        <input type="hidden" name="publish_payment_demo" id="publish_payment_demo" value="">
-                    </div>
+                    <p class="event-publish-tariff-note mb-0 mt-2">
+                        <i class="bi bi-info-circle"></i> Вариант оплаты размещения вы выберете в окне после нажатия «Создать мероприятие».
+                    </p>
+                    <input type="hidden" name="publish_payment_demo" id="publish_payment_demo" value="">
                 </div>
 
                 <div class="mb-3">
@@ -1121,20 +1373,77 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                     </small>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg" id="event-create-submit-btn" disabled title="Сначала выберите вариант имитации оплаты за размещение выше">
+                <button type="submit" class="btn btn-primary btn-lg" id="event-create-submit-btn">
                     <?php if (!$eventPublishPaid): ?>
                         <i class="bi bi-gift"></i> Создать мероприятие (сейчас бесплатно)
                     <?php else: ?>
                         <i class="bi bi-check-circle"></i> Создать мероприятие
                     <?php endif; ?>
                 </button>
-                <p class="text-muted small mt-2 mb-0" id="publish-demo-submit-hint">Сначала нажмите «Бесплатно» или сумму с пометкой «(демо)» в блоке оплаты размещения.</p>
                 <a href="<?= BASE_URL ?>events" class="btn btn-outline-secondary btn-lg">
                     Отмена
                 </a>
             </div>
         </div>
     </form>
+</div>
+
+<div class="modal fade" id="publishPaymentModal" tabindex="-1" aria-labelledby="publishPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered publish-payment-dialog">
+        <div class="modal-content publish-payment-modal">
+            <div class="publish-payment-modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                <div class="publish-payment-modal-badge" aria-hidden="true">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <h5 class="publish-payment-modal-title" id="publishPaymentModalLabel">Оплата размещения</h5>
+                <p class="publish-payment-modal-subtitle">Подтвердите публикацию мероприятия в ленте Aru</p>
+            </div>
+            <div class="modal-body publish-payment-modal-body">
+                <div class="publish-payment-price-card">
+                    <span class="publish-payment-price-label">Тариф размещения</span>
+                    <div class="publish-payment-price-value">
+                        <?= number_format($eventPublishPrice, 0, ',', ' ') ?> <small>₸</small>
+                    </div>
+                    <?php if (!$eventPublishPaid): ?>
+                        <div class="publish-payment-promo">
+                            <i class="bi bi-gift-fill"></i> Сейчас оформление бесплатное
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <p class="publish-payment-hint">
+                    <i class="bi bi-shield-check"></i>
+                    Демо-режим: реального списания с карты не будет
+                </p>
+                <div class="publish-payment-options">
+                    <button type="button"
+                        class="publish-payment-option publish-payment-option--free"
+                        id="publishDemoFreeBtn"
+                        title="Демо: размещение без оплаты">
+                        <span class="publish-payment-option-icon"><i class="bi bi-gift"></i></span>
+                        <span class="publish-payment-option-title">Бесплатно</span>
+                        <span class="publish-payment-option-desc">Разместить без оплаты</span>
+                    </button>
+                    <button type="button"
+                        class="publish-payment-option publish-payment-option--paid"
+                        id="publishDemoPaidBtn"
+                        data-demo-amount="<?= (int) $eventPublishPrice ?>"
+                        title="Демо: условная оплата тарифа">
+                        <span class="publish-payment-option-icon"><i class="bi bi-credit-card"></i></span>
+                        <span class="publish-payment-option-title"><?= number_format($eventPublishPrice, 0, ',', ' ') ?> ₸</span>
+                        <span class="publish-payment-option-desc">Условная оплата</span>
+                        <span class="publish-payment-option-tag">демо</span>
+                    </button>
+                </div>
+                <div id="publishPaymentDemoStatus"></div>
+            </div>
+            <div class="modal-footer publish-payment-modal-footer">
+                <button type="button" class="publish-payment-cancel-btn" data-bs-dismiss="modal">
+                    Вернуться к форме
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Редактор обрезки баннера мероприятия -->
@@ -2861,16 +3170,58 @@ out skel qt;`;
     /**
      * Демо-кнопки «Бесплатно» / тариф в тенге — имитация оплаты размещения (без реального платежа).
      */
+    let publishPaymentPendingSubmit = false;
+
+    function getPublishPaymentModal() {
+        const modalEl = document.getElementById('publishPaymentModal');
+        if (!modalEl || typeof bootstrap === 'undefined') {
+            return null;
+        }
+        return bootstrap.Modal.getOrCreateInstance(modalEl);
+    }
+
+    function showPublishPaymentModal() {
+        const modal = getPublishPaymentModal();
+        if (modal) {
+            modal.show();
+            return;
+        }
+        const statusEl = document.getElementById('publishPaymentDemoStatus');
+        if (statusEl) {
+            statusEl.innerHTML =
+                '<div class="alert alert-warning py-2 mb-0"><i class="bi bi-exclamation-triangle"></i> Выберите вариант имитации оплаты.</div>';
+        }
+    }
+
+    function completePublishPaymentDemoAndSubmit() {
+        const form = document.querySelector('.event-create-form');
+        const modal = getPublishPaymentModal();
+        if (modal) {
+            modal.hide();
+        }
+        if (form && publishPaymentPendingSubmit) {
+            publishPaymentPendingSubmit = false;
+            form.requestSubmit();
+        }
+    }
+
     function initPublishPaymentDemo() {
         const hidden = document.getElementById('publish_payment_demo');
         const freeBtn = document.getElementById('publishDemoFreeBtn');
         const paidBtn = document.getElementById('publishDemoPaidBtn');
         const statusEl = document.getElementById('publishPaymentDemoStatus');
-        const submitBtn = document.getElementById('event-create-submit-btn');
-        const hintEl = document.getElementById('publish-demo-submit-hint');
+        const modalEl = document.getElementById('publishPaymentModal');
 
-        if (!hidden || !freeBtn || !paidBtn || !submitBtn) {
+        if (!hidden || !freeBtn || !paidBtn) {
             return;
+        }
+
+        if (modalEl) {
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                if (!String(hidden.value || '').trim()) {
+                    publishPaymentPendingSubmit = false;
+                }
+            });
         }
 
         function setActiveButton(active) {
@@ -2883,14 +3234,6 @@ out skel qt;`;
             }
         }
 
-        function enableFormSubmit() {
-            submitBtn.disabled = false;
-            submitBtn.removeAttribute('title');
-            if (hintEl) {
-                hintEl.style.display = 'none';
-            }
-        }
-
         freeBtn.addEventListener('click', function() {
             hidden.value = 'free';
             setActiveButton('free');
@@ -2898,9 +3241,9 @@ out skel qt;`;
             paidBtn.disabled = false;
             if (statusEl) {
                 statusEl.innerHTML =
-                    '<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle"></i> Демо: размещение выбрано как бесплатное. Можно отправить форму.</div>';
+                    '<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle"></i> Демо: размещение бесплатное. Публикуем…</div>';
             }
-            enableFormSubmit();
+            completePublishPaymentDemoAndSubmit();
         });
 
         paidBtn.addEventListener('click', function() {
@@ -2921,9 +3264,9 @@ out skel qt;`;
                 if (statusEl) {
                     statusEl.innerHTML =
                         '<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle"></i> Демо: условная оплата <strong>' +
-                        escapeHtml(String(amount)) + ' ₸</strong> прошла успешно (реальных списаний не было). Можно отправить форму.</div>';
+                        escapeHtml(String(amount)) + ' ₸</strong> прошла успешно. Публикуем…</div>';
                 }
-                enableFormSubmit();
+                completePublishPaymentDemoAndSubmit();
             }, 900);
         });
     }
@@ -3371,24 +3714,6 @@ out skel qt;`;
         const form = document.querySelector('.event-create-form');
         if (form) {
             form.addEventListener('submit', function(e) {
-                const demoInput = document.getElementById('publish_payment_demo');
-                if (demoInput && !String(demoInput.value || '').trim()) {
-                    e.preventDefault();
-                    const pubStatus = document.getElementById('publishPaymentDemoStatus');
-                    if (pubStatus) {
-                        pubStatus.innerHTML =
-                            '<div class="alert alert-warning py-2 mb-0"><i class="bi bi-exclamation-triangle"></i> Сначала выберите вариант имитации оплаты за размещение: «Бесплатно» или сумму с пометкой «(демо)».</div>';
-                    }
-                    const demoBlock = document.querySelector('.event-publish-payment-demo');
-                    if (demoBlock) {
-                        demoBlock.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-                    }
-                    return false;
-                }
-
                 const latitude = document.getElementById('latitude').value;
                 const longitude = document.getElementById('longitude').value;
 
@@ -3405,6 +3730,18 @@ out skel qt;`;
                         behavior: 'smooth',
                         block: 'center'
                     });
+                    return false;
+                }
+
+                const demoInput = document.getElementById('publish_payment_demo');
+                if (demoInput && !String(demoInput.value || '').trim()) {
+                    e.preventDefault();
+                    publishPaymentPendingSubmit = true;
+                    const pubStatus = document.getElementById('publishPaymentDemoStatus');
+                    if (pubStatus) {
+                        pubStatus.innerHTML = '';
+                    }
+                    showPublishPaymentModal();
                     return false;
                 }
             });

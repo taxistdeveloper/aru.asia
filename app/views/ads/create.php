@@ -1091,7 +1091,7 @@ ob_start();
                                 </div>
                             </div>
                         </div>
-                        <div id="tariffSummary" class="tariff-summary">
+                        <div id="tariffSummary" class="tariff-summary  d-none">
                             Итоговый тариф: <strong>5 000 тг</strong>
                         </div>
                     </div>
@@ -2265,20 +2265,27 @@ ob_start();
             const regularAmount = baseOneMonth * currentPeriod;
             const currentSave = Math.max(0, regularAmount - amount);
 
-            tariffSummary.innerHTML =
+            let summaryHtml =
                 'Тариф: <strong>' + formatTenge(amount) + '</strong> ' +
-                'за ' + getPeriodLabel(period) + ', охват: ' + getCityLabel(cityCount) + '. ' +
-                '<br><span class="text-muted">Обычная стоимость: ' + formatTenge(regularAmount) + '</span>' +
-                '<br><span class="text-success fw-semibold">Выгода: ' + formatTenge(currentSave) + '</span>' +
-                '<br><span class="text-success">Сейчас к оплате: ' + formatCurrency(0) + ' (БЕСПЛАТНО).</span>';
+                'за ' + getPeriodLabel(period) + ', охват: ' + getCityLabel(cityCount) + '.';
+            if (currentSave > 0) {
+                summaryHtml +=
+                    '<br><span class="text-muted">Обычная стоимость: ' + formatTenge(regularAmount) + '</span>' +
+                    '<br><span class="text-success fw-semibold">Выгода: ' + formatTenge(currentSave) + '</span>';
+            }
+            tariffSummary.innerHTML = summaryHtml;
 
             const summaryMainValueEl = tariffSummary.querySelector('strong');
             const summaryRegularEl = tariffSummary.querySelector('.text-muted');
             const summarySaveEl = tariffSummary.querySelector('.text-success.fw-semibold');
 
             animateNumber(summaryMainValueEl, amount, formatTenge);
-            animateNumber(summaryRegularEl, regularAmount, (value) => 'Обычная стоимость: ' + formatTenge(value));
-            animateNumber(summarySaveEl, currentSave, (value) => 'Выгода: ' + formatTenge(value));
+            if (summaryRegularEl) {
+                animateNumber(summaryRegularEl, regularAmount, (value) => 'Обычная стоимость: ' + formatTenge(value));
+            }
+            if (summarySaveEl) {
+                animateNumber(summarySaveEl, currentSave, (value) => 'Выгода: ' + formatTenge(value));
+            }
 
             // Короткая подсветка карточек, чтобы визуально показать пересчёт цены
             priceCards.forEach((card) => {
