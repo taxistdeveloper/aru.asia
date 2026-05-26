@@ -51,7 +51,7 @@ ob_start();
             background: #ffffff;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 
+            box-shadow:
                 0 10px 30px -10px rgba(102, 126, 234, 0.15),
                 0 1px 3px rgba(0, 0, 0, 0.05);
             position: relative;
@@ -61,7 +61,7 @@ ob_start();
 
         .ad-carousel:hover {
             transform: translateY(-4px);
-            box-shadow: 
+            box-shadow:
                 0 20px 40px -15px rgba(102, 126, 234, 0.25),
                 0 4px 12px rgba(0, 0, 0, 0.05);
             border-color: rgba(102, 126, 234, 0.35);
@@ -69,7 +69,7 @@ ob_start();
 
         .ad-carousel .carousel-inner {
             border-radius: 16px;
-            overflow: hidden;
+            overflow: visible;
             margin: 0;
             background: #fff;
         }
@@ -145,82 +145,128 @@ ob_start();
         }
 
         @keyframes megaphonePulse {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.2) rotate(-10deg); }
+
+            0%,
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.2) rotate(-10deg);
+            }
         }
 
-        /* Иконка руки - индикатор кликабельности (слева) */
+        /* Рука: позиция через JS (--hand-left / --hand-top) по центру текста ссылки */
         .ad-click-indicator {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            left: var(--hand-left, 0);
+            top: var(--hand-top, 0);
             z-index: 10;
+            width: var(--hand-width, 48px);
+            height: var(--hand-height, 64px);
             pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ad-click-indicator__motion {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-origin: var(--hand-origin-x, 50%) var(--hand-origin-y, 20%);
+        }
+
+        .ad-click-indicator.is-playing .ad-click-indicator__motion {
+            animation: handTapFromBottom 2.5s ease-in-out 1 forwards;
         }
 
         .ad-click-indicator__hand {
             display: block;
-            width: 84px;
-            height: 120px;
-            position: relative;
-            background: url('<?= BASE_URL ?>assets/images/hand-tap.png') no-repeat center/contain;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-            animation: handTap 2s ease-in-out 1 forwards;
-        }
-
-        /* Зеркальное отражение руки (внизу) */
-        .ad-click-indicator__hand::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 100%;
             width: 100%;
-            height: 80%;
-            background: url('<?= BASE_URL ?>assets/images/hand-tap.png') no-repeat center/contain;
-            transform: scale(-1, -1);
-            mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent);
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent);
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            object-fit: contain;
+            object-position: center bottom;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+            user-select: none;
             pointer-events: none;
         }
 
-        /* Кружок-волна на месте (рука двигается отдельно) */
-        .ad-click-indicator::before {
-            content: '';
+        /* Волна нажатия (на <img> псевдоэлементы не работают — отдельный span) */
+        .ad-click-indicator__ripple {
             position: absolute;
-            top: 32px;
-            left: 38px;
-            width: 15px;
-            height: 15px;
+            left: var(--ripple-left, 50%);
+            top: var(--ripple-top, 20%);
+            width: 14px;
+            height: 14px;
+            margin: -7px 0 0 -7px;
             border-radius: 50%;
-            background: transparent;
-            box-shadow:
-                0 0 0 0 rgba(102, 126, 234, 0.6),
-                0 0 0 0 rgba(102, 126, 234, 0.4),
-                0 0 0 0 rgba(102, 126, 234, 0.2);
-            animation: rippleWave 2s ease-in-out 1 forwards;
+            z-index: 2;
             pointer-events: none;
+            box-shadow:
+                0 0 0 0 rgba(102, 126, 234, 0.65),
+                0 0 0 0 rgba(102, 126, 234, 0.45),
+                0 0 0 0 rgba(102, 126, 234, 0.25);
         }
 
-        @keyframes rippleWave {
-            0%, 49% {
+        .ad-click-indicator.is-playing .ad-click-indicator__ripple {
+            animation: rippleWaveCta 2.5s ease-in-out 1 forwards;
+        }
+
+        /* Подсветка ссылки в момент «клика» */
+        .ad-banner-cta.is-hand-pressing .ad-banner-cta-label {
+            display: inline-block;
+            animation: ctaTapPress 2.5s ease-in-out 1 forwards;
+        }
+
+        @keyframes ctaTapPress {
+
+            0%,
+            32% {
+                transform: scale(1);
+                color: #6b7280;
+            }
+
+            38% {
+                transform: scale(0.96);
+                color: #667eea;
+            }
+
+            46% {
+                transform: scale(1);
+                color: #667eea;
+            }
+
+            58%,
+            100% {
+                transform: scale(1);
+                color: #6b7280;
+            }
+        }
+
+        @keyframes rippleWaveCta {
+
+            0%,
+            34% {
                 box-shadow:
                     0 0 0 0 rgba(102, 126, 234, 0),
                     0 0 0 0 rgba(102, 126, 234, 0),
                     0 0 0 0 rgba(102, 126, 234, 0);
             }
-            50% {
+
+            38% {
                 box-shadow:
-                    0 0 0 5px rgba(102, 126, 234, 0.5),
-                    0 0 0 10px rgba(102, 126, 234, 0.3),
-                    0 0 0 15px rgba(102, 126, 234, 0.1);
+                    0 0 0 6px rgba(102, 126, 234, 0.55),
+                    0 0 0 14px rgba(102, 126, 234, 0.35),
+                    0 0 0 22px rgba(102, 126, 234, 0.15);
             }
-            75% {
+
+            52% {
                 box-shadow:
-                    0 0 0 40px rgba(102, 126, 234, 0),
-                    0 0 0 60px rgba(102, 126, 234, 0),
-                    0 0 0 80px rgba(102, 126, 234, 0);
+                    0 0 0 32px rgba(102, 126, 234, 0),
+                    0 0 0 48px rgba(102, 126, 234, 0),
+                    0 0 0 64px rgba(102, 126, 234, 0);
             }
+
             100% {
                 box-shadow:
                     0 0 0 0 rgba(102, 126, 234, 0),
@@ -229,33 +275,41 @@ ob_start();
             }
         }
 
-        @keyframes handTap {
-            /* Старт: рука слева внизу (за кадром) */
+        @keyframes handTapFromBottom {
             0% {
-                transform: translate(-200px, 280px);
+                transform: translateY(var(--hand-travel-y, 34px));
                 opacity: 0;
             }
-            /* Выезд с левой стороны */
-            28% {
-                transform: translate(0, 25px);
+
+            24% {
+                transform: translateY(var(--hand-press-y, -26px));
                 opacity: 1;
             }
-            /* Один нажим */
-            50% {
-                transform: translate(-5px, 50px);
+
+            36% {
+                transform: translateY(calc(var(--hand-press-y, -26px) - 8px)) scale(0.94);
                 opacity: 1;
             }
-            /* Уходит влево вниз */
+
+            46% {
+                transform: translateY(var(--hand-press-y, -26px)) scale(1);
+                opacity: 1;
+            }
+
+            70% {
+                transform: translateY(var(--hand-press-y, -26px));
+                opacity: 1;
+            }
+
             100% {
-                transform: translate(-200px, 280px);
+                transform: translateY(var(--hand-travel-y, 34px));
                 opacity: 0;
             }
         }
 
-        /* Скрываем при наведении */
-        .ad-carousel-item:hover .ad-click-indicator {
-            opacity: 0;
-            transform: translate(-200px, 280px) scale(0.5);
+        .carousel-item:not(.active) .ad-click-indicator,
+        .ad-click-indicator.is-done {
+            visibility: hidden;
         }
 
         .ad-banner-placeholder {
@@ -274,13 +328,15 @@ ob_start();
         }
 
         .ad-banner-footer {
-            padding: 14px 18px;
+            position: relative;
+            padding: 10px 18px 12px;
             background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-top: 1px solid rgba(102, 126, 234, 0.1);
             transition: background-color 0.3s ease;
+            overflow: visible;
         }
 
         .ad-carousel-item:hover .ad-banner-footer {
@@ -311,12 +367,17 @@ ob_start();
         }
 
         .ad-banner-cta {
+            position: relative;
+            z-index: 2;
             font-size: 12px;
             font-weight: 500;
             color: #6b7280;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 4px;
+            padding-right: 8px;
+            padding-bottom: 14px;
+            overflow: visible;
         }
 
         .ad-banner-action-btn {
@@ -337,43 +398,6 @@ ob_start();
 
         .ad-carousel-item:hover .ad-banner-icon {
             transform: scale(1.15) rotate(5deg);
-        }
-
-        /* Премиальные индикаторы в стиле Stories (вверху) */
-        .ad-carousel .carousel-indicators {
-            display: flex !important;
-            margin: 0;
-            padding: 0 14px;
-            position: absolute;
-            top: 12px;
-            left: 0;
-            right: 0;
-            bottom: auto;
-            z-index: 10;
-            gap: 6px;
-            justify-content: stretch;
-        }
-
-        .ad-carousel .carousel-indicators button {
-            box-sizing: content-box;
-            flex: 1 1 auto;
-            width: auto;
-            height: 3px;
-            padding: 0;
-            margin: 0;
-            text-indent: -999px;
-            cursor: pointer;
-            background-color: rgba(255, 255, 255, 0.35);
-            background-clip: padding-box;
-            border: none;
-            border-radius: 2px;
-            opacity: 1;
-            transition: background-color 0.3s ease;
-        }
-
-        .ad-carousel .carousel-indicators button.active {
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         /* Улучшенные кнопки навигации (показываются при наведении) */
@@ -413,7 +437,7 @@ ob_start();
         .ad-carousel .carousel-control-next-icon {
             width: 18px;
             height: 18px;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
         }
 
         /* Стили для секции чатов */
@@ -1219,7 +1243,11 @@ ob_start();
             }
 
             .ad-banner-footer {
-                padding: 12px 14px;
+                padding: 10px 14px 10px;
+            }
+
+            .ad-banner-cta {
+                padding-bottom: 12px;
             }
 
             .ad-banner-name {
@@ -1239,9 +1267,9 @@ ob_start();
                 font-size: 11px;
             }
 
-            .ad-click-indicator__hand {
-                width: 70px;
-                height: 100px;
+            .ad-click-indicator {
+                --hand-width: 42px;
+                --hand-height: 58px;
             }
 
             .chat-page-header {
@@ -1356,9 +1384,9 @@ ob_start();
                 font-size: 10px;
             }
 
-            .ad-click-indicator__hand {
-                width: 60px;
-                height: 86px;
+            .ad-click-indicator {
+                --hand-width: 38px;
+                --hand-height: 52px;
             }
 
             .user-photo-grid {
@@ -1839,19 +1867,6 @@ ob_start();
         <?php if (count($validAds) > 0): ?>
             <div class="ad-carousel-container">
                 <div id="adCarousel" class="carousel slide ad-carousel" data-bs-ride="carousel" data-bs-interval="3000">
-                    <?php if (count($validAds) > 1): ?>
-                        <!-- Индикаторы -->
-                        <div class="carousel-indicators">
-                            <?php foreach ($validAds as $index => $ad): ?>
-                                <button type="button"
-                                    data-bs-target="#adCarousel"
-                                    data-bs-slide-to="<?= $index ?>"
-                                    <?= $index === 0 ? 'class="active" aria-current="true"' : '' ?>
-                                    aria-label="Слайд <?= $index + 1 ?>"></button>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-
                     <!-- Слайды -->
                     <div class="carousel-inner">
                         <?php foreach ($validAds as $index => $ad): ?>
@@ -1859,47 +1874,42 @@ ob_start();
                             $imagePath = $ad['image_path'];
                             $imageUrl = BASE_URL . UPLOAD_DIR . 'ads/' . $imagePath;
                             $clickUrl = !empty($ad['click_url']) ? Helper::escape($ad['click_url']) : '#';
-                            $advertiserName = !empty($ad['advertiser_name']) ? Helper::escape($ad['advertiser_name']) : 'Реклама';
+                            $imageAlt = !empty($ad['advertiser_name']) ? Helper::escape($ad['advertiser_name']) : 'Баннер';
                             ?>
                             <div class="carousel-item ad-carousel-item" data-ad-index="<?= $index ?>">
                                 <?php if ($clickUrl !== '#'): ?>
                                     <a href="<?= $clickUrl ?>" target="_blank" rel="noopener noreferrer" class="d-block text-decoration-none">
-                                <?php endif; ?>
+                                    <?php endif; ?>
                                     <div class="ad-banner-content">
                                         <div class="ad-banner-image-wrapper">
                                             <img src="<?= $imageUrl ?>"
-                                                alt="<?= $advertiserName ?>"
+                                                alt="<?= $imageAlt ?>"
                                                 class="ad-banner-image"
                                                 loading="lazy"
                                                 onerror="this.parentElement.innerHTML='<div class=\'ad-banner-placeholder\'><i class=\'bi bi-image\'></i></div>';">
                                             <div class="ad-banner-overlay"></div>
-                                            <div class="ad-banner-badge">
-                                                <i class="bi bi-megaphone-fill"></i>
-                                                <span>Реклама</span>
-                                            </div>
+
                                         </div>
-                                        
-                                        <!-- Информационный футер рекламы -->
+
+                                        <?php if ($clickUrl !== '#'): ?>
                                         <div class="ad-banner-footer">
                                             <div class="ad-banner-info-left">
-                                                <span class="ad-banner-name"><?= $advertiserName ?></span>
-                                                <?php if ($clickUrl !== '#'): ?>
-                                                    <span class="ad-banner-cta">
-                                                        <span>Перейти на сайт</span>
-                                                        <i class="bi bi-chevron-right" style="font-size: 9px; vertical-align: middle;"></i>
-                                                    </span>
-                                                <?php endif; ?>
+                                                <span class="ad-banner-cta">
+                                                    <span class="ad-banner-cta-label">Перейти на сайт</span>
+                                                    <i class="bi bi-chevron-right" style="font-size: 9px; vertical-align: middle;"></i>
+                                                    <div class="ad-click-indicator" aria-hidden="true">
+                                                        <div class="ad-click-indicator__motion">
+                                                            <span class="ad-click-indicator__ripple"></span>
+                                                            <img class="ad-click-indicator__hand" src="<?= BASE_URL ?>assets/images/hand-tap.png" alt="" width="48" height="64" decoding="async">
+                                                        </div>
+                                                    </div>
+                                                </span>
                                             </div>
-                                            <?php if ($clickUrl !== '#'): ?>
-                                                <div class="ad-banner-action-btn">
-                                                    <i class="bi bi-arrow-up-right-circle-fill ad-banner-icon"></i>
-                                                </div>
-                                            <?php endif; ?>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
-                                <?php if ($clickUrl !== '#'): ?>
+                                    <?php if ($clickUrl !== '#'): ?>
                                     </a>
-                                    <div class="ad-click-indicator"><span class="ad-click-indicator__hand"></span></div>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
@@ -2059,24 +2069,193 @@ ob_start();
                     }
                 });
 
-                // Обновляем индикаторы
-                const indicators = adCarousel.querySelectorAll('.carousel-indicators button');
-                indicators.forEach((indicator, index) => {
-                    if (index === activeIndex) {
-                        indicator.classList.add('active');
-                        indicator.setAttribute('aria-current', 'true');
-                    } else {
-                        indicator.classList.remove('active');
-                        indicator.removeAttribute('aria-current');
-                    }
-                });
-
                 // Инициализируем карусель
                 const carousel = new bootstrap.Carousel(adCarousel, {
                     interval: rotationInterval,
                     ride: 'carousel',
                     wrap: true,
                     pause: 'hover'
+                });
+
+                // Анимация руки: палец точно на «Перейти на сайт» (кончик из PNG + object-fit)
+                const handAnimMs = 2500;
+                const HAND_PRESS_Y = -26;
+                const HAND_TRAVEL_Y = 34;
+                const handImageUrl = '<?= BASE_URL ?>assets/images/hand-tap.png';
+                let handImageMetrics = null;
+
+                function measureHandTipFromImage(img) {
+                    const w = img.naturalWidth;
+                    const h = img.naturalHeight;
+                    if (!w || !h) return null;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(img, 0, 0);
+                    const data = ctx.getImageData(0, 0, w, h).data;
+
+                    let tipX = w / 2;
+                    let tipY = h;
+                    const xStart = Math.floor(w * 0.32);
+                    const xEnd = Math.ceil(w * 0.68);
+
+                    for (let y = 0; y < h; y++) {
+                        for (let x = xStart; x < xEnd; x++) {
+                            const alpha = data[(y * w + x) * 4 + 3];
+                            if (alpha > 48 && y < tipY) {
+                                tipY = y;
+                                tipX = x;
+                            }
+                        }
+                    }
+
+                    return { imgW: w, imgH: h, tipX: tipX / w, tipY: tipY / h };
+                }
+
+                function getFingerOffsetInBox(boxW, boxH, metrics) {
+                    const scale = Math.min(boxW / metrics.imgW, boxH / metrics.imgH);
+                    const renderW = metrics.imgW * scale;
+                    const renderH = metrics.imgH * scale;
+                    const offsetX = (boxW - renderW) / 2;
+                    const offsetY = boxH - renderH;
+                    return {
+                        x: offsetX + metrics.tipX * renderW,
+                        y: offsetY + metrics.tipY * renderH
+                    };
+                }
+
+                function alignHandToCta(slide) {
+                    if (!handImageMetrics) return;
+
+                    const cta = slide.querySelector('.ad-banner-cta');
+                    const label = slide.querySelector('.ad-banner-cta-label');
+                    const indicator = slide.querySelector('.ad-click-indicator');
+                    if (!cta || !label || !indicator) return;
+
+                    const handW = indicator.offsetWidth || 54;
+                    const handH = indicator.offsetHeight || 76;
+                    const finger = getFingerOffsetInBox(handW, handH, handImageMetrics);
+
+                    const labelRect = label.getBoundingClientRect();
+                    const ctaRect = cta.getBoundingClientRect();
+
+                    const targetX = (labelRect.left + labelRect.right) / 2 - ctaRect.left;
+                    const targetY = labelRect.bottom - ctaRect.top - 2;
+
+                    const left = targetX - finger.x;
+                    const top = targetY - finger.y - HAND_PRESS_Y;
+
+                    const originX = (finger.x / handW) * 100;
+                    const originY = (finger.y / handH) * 100;
+
+                    indicator.style.setProperty('--hand-left', left.toFixed(1) + 'px');
+                    indicator.style.setProperty('--hand-top', top.toFixed(1) + 'px');
+                    indicator.style.setProperty('--hand-width', handW + 'px');
+                    indicator.style.setProperty('--hand-height', handH + 'px');
+                    indicator.style.setProperty('--hand-origin-x', originX.toFixed(2) + '%');
+                    indicator.style.setProperty('--hand-origin-y', originY.toFixed(2) + '%');
+                    indicator.style.setProperty('--hand-press-y', HAND_PRESS_Y + 'px');
+                    indicator.style.setProperty('--hand-travel-y', HAND_TRAVEL_Y + 'px');
+                    indicator.style.setProperty('--ripple-left', finger.x.toFixed(1) + 'px');
+                    indicator.style.setProperty('--ripple-top', finger.y.toFixed(1) + 'px');
+
+                    const spaceBelowFinger = handH - finger.y;
+                    const bottomPad = Math.min(36, Math.max(14, Math.ceil(spaceBelowFinger * 0.35 + HAND_TRAVEL_Y * 0.45)));
+                    cta.style.paddingBottom = bottomPad + 'px';
+                }
+
+                function alignAllHands() {
+                    carouselItems.forEach(function(slide) {
+                        if (slide.classList.contains('active')) {
+                            alignHandToCta(slide);
+                        }
+                    });
+                }
+
+                function playHandTapOnce(slide) {
+                    const indicator = slide && slide.querySelector('.ad-click-indicator');
+                    const cta = slide && slide.querySelector('.ad-banner-cta');
+                    if (!indicator || !handImageMetrics) return;
+
+                    alignHandToCta(slide);
+
+                    if (cta) {
+                        cta.classList.remove('is-hand-pressing');
+                    }
+                    indicator.classList.remove('is-done', 'is-playing');
+                    void indicator.offsetHeight;
+                    indicator.classList.add('is-playing');
+                    if (cta) {
+                        cta.classList.add('is-hand-pressing');
+                    }
+
+                    clearTimeout(indicator._handDoneTimer);
+                    indicator._handDoneTimer = setTimeout(function() {
+                        indicator.classList.remove('is-playing');
+                        indicator.classList.add('is-done');
+                        if (cta) {
+                            cta.classList.remove('is-hand-pressing');
+                        }
+                    }, handAnimMs);
+                }
+
+                function resetHandIndicators() {
+                    carouselItems.forEach(function(slide) {
+                        const indicator = slide.querySelector('.ad-click-indicator');
+                        const cta = slide.querySelector('.ad-banner-cta');
+                        if (indicator) {
+                            indicator.classList.add('is-done');
+                            indicator.classList.remove('is-playing');
+                            clearTimeout(indicator._handDoneTimer);
+                        }
+                        if (cta) {
+                            cta.classList.remove('is-hand-pressing');
+                        }
+                    });
+                }
+
+                function playHandOnActiveSlide() {
+                    resetHandIndicators();
+                    const activeSlide = adCarousel.querySelector('.carousel-item.active');
+                    if (activeSlide) {
+                        playHandTapOnce(activeSlide);
+                    }
+                }
+
+                function initHandAlignment() {
+                    alignAllHands();
+                    requestAnimationFrame(function() {
+                        alignAllHands();
+                        playHandOnActiveSlide();
+                    });
+                }
+
+                const handProbe = new Image();
+                handProbe.onload = function() {
+                    handImageMetrics = measureHandTipFromImage(handProbe);
+                    if (handImageMetrics) {
+                        initHandAlignment();
+                    }
+                };
+                handProbe.onerror = function() {
+                    handImageMetrics = { imgW: 400, imgH: 600, tipX: 0.5, tipY: 0.18 };
+                    initHandAlignment();
+                };
+                handProbe.src = handImageUrl;
+
+                let handResizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(handResizeTimer);
+                    handResizeTimer = setTimeout(function() {
+                        if (!handImageMetrics) return;
+                        alignAllHands();
+                        const activeSlide = adCarousel.querySelector('.carousel-item.active');
+                        if (activeSlide) {
+                            playHandTapOnce(activeSlide);
+                        }
+                    }, 150);
                 });
 
                 // Сохраняем текущее состояние при смене слайда
@@ -2088,6 +2267,10 @@ ob_start();
                         localStorage.setItem('adCarouselActiveIndex', currentIndex.toString());
                         localStorage.setItem('adCarouselTimestamp', now.toString());
                     }
+                    requestAnimationFrame(function() {
+                        alignHandToCta(currentActive);
+                        playHandOnActiveSlide();
+                    });
                 });
 
                 // Пауза при наведении мыши
@@ -2115,8 +2298,7 @@ ob_start();
                         item.addEventListener('click', function(e) {
                             // Если клик не по кнопкам навигации
                             if (!e.target.closest('.carousel-control-prev') &&
-                                !e.target.closest('.carousel-control-next') &&
-                                !e.target.closest('.carousel-indicators')) {
+                                !e.target.closest('.carousel-control-next')) {
                                 // Переход по ссылке уже обрабатывается тегом <a>
                             }
                         });
