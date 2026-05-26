@@ -42,31 +42,36 @@ ob_start();
         /* Стили для рекламного слайдера */
         .ad-carousel-container {
             margin-bottom: 20px;
-            animation: fadeInUp 0.6s ease-out;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
         }
 
-        /* Реклама: превью в духе WhatsApp (скругление, лёгкая тень, «пузырь» на фоне чата) */
+        /* Премиум рекламный слайдер с мягкими тенями и градиентными бордерами */
         .ad-carousel {
-            background: #f0f2f5;
-            border-radius: 10px;
+            background: #ffffff;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.12), 0 1px 2px rgba(11, 20, 26, 0.08);
+            box-shadow: 
+                0 10px 30px -10px rgba(102, 126, 234, 0.15),
+                0 1px 3px rgba(0, 0, 0, 0.05);
             position: relative;
-            border: 1px solid rgba(11, 20, 26, 0.06);
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .ad-carousel:hover {
-            box-shadow: 0 2px 4px rgba(11, 20, 26, 0.14), 0 1px 2px rgba(11, 20, 26, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 
+                0 20px 40px -15px rgba(102, 126, 234, 0.25),
+                0 4px 12px rgba(0, 0, 0, 0.05);
+            border-color: rgba(102, 126, 234, 0.35);
         }
 
         .ad-carousel .carousel-inner {
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
-            margin: 6px;
+            margin: 0;
             background: #fff;
-            box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.08);
         }
 
         .ad-carousel-item {
@@ -83,8 +88,7 @@ ob_start();
             width: 100%;
             height: 200px;
             overflow: hidden;
-            background: #eceff1;
-            padding: 4px;
+            background: linear-gradient(135deg, #e0e6ed 0%, #f4f6f9 100%);
             box-sizing: border-box;
         }
 
@@ -94,43 +98,55 @@ ob_start();
             object-fit: cover;
             object-position: center;
             display: block;
-            transition: transform 0.25s ease;
-            border-radius: 7.5px;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .ad-carousel-item:hover .ad-banner-image {
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
 
         .ad-banner-overlay {
-            display: none;
-        }
-
-        .ad-carousel-item:hover .ad-banner-overlay {
-            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.1) 100%);
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
         .ad-banner-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(102, 126, 234, 0.95);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 6px 14px;
+            top: 14px;
+            right: 14px;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #ffffff;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             z-index: 3;
-            animation: pulse 2s ease-in-out infinite;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         .ad-banner-badge i {
-            font-size: 14px;
+            font-size: 11px;
+            color: #fbbf24;
+            animation: megaphonePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes megaphonePulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(-10deg); }
         }
 
         /* Иконка руки - индикатор кликабельности (слева) */
@@ -140,6 +156,7 @@ ob_start();
             left: 20px;
             z-index: 10;
             pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .ad-click-indicator__hand {
@@ -186,29 +203,24 @@ ob_start();
         }
 
         @keyframes rippleWave {
-
-            0%,
-            49% {
+            0%, 49% {
                 box-shadow:
                     0 0 0 0 rgba(102, 126, 234, 0),
                     0 0 0 0 rgba(102, 126, 234, 0),
                     0 0 0 0 rgba(102, 126, 234, 0);
             }
-
             50% {
                 box-shadow:
                     0 0 0 5px rgba(102, 126, 234, 0.5),
                     0 0 0 10px rgba(102, 126, 234, 0.3),
                     0 0 0 15px rgba(102, 126, 234, 0.1);
             }
-
             75% {
                 box-shadow:
                     0 0 0 40px rgba(102, 126, 234, 0),
                     0 0 0 60px rgba(102, 126, 234, 0),
                     0 0 0 80px rgba(102, 126, 234, 0);
             }
-
             100% {
                 box-shadow:
                     0 0 0 0 rgba(102, 126, 234, 0),
@@ -218,25 +230,21 @@ ob_start();
         }
 
         @keyframes handTap {
-
             /* Старт: рука слева внизу (за кадром) */
             0% {
                 transform: translate(-200px, 280px);
                 opacity: 0;
             }
-
             /* Выезд с левой стороны */
             28% {
                 transform: translate(0, 25px);
                 opacity: 1;
             }
-
             /* Один нажим */
             50% {
                 transform: translate(-5px, 50px);
                 opacity: 1;
             }
-
             /* Уходит влево вниз */
             100% {
                 transform: translate(-200px, 280px);
@@ -248,19 +256,6 @@ ob_start();
         .ad-carousel-item:hover .ad-click-indicator {
             opacity: 0;
             transform: translate(-200px, 280px) scale(0.5);
-            transition: all 0.3s ease;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
         }
 
         .ad-banner-placeholder {
@@ -269,9 +264,9 @@ ob_start();
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #dfe5e8;
+            background: linear-gradient(135deg, #e0e6ed 0%, #f4f6f9 100%);
             color: #94a3b8;
-            border-radius: 7.5px;
+            border-radius: 16px;
         }
 
         .ad-banner-placeholder i {
@@ -279,43 +274,146 @@ ob_start();
         }
 
         .ad-banner-footer {
-            padding: 14px 16px;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.98) 0%, #ffffff 100%);
+            padding: 14px 18px;
+            background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .ad-carousel-item:hover .ad-banner-footer {
+            background-color: #fbfcfe;
+        }
+
+        .ad-banner-info-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            text-align: left;
         }
 
         .ad-banner-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            letter-spacing: -0.2px;
+            line-height: 1.2;
+            transition: color 0.3s ease;
+        }
+
+        .ad-carousel-item:hover .ad-banner-name {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
+        .ad-banner-cta {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ad-banner-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .ad-banner-icon {
-            font-size: 16px;
+            font-size: 24px;
             color: #667eea;
-            transition: transform 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .ad-carousel-item:hover .ad-banner-icon {
-            transform: translate(4px, -4px);
+            transform: scale(1.15) rotate(5deg);
         }
 
-        /* Кнопки навигации слайдера - скрыты */
+        /* Премиальные индикаторы в стиле Stories (вверху) */
+        .ad-carousel .carousel-indicators {
+            display: flex !important;
+            margin: 0;
+            padding: 0 14px;
+            position: absolute;
+            top: 12px;
+            left: 0;
+            right: 0;
+            bottom: auto;
+            z-index: 10;
+            gap: 6px;
+            justify-content: stretch;
+        }
+
+        .ad-carousel .carousel-indicators button {
+            box-sizing: content-box;
+            flex: 1 1 auto;
+            width: auto;
+            height: 3px;
+            padding: 0;
+            margin: 0;
+            text-indent: -999px;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.35);
+            background-clip: padding-box;
+            border: none;
+            border-radius: 2px;
+            opacity: 1;
+            transition: background-color 0.3s ease;
+        }
+
+        .ad-carousel .carousel-indicators button.active {
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Улучшенные кнопки навигации (показываются при наведении) */
         .ad-carousel .carousel-control-prev,
         .ad-carousel .carousel-control-next {
-            display: none !important;
+            display: flex !important;
+            width: 40px;
+            height: 40px;
+            top: 40%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin: 0 12px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 5;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* Индикаторы слайдера - скрыты */
-        .ad-carousel .carousel-indicators {
-            display: none !important;
+        .ad-carousel-container:hover .ad-carousel .carousel-control-prev,
+        .ad-carousel-container:hover .ad-carousel .carousel-control-next {
+            opacity: 1;
+        }
+
+        .ad-carousel .carousel-control-prev:hover,
+        .ad-carousel .carousel-control-next:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-50%) scale(1.08);
+            color: #ffffff;
+        }
+
+        .ad-carousel .carousel-control-prev-icon,
+        .ad-carousel .carousel-control-next-icon {
+            width: 18px;
+            height: 18px;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
         }
 
         /* Стили для секции чатов */
@@ -1099,11 +1197,12 @@ ob_start();
             }
 
             .ad-carousel {
-                border-radius: 10px;
+                border-radius: 16px;
             }
 
             .ad-carousel .carousel-inner {
-                margin: 5px;
+                margin: 0;
+                border-radius: 16px;
             }
 
             .ad-banner-image-wrapper {
@@ -1117,6 +1216,20 @@ ob_start();
 
             .ad-banner-placeholder {
                 height: 180px;
+            }
+
+            .ad-banner-footer {
+                padding: 12px 14px;
+            }
+
+            .ad-banner-name {
+                font-size: 14px;
+            }
+
+            /* На мобильных скрываем стрелки, оставляем только свайпы и индикаторы */
+            .ad-carousel .carousel-control-prev,
+            .ad-carousel .carousel-control-next {
+                display: none !important;
             }
 
             .ad-banner-badge {
@@ -1283,15 +1396,16 @@ ob_start();
             }
 
             .ad-carousel {
-                border-radius: 10px;
+                border-radius: 16px;
             }
 
             .ad-carousel .carousel-inner {
-                margin: 8px;
+                margin: 0;
+                border-radius: 16px;
             }
 
             .ad-banner-image-wrapper {
-                height: 220px;
+                height: 240px;
             }
 
             .ad-banner-image {
@@ -1300,26 +1414,11 @@ ob_start();
             }
 
             .ad-banner-placeholder {
-                height: 220px;
+                height: 240px;
             }
 
             .ad-banner-footer {
-                padding: 14px 20px;
-            }
-
-            .ad-banner-name {
-                font-size: 16px;
-            }
-
-            .ad-banner-icon {
-                font-size: 18px;
-            }
-
-            .ad-banner-badge {
-                top: 16px;
-                right: 16px;
-                padding: 8px 18px;
-                font-size: 13px;
+                padding: 14px 18px;
             }
 
             .new-year-banner h3 {
@@ -1764,8 +1863,8 @@ ob_start();
                             ?>
                             <div class="carousel-item ad-carousel-item" data-ad-index="<?= $index ?>">
                                 <?php if ($clickUrl !== '#'): ?>
-                                    <a href="<?= $clickUrl ?>" target="_blank" rel="noopener noreferrer" class="d-block">
-                                    <?php endif; ?>
+                                    <a href="<?= $clickUrl ?>" target="_blank" rel="noopener noreferrer" class="d-block text-decoration-none">
+                                <?php endif; ?>
                                     <div class="ad-banner-content">
                                         <div class="ad-banner-image-wrapper">
                                             <img src="<?= $imageUrl ?>"
@@ -1774,15 +1873,31 @@ ob_start();
                                                 loading="lazy"
                                                 onerror="this.parentElement.innerHTML='<div class=\'ad-banner-placeholder\'><i class=\'bi bi-image\'></i></div>';">
                                             <div class="ad-banner-overlay"></div>
-                                            <?php if (!empty($ad['advertiser_name'])): ?>
-                                                <!-- <div class="ad-banner-badge">
-                                                <i class="bi bi-megaphone"></i>
+                                            <div class="ad-banner-badge">
+                                                <i class="bi bi-megaphone-fill"></i>
                                                 <span>Реклама</span>
-                                            </div> -->
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Информационный футер рекламы -->
+                                        <div class="ad-banner-footer">
+                                            <div class="ad-banner-info-left">
+                                                <span class="ad-banner-name"><?= $advertiserName ?></span>
+                                                <?php if ($clickUrl !== '#'): ?>
+                                                    <span class="ad-banner-cta">
+                                                        <span>Перейти на сайт</span>
+                                                        <i class="bi bi-chevron-right" style="font-size: 9px; vertical-align: middle;"></i>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($clickUrl !== '#'): ?>
+                                                <div class="ad-banner-action-btn">
+                                                    <i class="bi bi-arrow-up-right-circle-fill ad-banner-icon"></i>
+                                                </div>
                                             <?php endif; ?>
                                         </div>
                                     </div>
-                                    <?php if ($clickUrl !== '#'): ?>
+                                <?php if ($clickUrl !== '#'): ?>
                                     </a>
                                     <div class="ad-click-indicator"><span class="ad-click-indicator__hand"></span></div>
                                 <?php endif; ?>
