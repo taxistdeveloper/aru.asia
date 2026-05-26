@@ -81,7 +81,7 @@ img {
     /* Общий контейнер для страниц с формами */
     .mobile-form-container {
         margin: 0;
-        padding: 16px;
+        padding: 16px 0;
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
     }
@@ -89,7 +89,7 @@ img {
     /* Контейнер для обычных страниц (списки, просмотр) - без градиента */
     .mobile-page-container {
         margin: 0;
-        padding: 16px;
+        padding: 16px 0;
         background: #f8f9fa;
         min-height: calc(100vh - 70px);
     }

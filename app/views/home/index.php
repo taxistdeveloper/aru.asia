@@ -76,7 +76,7 @@ ob_start();
             grid-auto-rows: 1fr;
             gap: 12px;
             margin-top: 20px;
-            padding: 0 8px;
+            padding: 0;
         }
 
         .user-card {
@@ -332,7 +332,7 @@ ob_start();
                 grid-template-columns: repeat(2, 1fr);
                 grid-auto-rows: 280px;
                 gap: 12px;
-                padding: 0 12px;
+                padding: 0;
             }
 
             .user-card {

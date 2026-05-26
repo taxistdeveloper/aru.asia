@@ -1075,23 +1075,23 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
     }
 
     .event-photo-btn-edit {
-        position: absolute;
-        bottom: 12px;
-        right: 12px;
-        background: rgba(102, 126, 234, 0.95);
-        color: white;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
         display: none;
         align-items: center;
-        gap: 6px;
-        transition: all 0.2s ease;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3);
     }
 
     #photo-preview.has-image .event-photo-btn-edit {
@@ -1104,8 +1104,14 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
     }
 
     .event-photo-btn-edit:hover {
-        background: rgba(86, 104, 211, 0.95);
+        background: linear-gradient(135deg, #5a6fd6 0%, #694095 100%);
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .event-photo-btn-edit:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
 </style>
 
@@ -1195,10 +1201,10 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                                         <div style="font-weight: 600; color: #374151; margin-bottom: 4px;">Здесь появится ваш баннер</div>
                                         <div style="font-size: 12px; max-width: 340px;">Обрезка под пропорции карточки в ленте (<?= (int) $eventBannerAspectW ?>:<?= (int) $eventBannerAspectH ?>)</div>
                                     </div>
-                                    <button type="button" class="event-photo-btn-edit" id="eventPhotoEditBtn">
-                                        <i class="bi bi-pencil-square"></i> Редактировать
-                                    </button>
                                 </div>
+                                <button type="button" class="event-photo-btn-edit" id="eventPhotoEditBtn">
+                                    <i class="bi bi-pencil-square"></i> Редактировать
+                                </button>
                             </div>
 
                         </div>

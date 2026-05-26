@@ -290,11 +290,7 @@ ob_start();
         </div>
     <?php endif; ?>
 
-    <div class="alert alert-info dating-free-note">
-        <strong>Сейчас: БЕСПЛАТНО.</strong> Объявление о свидании публикуется сразу, без модерации.
-        <br>
-        В будущем: после подключения оплаты оплаченные объявления будут выходить в эфир без модерации.
-    </div>
+    
 
     <form method="POST" action="<?= BASE_URL ?>dates/store" class="date-create-form">
         <div class="card">
@@ -418,7 +414,7 @@ ob_start();
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg btn-free-date">
-                    <i class="bi bi-gift"></i> Разместить БЕСПЛАТНО (без модерации)
+                    <i class="bi bi-gift"></i> Разместить БЕСПЛАТНО 
                 </button>
             </div>
         </div>

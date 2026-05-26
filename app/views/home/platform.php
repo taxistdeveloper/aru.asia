@@ -793,7 +793,7 @@ ob_start();
             grid-auto-rows: 1fr;
             gap: 12px;
             margin-top: 20px;
-            padding: 0 8px;
+            padding: 0;
         }
 
         .user-card {
@@ -1095,7 +1095,7 @@ ob_start();
             /* Рекламный слайдер для мобильных */
             .ad-carousel-container {
                 margin-bottom: 16px;
-                padding: 0 4px;
+                padding: 0;
             }
 
             .ad-carousel {
@@ -1156,7 +1156,7 @@ ob_start();
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 grid-auto-rows: auto;
                 gap: 12px;
-                padding: 0 12px;
+                padding: 0;
                 /* Адаптивные высоты карточки */
                 --card-image-height: clamp(150px, 32vw, 210px);
                 --card-info-min-height: clamp(56px, 12vw, 70px);
@@ -1222,7 +1222,7 @@ ob_start();
         /* Очень маленькие телефоны: делаем карточки чуть уже/компактнее */
         @media (max-width: 360px) {
             .ad-carousel-container {
-                padding: 0 2px;
+                padding: 0;
             }
 
             .ad-banner-image-wrapper {
@@ -1250,7 +1250,7 @@ ob_start();
 
             .user-photo-grid {
                 gap: 10px;
-                padding: 0 10px;
+                padding: 0;
                 --card-image-height: clamp(140px, 40vw, 190px);
             }
         }
@@ -1259,7 +1259,7 @@ ob_start();
         @media (min-width: 576px) and (max-width: 767px) {
             .user-photo-grid {
                 gap: 14px;
-                padding: 0 16px;
+                padding: 0;
                 --card-image-height: clamp(160px, 24vw, 220px);
             }
         }
