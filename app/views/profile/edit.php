@@ -125,6 +125,17 @@ ob_start();
         }
     }
 
+    .mobile-form-container .btn-location {
+        width: auto;
+        padding: 5px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        white-space: nowrap;
+    }
+
     /* Стили для фотографий */
     .photos-grid {
         display: grid;
@@ -308,7 +319,7 @@ ob_start();
                 <div class="mb-3">
                     <label class="form-label">Местоположение *</label>
                     <div>
-                        <button type="button" class="btn btn-primary" onclick="getLocation()">
+                        <button type="button" class="btn btn-primary btn-sm btn-location d-inline-flex align-items-center gap-1" onclick="getLocation()">
                             <i class="bi bi-geo-alt"></i> Определить местоположение
                         </button>
                         <input type="hidden" id="latitude" name="latitude" value="<?= $user['latitude'] ?? '' ?>">
