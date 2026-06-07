@@ -130,6 +130,20 @@ ob_start();
             margin-bottom: 10px;
         }
 
+        .profile-announcements-accordion .accordion-button {
+            font-weight: 600;
+            padding: 12px 16px;
+        }
+
+        .profile-announcements-accordion .accordion-button:not(.collapsed) {
+            background-color: rgba(102, 126, 234, 0.08);
+            color: #667eea;
+        }
+
+        .profile-announcements-accordion .accordion-body {
+            padding: 16px;
+        }
+
         .ads-section .alert {
             padding: 15px;
             border-radius: 10px;
@@ -242,6 +256,30 @@ ob_start();
     .photo-item:active .btn {
         transform: scale(1.05) !important;
     }
+
+    .profile-announcements-accordion .accordion-button {
+        font-weight: 600;
+    }
+
+    .profile-announcements-accordion .accordion-button:not(.collapsed) {
+        background-color: rgba(102, 126, 234, 0.08);
+        color: #667eea;
+        box-shadow: none;
+    }
+
+    .profile-announcements-accordion .accordion-item {
+        border-radius: 0;
+    }
+
+    .profile-announcements-accordion .accordion-item:first-of-type {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    .profile-announcements-accordion .accordion-item:last-of-type {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
 </style>
 
 <div class="mobile-page-container mt-3 mt-md-4">
@@ -254,19 +292,49 @@ ob_start();
                 </a>
             <?php endif; ?>
             <a href="<?= BASE_URL ?>profile/edit" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Редактировать
+                <i class="bi bi-pencil"></i> Редактировать профиль
             </a>
         </div>
     </div>
     <!-- Мои объявления -->
     <?php
-    // Защита от ошибок - блок всегда должен отображаться
     try {
         $userEvent = $userEvent ?? null;
         $userDate = $userDate ?? null;
+        $userAds = $userAds ?? [];
+        if (!is_array($userAds)) {
+            $userAds = [];
+        }
+
+        $isDateExpired = false;
+        if (!empty($userDate) && is_array($userDate) && isset($userDate['id'])) {
+            if (!empty($userDate['date_time']) && strtotime($userDate['date_time']) < time()) {
+                $isDateExpired = true;
+            }
+        }
+
+        $hasPendingAd = false;
+        if (!empty($userAds)) {
+            foreach ($userAds as $ad) {
+                if (isset($ad['status']) && $ad['status'] === 'pending') {
+                    $hasPendingAd = true;
+                    break;
+                }
+            }
+        }
+
+        $hasActiveEvent = !empty($userEvent) && is_array($userEvent) && isset($userEvent['id']);
+        $hasActiveDate = !empty($userDate) && is_array($userDate) && isset($userDate['id']) && !$isDateExpired;
+        $hasAds = !empty($userAds);
     } catch (Exception $e) {
         $userEvent = null;
         $userDate = null;
+        $userAds = [];
+        $isDateExpired = false;
+        $hasPendingAd = false;
+        $hasActiveEvent = false;
+        $hasActiveDate = false;
+        $hasAds = false;
     }
     ?>
     <div class="card mb-4 profile-card ads-section">
@@ -275,132 +343,161 @@ ob_start();
                 <i class="bi bi-megaphone"></i> Мои объявления
             </h5>
 
-            <div class="mb-3 d-flex flex-column flex-md-row gap-2">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
-                    <i class="bi bi-calendar-plus"></i> Создать мероприятие
-                </button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDateModal">
-                    <i class="bi bi-heart-fill"></i> Создать свидание
-                </button>
-            </div>
-
-            <?php if (!empty($userEvent) && is_array($userEvent) && isset($userEvent['id'])): ?>
-                <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                    <div class="mb-2 mb-md-0">
-                        <strong><i class="bi bi-calendar-event"></i> Активное мероприятие:</strong><br>
-                        <span class="ms-3"><?= Helper::escape($userEvent['title'] ?? '') ?></span>
-                        <?php if (!empty($userEvent['event_date']) && strtotime($userEvent['event_date']) >= time() && ($userEvent['status'] ?? 'pending') === 'approved'): ?>
-                            <div class="mt-2 ms-3">
-                                <small class="text-muted d-block mb-1"><i class="bi bi-clock"></i> До дедлайна:</small>
-                                <div class="countdown-timer" data-deadline="<?= date('Y-m-d H:i:s', strtotime($userEvent['event_date'])) ?>" data-event-id="<?= $userEvent['id'] ?>">
-                                    <span class="badge bg-info">Загрузка...</span>
-                                </div>
+            <div class="accordion profile-announcements-accordion" id="profileAnnouncementsAccordion">
+                <!-- Мероприятия -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="eventsSectionHeading">
+                        <button class="accordion-button collapsed py-3" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#eventsSection"
+                            aria-expanded="false"
+                            aria-controls="eventsSection">
+                            <span class="d-flex align-items-center gap-2 w-100">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>Создать мероприятие</span>
+                                <?php if ($hasActiveEvent): ?>
+                                    <span class="badge bg-info ms-auto me-2">Активно</span>
+                                <?php endif; ?>
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="eventsSection" class="accordion-collapse collapse" aria-labelledby="eventsSectionHeading" data-bs-parent="#profileAnnouncementsAccordion">
+                        <div class="accordion-body">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal" <?= $hasActiveEvent ? 'disabled' : '' ?>>
+                                    <i class="bi bi-calendar-plus"></i> Создать мероприятие
+                                </button>
                             </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="d-flex gap-2 justify-content-end">
-                        <a href="<?= BASE_URL ?>events/delete?id=<?= $userEvent['id'] ?>"
-                            class="btn btn-sm btn-danger"
-                            style="color: white;"
-                            onclick="return confirm('Удалить мероприятие?')">
-                            <i class="bi bi-trash"></i> Удалить
-                        </a>
-                    </div>
-                </div>
-            <?php endif; ?>
 
-            <?php
-            // Проверяем, не просрочено ли свидание по времени PHP
-            $isDateExpired = false;
-            if (!empty($userDate) && is_array($userDate) && isset($userDate['id'])) {
-                if (!empty($userDate['date_time']) && strtotime($userDate['date_time']) < time()) {
-                    $isDateExpired = true;
-                }
-            }
-            ?>
-            <?php if (!empty($userDate) && is_array($userDate) && isset($userDate['id']) && !$isDateExpired): ?>
-                <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                    <div class="mb-2 mb-md-0">
-                        <strong><i class="bi bi-heart"></i> Активное свидание:</strong><br>
-                        <span class="ms-3"><?= Helper::escape($userDate['title'] ?? '') ?></span>
-                        <?php if (!empty($userDate['date_time'])): ?>
-                            <div class="mt-2 ms-3">
-                                <small class="text-muted d-block mb-1"><i class="bi bi-clock"></i> До дедлайна:</small>
-                                <div class="countdown-timer" data-deadline="<?= date('Y-m-d H:i:s', strtotime($userDate['date_time'])) ?>" data-date-id="<?= $userDate['id'] ?>">
-                                    <span class="badge bg-info">Загрузка...</span>
+                            <?php if ($hasActiveEvent): ?>
+                                <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-0">
+                                    <div class="mb-2 mb-md-0">
+                                        <strong><i class="bi bi-calendar-event"></i> Активное мероприятие:</strong><br>
+                                        <span class="ms-3"><?= Helper::escape($userEvent['title'] ?? '') ?></span>
+                                        <?php if (!empty($userEvent['event_date']) && strtotime($userEvent['event_date']) >= time() && ($userEvent['status'] ?? 'pending') === 'approved'): ?>
+                                            <div class="mt-2 ms-3">
+                                                <small class="text-muted d-block mb-1"><i class="bi bi-clock"></i> До дедлайна:</small>
+                                                <div class="countdown-timer" data-deadline="<?= date('Y-m-d H:i:s', strtotime($userEvent['event_date'])) ?>" data-event-id="<?= $userEvent['id'] ?>">
+                                                    <span class="badge bg-info">Загрузка...</span>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="<?= BASE_URL ?>events/delete?id=<?= $userEvent['id'] ?>"
+                                            class="btn btn-sm btn-danger"
+                                            style="color: white;"
+                                            onclick="return confirm('Удалить мероприятие?')">
+                                            <i class="bi bi-trash"></i> Удалить
+                                        </a>
+                                    </div>
                                 </div>
+                            <?php else: ?>
+                                <p class="text-muted text-center py-2 mb-0">
+                                    <i class="bi bi-info-circle"></i> У вас пока нет активных мероприятий
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Свидания -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="datesSectionHeading">
+                        <button class="accordion-button collapsed py-3" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#datesSection"
+                            aria-expanded="false"
+                            aria-controls="datesSection">
+                            <span class="d-flex align-items-center gap-2 w-100">
+                                <i class="bi bi-heart-fill"></i>
+                                <span>Создать свидание</span>
+                                <?php if ($hasActiveDate): ?>
+                                    <span class="badge bg-info ms-auto me-2">Активно</span>
+                                <?php endif; ?>
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="datesSection" class="accordion-collapse collapse" aria-labelledby="datesSectionHeading" data-bs-parent="#profileAnnouncementsAccordion">
+                        <div class="accordion-body">
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDateModal" <?= $hasActiveDate ? 'disabled' : '' ?>>
+                                    <i class="bi bi-heart-fill"></i> Создать свидание
+                                </button>
                             </div>
-                        <?php endif; ?>
+
+                            <?php if ($hasActiveDate): ?>
+                                <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-0">
+                                    <div class="mb-2 mb-md-0">
+                                        <strong><i class="bi bi-heart"></i> Активное свидание:</strong><br>
+                                        <span class="ms-3"><?= Helper::escape($userDate['title'] ?? '') ?></span>
+                                        <?php if (!empty($userDate['date_time'])): ?>
+                                            <div class="mt-2 ms-3">
+                                                <small class="text-muted d-block mb-1"><i class="bi bi-clock"></i> До дедлайна:</small>
+                                                <div class="countdown-timer" data-deadline="<?= date('Y-m-d H:i:s', strtotime($userDate['date_time'])) ?>" data-date-id="<?= $userDate['id'] ?>">
+                                                    <span class="badge bg-info">Загрузка...</span>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="<?= BASE_URL ?>dates/edit?id=<?= $userDate['id'] ?>"
+                                            class="btn btn-sm btn-primary">
+                                            <i class="bi bi-pencil"></i> Редактировать
+                                        </a>
+                                        <a href="<?= BASE_URL ?>dates/delete?id=<?= $userDate['id'] ?>"
+                                            class="btn btn-sm btn-danger text__del"
+                                            style="color: white;"
+                                            onclick="return confirm('Удалить свидание?')">
+                                            <i class="bi bi-trash"></i> Удалить
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-muted text-center py-2 mb-0">
+                                    <i class="bi bi-info-circle"></i> У вас пока нет активных свиданий
+                                </p>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <a href="<?= BASE_URL ?>dates/edit?id=<?= $userDate['id'] ?>"
-                            class="btn btn-sm btn-primary">
-                            <i class="bi bi-pencil"></i> Редактировать
-                        </a>
-                        <a href="<?= BASE_URL ?>dates/delete?id=<?= $userDate['id'] ?>"
-                            class="btn btn-sm btn-danger text__del"
-                            style="color: white;"
-                            onclick="return confirm('Удалить свидание?')">
-                            <i class="bi bi-trash"></i> Удалить
-                        </a>
-                    </div>
                 </div>
-            <?php endif; ?>
 
-            <?php if ((empty($userEvent) || !is_array($userEvent)) && (empty($userDate) || !is_array($userDate) || $isDateExpired)): ?>
-                <p class="text-muted text-center py-3">
-                    <i class="bi bi-info-circle"></i> У вас пока нет активных объявлений
-                </p>
-            <?php endif; ?>
-        </div>
-    </div>
+                <!-- Реклама -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="adsSectionHeading">
+                        <button class="accordion-button collapsed py-3" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#adsSection"
+                            aria-expanded="false"
+                            aria-controls="adsSection">
+                            <span class="d-flex align-items-center gap-2 w-100">
+                                <i class="bi bi-bullhorn"></i>
+                                <span>Подать рекламу</span>
+                                <?php if ($hasPendingAd): ?>
+                                    <span class="badge bg-warning text-dark ms-auto me-2">На модерации</span>
+                                <?php elseif ($hasAds): ?>
+                                    <span class="badge bg-secondary ms-auto me-2"><?= count($userAds) ?></span>
+                                <?php endif; ?>
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="adsSection" class="accordion-collapse collapse" aria-labelledby="adsSectionHeading" data-bs-parent="#profileAnnouncementsAccordion">
+                        <div class="accordion-body">
+                            <?php if ($hasPendingAd): ?>
+                                <div class="alert alert-warning mb-3">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <strong>У вас есть заявка на модерации.</strong> Дождитесь рассмотрения текущей заявки перед подачей новой.
+                                </div>
+                            <?php else: ?>
+                                <div class="mb-3">
+                                    <a href="<?= BASE_URL ?>ads/create" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Подать рекламу
+                                    </a>
+                                </div>
+                            <?php endif; ?>
 
-    <!-- Мои реклама -->
-    <?php
-    // Защита от ошибок - блок всегда должен отображаться
-    try {
-        $userAds = $userAds ?? [];
-        if (!is_array($userAds)) {
-            $userAds = [];
-        }
-        // Проверяем, есть ли реклама на модерации
-        $hasPendingAd = false;
-        if (!empty($userAds) && is_array($userAds)) {
-            foreach ($userAds as $ad) {
-                if (isset($ad['status']) && $ad['status'] === 'pending') {
-                    $hasPendingAd = true;
-                    break;
-                }
-            }
-        }
-    } catch (Exception $e) {
-        $userAds = [];
-        $hasPendingAd = false;
-    }
-    ?>
-    <div class="card mb-4 profile-card ads-section">
-        <div class="card-body">
-            <h5 class="card-title text-center">
-                <i class="bi bi-bullhorn"></i> Моя реклама
-            </h5>
-
-            <?php if ($hasPendingAd): ?>
-                <div class="alert alert-warning mb-3">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <strong>У вас есть заявка на модерации.</strong> Дождитесь рассмотрения текущей заявки перед подачей новой.
-                </div>
-            <?php else: ?>
-                <div class="mb-3">
-                    <a href="<?= BASE_URL ?>ads/create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Подать рекламу
-                    </a>
-                </div>
-            <?php endif; ?>
-
-            <?php
-            $userAds = $userAds ?? [];
-            if (!empty($userAds) && is_array($userAds)): ?>
-                <div class="accordion" id="userAdsAccordion">
+                            <?php if ($hasAds): ?>
+                                <div class="accordion" id="userAdsAccordion">
                     <?php foreach ($userAds as $ad): ?>
                         <?php if (!is_array($ad) || empty($ad['id'])) continue; ?>
                         <?php
@@ -561,10 +658,14 @@ ob_start();
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
-                <p class="text-muted text-center py-3">
-                    <i class="bi bi-info-circle"></i> У вас пока нет поданных реклам
-                </p>
-            <?php endif; ?>
+                                <p class="text-muted text-center py-2 mb-0">
+                                    <i class="bi bi-info-circle"></i> У вас пока нет поданных реклам
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

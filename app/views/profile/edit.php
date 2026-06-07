@@ -381,7 +381,7 @@ ob_start();
                             accept="image/*"
                             multiple>
                         <small class="form-text text-muted">
-                            Можно загрузить до <?= MAX_PHOTOS - count($photos) ?> фотографий. Фотографии загружаются сразу при выборе, но сохраняются в профиль только при нажатии кнопки "Сохранить изменения". Большие фото будут автоматически оптимизированы.
+                            Загрузка до <?= MAX_PHOTOS - count($photos) ?> фотографий. Фотографии загружаются при нажатии кнопки «Сохранить изменения».
                         </small>
                     </div>
                 <?php else: ?>
@@ -806,6 +806,7 @@ ob_start();
 
     // Функция проверки текста "О себе" на нецензурную лексику (многоязычная — RU, EN и др.)
     const profanityPatterns = <?= json_encode(ProfanityFilter::getJsPatternSources()) ?>;
+
     function hasProfanity(text) {
         if (!text) return false;
         try {
