@@ -145,6 +145,27 @@ class User
      */
     public function getAllWithPhotos($limit = 20, $excludeUserId = null, $userGender = null, $userCountry = null)
     {
+        $withPhoto = $this->fetchFeedUsers($limit, $excludeUserId, $userGender, $userCountry, true);
+        if (count($withPhoto) >= $limit) {
+            return $withPhoto;
+        }
+
+        $withoutPhoto = $this->fetchFeedUsers(
+            $limit - count($withPhoto),
+            $excludeUserId,
+            $userGender,
+            $userCountry,
+            false
+        );
+
+        return array_merge($withPhoto, $withoutPhoto);
+    }
+
+    /**
+     * Выборка пользователей для ленты: только с фото или только без.
+     */
+    private function fetchFeedUsers($limit, $excludeUserId, $userGender, $userCountry, $withPhoto)
+    {
         $sql = "SELECT u.*,
                 (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo
                 FROM users u
@@ -154,12 +175,10 @@ class User
 
         $params = [];
 
-        // Исключаем текущего пользователя
         if ($excludeUserId) {
             $sql .= " AND u.id != :exclude_user_id";
             $params[':exclude_user_id'] = $excludeUserId;
 
-            // Исключаем пользователей, которых заблокировал текущий пользователь
             $sql .= " AND NOT EXISTS (
                         SELECT 1 FROM blocked_users bu1
                         WHERE bu1.user_id = :exclude_user_id2
@@ -167,7 +186,6 @@ class User
                      )";
             $params[':exclude_user_id2'] = $excludeUserId;
 
-            // Исключаем пользователей, которые заблокировали текущего пользователя
             $sql .= " AND NOT EXISTS (
                         SELECT 1 FROM blocked_users bu2
                         WHERE bu2.blocked_user_id = :exclude_user_id3
@@ -176,27 +194,34 @@ class User
             $params[':exclude_user_id3'] = $excludeUserId;
         }
 
-        // Фильтруем по противоположному полу
         if ($userGender) {
             $oppositeGender = $userGender === 'male' ? 'female' : 'male';
             $sql .= " AND u.gender = :gender";
             $params[':gender'] = $oppositeGender;
         }
 
-        // Фильтруем по стране - показываем только пользователей из той же страны
         if ($userCountry) {
             $sql .= " AND u.country = :country";
             $params[':country'] = $userCountry;
         }
 
-        $sql .= " ORDER BY EXISTS (
-                    SELECT 1 FROM user_photos up
-                    WHERE up.user_id = u.id
-                    AND up.photo IS NOT NULL
-                    AND TRIM(up.photo) <> ''
-                ) DESC,
-                u.created_at DESC
-                LIMIT :limit";
+        if ($withPhoto) {
+            $sql .= " AND EXISTS (
+                        SELECT 1 FROM user_photos up
+                        WHERE up.user_id = u.id
+                        AND up.photo IS NOT NULL
+                        AND TRIM(up.photo) <> ''
+                    )";
+        } else {
+            $sql .= " AND NOT EXISTS (
+                        SELECT 1 FROM user_photos up
+                        WHERE up.user_id = u.id
+                        AND up.photo IS NOT NULL
+                        AND TRIM(up.photo) <> ''
+                    )";
+        }
+
+        $sql .= " ORDER BY u.created_at DESC LIMIT :limit";
         $params[':limit'] = $limit;
 
         $stmt = $this->db->prepare($sql);
@@ -208,6 +233,7 @@ class User
             }
         }
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 
