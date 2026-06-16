@@ -928,6 +928,17 @@ $canonical = $seo['canonical'] ?? BASE_URL;
                 <?php
                 $malePlaceholderSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><linearGradient id="bgM" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#dbeafe"/><stop offset="55%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs><rect width="320" height="320" fill="url(#bgM)"/><circle cx="160" cy="118" r="52" fill="#1d4ed8"/><path d="M72 298c8-58 44-92 88-92s80 34 88 92H72z" fill="#1e40af"/><circle cx="146" cy="112" r="5" fill="#dbeafe"/><circle cx="174" cy="112" r="5" fill="#dbeafe"/><path d="M144 132c10 8 22 8 32 0" fill="none" stroke="#dbeafe" stroke-width="4" stroke-linecap="round"/></svg>';
                 $femalePlaceholderSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><linearGradient id="bgF" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="55%" stop-color="#f9a8d4"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs><rect width="320" height="320" fill="url(#bgF)"/><circle cx="160" cy="114" r="50" fill="#be185d"/><path d="M160 184l86 114H74l86-114z" fill="#9d174d"/><circle cx="146" cy="110" r="5" fill="#fce7f3"/><circle cx="174" cy="110" r="5" fill="#fce7f3"/><path d="M144 130c10 8 22 8 32 0" fill="none" stroke="#fce7f3" stroke-width="4" stroke-linecap="round"/></svg>';
+
+                usort($users, function (array $a, array $b): int {
+                    $aHasPhoto = !empty($a['main_photo']) && trim((string) $a['main_photo']) !== '';
+                    $bHasPhoto = !empty($b['main_photo']) && trim((string) $b['main_photo']) !== '';
+
+                    if ($aHasPhoto !== $bHasPhoto) {
+                        return $aHasPhoto ? -1 : 1;
+                    }
+
+                    return strcmp((string) ($b['created_at'] ?? ''), (string) ($a['created_at'] ?? ''));
+                });
                 ?>
                 <div class="landing-users-grid">
                     <?php foreach ($users as $user): ?>
