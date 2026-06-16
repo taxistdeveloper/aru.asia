@@ -145,26 +145,85 @@ class User
      */
     public function getAllWithPhotos($limit = 20, $excludeUserId = null, $userGender = null, $userCountry = null)
     {
-        $withPhoto = $this->fetchFeedUsers($limit, $excludeUserId, $userGender, $userCountry, true);
-        if (count($withPhoto) >= $limit) {
-            return $withPhoto;
+        $withPhoto = [];
+        $brokenPhoto = [];
+        $offset = 0;
+        $pageSize = max($limit, 50);
+
+        while (count($withPhoto) < $limit) {
+            $page = $this->fetchFeedUsers($pageSize, $excludeUserId, $userGender, $userCountry, true, $offset);
+            if ($page === []) {
+                break;
+            }
+
+            foreach ($page as $user) {
+                if ($this->userHasExistingPhotoFile($user)) {
+                    $withPhoto[] = $user;
+                    if (count($withPhoto) >= $limit) {
+                        break 2;
+                    }
+                    continue;
+                }
+
+                if (!empty($user['main_photo']) && trim((string) $user['main_photo']) !== '') {
+                    $brokenPhoto[] = $this->clearMissingPhoto($user);
+                }
+            }
+
+            $offset += count($page);
+            if (count($page) < $pageSize) {
+                break;
+            }
         }
 
-        $withoutPhoto = $this->fetchFeedUsers(
-            $limit - count($withPhoto),
-            $excludeUserId,
-            $userGender,
-            $userCountry,
-            false
-        );
+        $result = array_slice($withPhoto, 0, $limit);
+        $remaining = $limit - count($result);
 
-        return array_merge($withPhoto, $withoutPhoto);
+        if ($remaining > 0 && $brokenPhoto !== []) {
+            $result = array_merge($result, array_slice($brokenPhoto, 0, $remaining));
+            $remaining = $limit - count($result);
+        }
+
+        if ($remaining > 0) {
+            $withoutPhoto = $this->fetchFeedUsers($remaining, $excludeUserId, $userGender, $userCountry, false);
+            $result = array_merge($result, $withoutPhoto);
+        }
+
+        return array_slice($result, 0, $limit);
+    }
+
+    /**
+     * Проверяет, что у пользователя есть фото и файл существует на диске.
+     */
+    private function userHasExistingPhotoFile(array $user): bool
+    {
+        $photo = trim((string) ($user['main_photo'] ?? ''));
+        if ($photo === '') {
+            return false;
+        }
+
+        $projectRoot = dirname(__DIR__, 2);
+        $photoPath = $projectRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, UPLOAD_DIR . 'photos/' . $photo);
+
+        return is_file($photoPath);
+    }
+
+    /**
+     * Сбрасывает main_photo, если файла нет на диске.
+     */
+    private function clearMissingPhoto(array $user): array
+    {
+        if (!$this->userHasExistingPhotoFile($user)) {
+            $user['main_photo'] = null;
+        }
+
+        return $user;
     }
 
     /**
      * Выборка пользователей для ленты: только с фото или только без.
      */
-    private function fetchFeedUsers($limit, $excludeUserId, $userGender, $userCountry, $withPhoto)
+    private function fetchFeedUsers($limit, $excludeUserId, $userGender, $userCountry, $withPhoto, $offset = 0)
     {
         $sql = "SELECT u.*,
                 (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo
@@ -221,12 +280,13 @@ class User
                     )";
         }
 
-        $sql .= " ORDER BY u.created_at DESC LIMIT :limit";
+        $sql .= " ORDER BY u.created_at DESC LIMIT :limit OFFSET :offset";
         $params[':limit'] = $limit;
+        $params[':offset'] = $offset;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
-            if ($key === ':limit') {
+            if ($key === ':limit' || $key === ':offset') {
                 $stmt->bindValue($key, $value, PDO::PARAM_INT);
             } else {
                 $stmt->bindValue($key, $value, PDO::PARAM_STR);
