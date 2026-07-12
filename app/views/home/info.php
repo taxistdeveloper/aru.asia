@@ -18,7 +18,7 @@ ob_start();
         <div class="d-flex flex-column gap-3 mt-4" style="max-width: 300px; margin: 0 auto;">
             <!-- Кнопка "Сообщение разработчику" -->
             <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#feedbackModal">
-                <i class="bi bi-chat-dots"></i> Сообщение разработчикуы
+                <i class="bi bi-chat-dots"></i> Сообщение разработчику
             </button>
 
             <!-- Кнопка "Добавить на главный экран телефона" (PWA; на iOS — ручная установка через Safari) -->
