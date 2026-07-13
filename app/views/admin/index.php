@@ -508,7 +508,7 @@ ob_start();
                                 </div>
                                 <div class="col-12 col-sm-6">
                                     <div class="admin-card info h-100">
-                                        <div class="stat-label">Уникальных сегодня</div>
+                                        <div class="stat-label">Уникальных гостей сегодня</div>
                                         <div class="stat-number" style="color: #0dcaf0;"><?= $stats['unique_today'] ?? 0 ?></div>
                                     </div>
                                 </div>

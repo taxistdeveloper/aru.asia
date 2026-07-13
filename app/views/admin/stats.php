@@ -10,7 +10,7 @@ ob_start();
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
         <div>
             <h2 class="mb-1"><i class="bi bi-graph-up"></i> Статистика</h2>
-            <p class="text-muted mb-0">Сводные показатели и посещения по дням</p>
+            <p class="text-muted mb-0">Реальные заходы гостей на сайт (без админки и повторных обновлений)</p>
         </div>
         <div class="mt-2 mt-md-0 text-md-end">
             <small class="text-muted d-block">Обновлено: <?= date('d.m.Y H:i') ?></small>
@@ -24,7 +24,7 @@ ob_start();
                 <div class="card-body">
                     <div class="text-muted small">Посещений сегодня</div>
                     <div class="fs-3 fw-semibold"><?= $stats['visits_today'] ?? 0 ?></div>
-                    <div class="text-muted small">Уникальных: <?= $stats['unique_today'] ?? 0 ?></div>
+                    <div class="text-muted small">Уникальных гостей: <?= $stats['unique_today'] ?? 0 ?></div>
                 </div>
             </div>
         </div>

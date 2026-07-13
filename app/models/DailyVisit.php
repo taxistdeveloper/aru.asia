@@ -3,29 +3,37 @@
 /**
  * DAILY VISITS (посещения по дням)
  *
- * Считает:
- * - visits_total: все заходы (pageviews) за день
- * - unique_total: уникальные за день (1 раз в сутки на браузер/сессию)
- *
- * Важно: если таблицы нет (миграцию не применили), приложение не должно падать.
+ * Считает только реальные заходы гостей на публичные страницы сайта.
+ * Не учитывает: админку, менеджер-панель, API, действия администратора, обновления страниц.
  */
 class DailyVisit
 {
     private static ?bool $tableReady = null;
 
     /**
-     * Нужно ли учитывать текущий HTTP-запрос в статистике посещений.
+     * Публичные страницы, на которых фиксируется визит.
      */
-    public static function shouldTrackRequest(): bool
+    private static function getTrackableRoutes(): array
     {
-        if (php_sapi_name() === 'cli') {
-            return false;
-        }
+        return [
+            '',
+            'home',
+            'platform',
+            'info',
+            'dates',
+            'events',
+            'map',
+            'auth/login',
+            'auth/register',
+            'profile/view',
+        ];
+    }
 
-        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            return false;
-        }
-
+    /**
+     * Нормализует URI запроса так же, как Router.
+     */
+    public static function resolveRequestUri(): string
+    {
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $uri = strtok($uri, '?');
         $scriptName = dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php');
@@ -43,13 +51,40 @@ class DailyVisit
             }
         }
 
-        $uri = trim($uri, '/');
+        return trim($uri, '/');
+    }
 
-        if ($uri === '') {
-            return true;
+    /**
+     * Нужно ли учитывать текущий HTTP-запрос в статистике посещений.
+     */
+    public static function shouldTrackRequest(): bool
+    {
+        if (php_sapi_name() === 'cli') {
+            return false;
         }
 
-        if (preg_match('#^(admin|manager|api)(/|$)#', $uri)) {
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            return false;
+        }
+
+        // Действия администратора и менеджера не считаем за посещения сайта
+        if (Helper::isAdminLoggedIn()) {
+            return false;
+        }
+
+        if (Helper::isLoggedIn() && Helper::getUserRole() === 'manager') {
+            return false;
+        }
+
+        // Фоновые/prefetch-запросы браузера
+        $secPurpose = strtolower($_SERVER['HTTP_SEC_PURPOSE'] ?? $_SERVER['HTTP_PURPOSE'] ?? '');
+        if ($secPurpose !== '' && str_contains($secPurpose, 'prefetch')) {
+            return false;
+        }
+
+        $uri = self::resolveRequestUri();
+
+        if (!in_array($uri, self::getTrackableRoutes(), true)) {
             return false;
         }
 
@@ -88,7 +123,7 @@ class DailyVisit
 
     /**
      * Регистрирует визит за сегодня.
-     * Уникальность: 1 раз в сутки на браузер (cookie) + на сессию.
+     * Один браузер = один визит в сутки (повторные обновления не увеличивают счётчик).
      */
     public static function trackToday(): void
     {
@@ -101,46 +136,41 @@ class DailyVisit
 
         $isUnique = empty($_COOKIE[$cookieName]) && empty($_SESSION[$cookieName]);
 
-        // Ставим cookie/сессионный флаг сразу (чтобы не удваивать при редиректах)
-        if ($isUnique) {
-            $_SESSION[$cookieName] = 1;
-
-            $endOfDay = strtotime('tomorrow') - 1;
-            setcookie($cookieName, '1', [
-                'expires' => $endOfDay,
-                'path' => '/',
-                'secure' => !empty($_SERVER['HTTPS']),
-                'httponly' => true,
-                'samesite' => 'Lax'
-            ]);
+        // Уже считали этого посетителя сегодня — обновление страницы не добавляет визит
+        if (!$isUnique) {
+            return;
         }
+
+        $_SESSION[$cookieName] = 1;
+
+        $endOfDay = strtotime('tomorrow') - 1;
+        setcookie($cookieName, '1', [
+            'expires' => $endOfDay,
+            'path' => '/',
+            'secure' => !empty($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
 
         try {
             self::ensureTable();
             $db = Database::getInstance()->getConnection();
 
-            $uniqueInc = $isUnique ? 1 : 0;
-
-            // visit_date - PRIMARY KEY, поэтому делаем UPSERT
             $sql = "
                 INSERT INTO daily_visits (visit_date, visits_total, unique_total)
-                VALUES (:visit_date, 1, :unique_inc)
+                VALUES (:visit_date, 1, 1)
                 ON DUPLICATE KEY UPDATE
                     visits_total = visits_total + 1,
-                    unique_total = unique_total + VALUES(unique_total),
+                    unique_total = unique_total + 1,
                     updated_at = CURRENT_TIMESTAMP
             ";
 
             $stmt = $db->prepare($sql);
             $stmt->execute([
                 ':visit_date' => $today,
-                ':unique_inc' => $uniqueInc
             ]);
         } catch (Exception $e) {
-            // Таблицы может не быть (если миграцию ещё не применили) — не ломаем сайт
             error_log('DailyVisit::trackToday error: ' . $e->getMessage());
         }
     }
 }
-
-
