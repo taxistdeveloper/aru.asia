@@ -502,7 +502,7 @@ ob_start();
                             <div class="row gy-2">
                                 <div class="col-12 col-sm-6">
                                     <div class="admin-card primary h-100">
-                                        <div class="stat-label">Посещений сегодня</div>
+                                        <div class="stat-label">Главная сегодня</div>
                                         <div class="stat-number" style="color: #0d6efd;"><?= $stats['visits_today'] ?? 0 ?></div>
                                     </div>
                                 </div>
