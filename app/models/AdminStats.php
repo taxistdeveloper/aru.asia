@@ -54,7 +54,7 @@ class AdminStats
     }
 
     /**
-     * Посещения по дням за последние N дней.
+     * Посещения по дням за последние N дней (главная).
      */
     public function getDailyVisits(int $days = 30): array
     {
@@ -66,6 +66,78 @@ class AdminStats
             WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
             ORDER BY visit_date DESC
         ");
+    }
+
+    /**
+     * Заходы по разделам за сегодня.
+     *
+     * @return array<string, int>
+     */
+    public function getSectionVisitsToday(): array
+    {
+        DailyVisit::ensureTables();
+
+        $labels = DailyVisit::getSectionLabels();
+        $result = array_fill_keys(array_keys($labels), 0);
+
+        $rows = $this->fetchAll("
+            SELECT section, unique_total
+            FROM daily_section_visits
+            WHERE visit_date = CURDATE()
+        ");
+
+        foreach ($rows as $row) {
+            $section = $row['section'] ?? '';
+            if (isset($result[$section])) {
+                $result[$section] = (int)($row['unique_total'] ?? 0);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Заходы по разделам за последние N дней (сводная таблица по датам).
+     */
+    public function getSectionVisitsByDay(int $days = 30): array
+    {
+        DailyVisit::ensureTables();
+        $days = max(1, min(365, $days));
+
+        return $this->fetchAll("
+            SELECT visit_date, section, unique_total
+            FROM daily_section_visits
+            WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+            ORDER BY visit_date DESC, section ASC
+        ");
+    }
+
+    /**
+     * Сумма заходов по разделу за период.
+     */
+    public function getSectionVisitsTotals(int $days = 30): array
+    {
+        DailyVisit::ensureTables();
+        $days = max(1, min(365, $days));
+
+        $labels = DailyVisit::getSectionLabels();
+        $result = array_fill_keys(array_keys($labels), 0);
+
+        $rows = $this->fetchAll("
+            SELECT section, SUM(unique_total) AS total
+            FROM daily_section_visits
+            WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+            GROUP BY section
+        ");
+
+        foreach ($rows as $row) {
+            $section = $row['section'] ?? '';
+            if (isset($result[$section])) {
+                $result[$section] = (int)($row['total'] ?? 0);
+            }
+        }
+
+        return $result;
     }
 
     private function queryInt(string $sql, int $default = 0): int

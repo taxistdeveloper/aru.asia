@@ -10,7 +10,7 @@ ob_start();
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
         <div>
             <h2 class="mb-1"><i class="bi bi-graph-up"></i> Статистика</h2>
-            <p class="text-muted mb-0">Заходы на главную страницу сайта</p>
+            <p class="text-muted mb-0">Заходы по разделам сайта</p>
         </div>
         <div class="mt-2 mt-md-0 text-md-end">
             <small class="text-muted d-block">Обновлено: <?= date('d.m.Y H:i') ?></small>
@@ -53,6 +53,34 @@ ob_start();
                     <div class="fs-3 fw-semibold"><?= $stats['total_messages'] ?? 0 ?></div>
                     <div class="text-muted small">Активная реклама: <?= $stats['active_ads'] ?? 0 ?></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <strong><i class="bi bi-diagram-3"></i> Заходы по разделам</strong>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Раздел</th>
+                            <th class="text-end">Сегодня</th>
+                            <th class="text-end">За 30 дней</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach (($section_labels ?? []) as $sectionKey => $sectionLabel): ?>
+                            <tr>
+                                <td><?= Helper::escape($sectionLabel) ?></td>
+                                <td class="text-end"><strong><?= (int)($section_visits_today[$sectionKey] ?? 0) ?></strong></td>
+                                <td class="text-end"><?= (int)($section_visits_month[$sectionKey] ?? 0) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

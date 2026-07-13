@@ -82,10 +82,16 @@ class ManagerController
             $adminStats = new AdminStats();
             $stats = $adminStats->getSummary();
             $daily_visits = $adminStats->getDailyVisits(30);
+            $section_visits_today = $adminStats->getSectionVisitsToday();
+            $section_visits_month = $adminStats->getSectionVisitsTotals(30);
+            $section_labels = DailyVisit::getSectionLabels();
 
             View::render('manager/stats', [
                 'stats' => $stats,
                 'daily_visits' => $daily_visits,
+                'section_visits_today' => $section_visits_today,
+                'section_visits_month' => $section_visits_month,
+                'section_labels' => $section_labels,
                 'isMobile' => View::isMobile()
             ]);
         } catch (Exception $e) {
