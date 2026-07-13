@@ -54,6 +54,7 @@ require_once 'app/core/Router.php';
 require_once 'app/core/Database.php';
 require_once 'app/core/View.php';
 require_once 'app/core/Helper.php';
+require_once 'app/models/DailyVisit.php';
 
 // Автоматический вход по remember_token если пользователь не авторизован
 if (!Helper::isLoggedIn() && isset($_COOKIE['remember_token'])) {
@@ -82,6 +83,9 @@ if (!Helper::isLoggedIn() && isset($_COOKIE['remember_token'])) {
 // Проверяем существование пользователя в базе данных
 // Если пользователь был удален админом, выполняется выход с сообщением
 Helper::checkUserExists();
+
+// Счётчик посещений сайта (все публичные страницы, кроме админки/API)
+DailyVisit::trackToday();
 
 // Создаем и запускаем роутер
 $router = new Router();

@@ -307,8 +307,8 @@ ob_start();
                 <div class="stat-box info">
                     <div>
                         <div class="label">Мероприятия</div>
-                        <div class="value"><?= $stats['total_events'] ?? 0 ?></div>
-                        <small>+<?= $stats['events_today'] ?? 0 ?> сегодня</small>
+                        <div class="value"><?= $stats['active_events'] ?? 0 ?></div>
+                        <small><?= $stats['total_events'] ?? 0 ?> одобрено · +<?= $stats['events_today'] ?? 0 ?> сегодня</small>
                     </div>
                     <div class="icon">
                         <i class="bi bi-calendar-event"></i>
@@ -319,8 +319,8 @@ ob_start();
                 <div class="stat-box warning">
                     <div>
                         <div class="label">Свидания</div>
-                        <div class="value"><?= $stats['total_dates'] ?? 0 ?></div>
-                        <small>+<?= $stats['dates_today'] ?? 0 ?> сегодня</small>
+                        <div class="value"><?= $stats['active_dates'] ?? 0 ?></div>
+                        <small><?= $stats['total_dates'] ?? 0 ?> всего · +<?= $stats['dates_today'] ?? 0 ?> сегодня</small>
                     </div>
                     <div class="icon">
                         <i class="bi bi-heart"></i>

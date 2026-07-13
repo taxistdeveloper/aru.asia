@@ -138,10 +138,10 @@ ob_start();
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
-                            <div class="text-muted stat-label">Мероприятий</div>
-                            <div class="stat-number text-warning"><?= $stats['total_events'] ?></div>
+                            <div class="text-muted stat-label">Активных мероприятий</div>
+                            <div class="stat-number text-warning"><?= $stats['active_events'] ?></div>
                             <small class="text-info d-block mt-1" style="font-size: 0.75rem;">
-                                <i class="bi bi-calendar-event"></i> +<?= $stats['events_today'] ?> сегодня
+                                <i class="bi bi-calendar-event"></i> <?= $stats['total_events'] ?> одобрено
                             </small>
                         </div>
                         <i class="bi bi-calendar-event stat-icon text-warning"></i>
@@ -155,8 +155,11 @@ ob_start();
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
-                            <div class="text-muted stat-label">Свиданий</div>
-                            <div class="stat-number text-info"><?= $stats['total_dates'] ?></div>
+                            <div class="text-muted stat-label">Активных свиданий</div>
+                            <div class="stat-number text-info"><?= $stats['active_dates'] ?></div>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                <?= $stats['total_dates'] ?> всего
+                            </small>
                         </div>
                         <i class="bi bi-heart stat-icon text-info"></i>
                     </div>

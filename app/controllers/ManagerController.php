@@ -42,17 +42,8 @@ class ManagerController
         }
 
         $db = Database::getInstance()->getConnection();
-
-        // Статистика (ограниченная для менеджера)
-        $stats = [
-            'total_users' => $db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
-            'verified_users' => $db->query("SELECT COUNT(*) FROM users WHERE email_verified = 1")->fetchColumn(),
-            'total_events' => $db->query("SELECT COUNT(*) FROM events")->fetchColumn(),
-            'pending_events' => $db->query("SELECT COUNT(*) FROM events WHERE status = 'pending'")->fetchColumn(),
-            'total_dates' => $db->query("SELECT COUNT(*) FROM dates")->fetchColumn(),
-            'users_today' => $db->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()")->fetchColumn(),
-            'events_today' => $db->query("SELECT COUNT(*) FROM events WHERE DATE(created_at) = CURDATE()")->fetchColumn(),
-        ];
+        $adminStats = new AdminStats();
+        $stats = $adminStats->getSummary();
 
         // Последние пользователи
         $recent_users = $db->query("SELECT id, email, gender, age, city, email_verified, role, created_at
@@ -88,66 +79,9 @@ class ManagerController
         }
 
         try {
-            $db = Database::getInstance()->getConnection();
-
-            $safeQuery = function ($query, $default = 0) use ($db) {
-                try {
-                    $stmt = $db->query($query);
-                    if ($stmt === false) {
-                        return $default;
-                    }
-                    $result = $stmt->fetchColumn();
-                    return $result !== false ? (int)$result : $default;
-                } catch (Exception $e) {
-                    error_log("ManagerController::stats - Query error: " . $e->getMessage());
-                    return $default;
-                }
-            };
-
-            $safeFetchAll = function ($query, $default = []) use ($db) {
-                try {
-                    $stmt = $db->query($query);
-                    if ($stmt === false) {
-                        return $default;
-                    }
-                    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    return $result !== false ? $result : $default;
-                } catch (Exception $e) {
-                    error_log("ManagerController::stats - FetchAll error: " . $e->getMessage());
-                    return $default;
-                }
-            };
-
-            $stats = [
-                'total_users' => $safeQuery("SELECT COUNT(*) FROM users", 0),
-                'verified_users' => $safeQuery("SELECT COUNT(*) FROM users WHERE email_verified = 1", 0),
-                'unverified_users' => $safeQuery("SELECT COUNT(*) FROM users WHERE email_verified = 0", 0),
-                'total_events' => $safeQuery("SELECT COUNT(*) FROM events", 0),
-                'pending_events' => $safeQuery("SELECT COUNT(*) FROM events WHERE status = 'pending'", 0),
-                'total_dates' => $safeQuery("SELECT COUNT(*) FROM dates", 0),
-                'active_ads' => $safeQuery("SELECT COUNT(*) FROM ads WHERE status = 'active'", 0),
-                'pending_ads' => $safeQuery("SELECT COUNT(*) FROM ads WHERE status = 'pending'", 0),
-                'total_messages' => $safeQuery("SELECT COUNT(*) FROM messages", 0),
-                'managers' => $safeQuery("SELECT COUNT(*) FROM users WHERE role = 'manager'", 0),
-
-                // Сегодня
-                'users_today' => $safeQuery("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()", 0),
-                'events_today' => $safeQuery("SELECT COUNT(*) FROM events WHERE DATE(created_at) = CURDATE()", 0),
-                'dates_today' => $safeQuery("SELECT COUNT(*) FROM dates WHERE DATE(created_at) = CURDATE()", 0),
-                'visits_today' => $safeQuery("SELECT visits_total FROM daily_visits WHERE visit_date = CURDATE()", 0),
-                'unique_today' => $safeQuery("SELECT unique_total FROM daily_visits WHERE visit_date = CURDATE()", 0),
-
-                // Неделя
-                'users_week' => $safeQuery("SELECT COUNT(*) FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)", 0),
-                'events_week' => $safeQuery("SELECT COUNT(*) FROM events WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)", 0)
-            ];
-
-            $daily_visits = $safeFetchAll("
-                SELECT visit_date, visits_total, unique_total
-                FROM daily_visits
-                WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-                ORDER BY visit_date DESC
-            ", []);
+            $adminStats = new AdminStats();
+            $stats = $adminStats->getSummary();
+            $daily_visits = $adminStats->getDailyVisits(30);
 
             View::render('manager/stats', [
                 'stats' => $stats,

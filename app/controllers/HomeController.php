@@ -21,9 +21,6 @@ class HomeController
      */
     public function landing()
     {
-        // Скрытый счётчик посещений (по дням) — для отображения в админке
-        DailyVisit::trackToday();
-
         // Получаем статистику
         $eventModel = new Event();
         $dateModel = new Date();

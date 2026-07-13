@@ -11,14 +11,88 @@
  */
 class DailyVisit
 {
+    private static ?bool $tableReady = null;
+
+    /**
+     * Нужно ли учитывать текущий HTTP-запрос в статистике посещений.
+     */
+    public static function shouldTrackRequest(): bool
+    {
+        if (php_sapi_name() === 'cli') {
+            return false;
+        }
+
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            return false;
+        }
+
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = strtok($uri, '?');
+        $scriptName = dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+        if ($scriptName !== '/' && $scriptName !== '\\') {
+            $uri = str_replace($scriptName, '', $uri);
+        }
+
+        if (defined('BASE_URL')) {
+            $basePath = parse_url(BASE_URL, PHP_URL_PATH);
+            if ($basePath && $basePath !== '/') {
+                $basePath = trim($basePath, '/');
+                if (strpos($uri, '/' . $basePath) === 0) {
+                    $uri = substr($uri, strlen('/' . $basePath) + 1);
+                }
+            }
+        }
+
+        $uri = trim($uri, '/');
+
+        if ($uri === '') {
+            return true;
+        }
+
+        if (preg_match('#^(admin|manager|api)(/|$)#', $uri)) {
+            return false;
+        }
+
+        if (preg_match('#\.(css|js|png|jpe?g|gif|webp|ico|svg|woff2?|map|txt|xml)$#i', $uri)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Создаёт таблицу daily_visits, если её ещё нет.
+     */
+    public static function ensureTable(): void
+    {
+        if (self::$tableReady === true) {
+            return;
+        }
+
+        try {
+            $db = Database::getInstance()->getConnection();
+            $db->exec("
+                CREATE TABLE IF NOT EXISTS daily_visits (
+                    visit_date DATE NOT NULL PRIMARY KEY,
+                    visits_total INT UNSIGNED NOT NULL DEFAULT 0,
+                    unique_total INT UNSIGNED NOT NULL DEFAULT 0,
+                    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+            self::$tableReady = true;
+        } catch (Exception $e) {
+            error_log('DailyVisit::ensureTable error: ' . $e->getMessage());
+            self::$tableReady = false;
+        }
+    }
+
     /**
      * Регистрирует визит за сегодня.
      * Уникальность: 1 раз в сутки на браузер (cookie) + на сессию.
      */
     public static function trackToday(): void
     {
-        // Считаем только HTML-страницы (не CLI/не крон)
-        if (php_sapi_name() === 'cli') {
+        if (!self::shouldTrackRequest()) {
             return;
         }
 
@@ -42,6 +116,7 @@ class DailyVisit
         }
 
         try {
+            self::ensureTable();
             $db = Database::getInstance()->getConnection();
 
             $uniqueInc = $isUnique ? 1 : 0;

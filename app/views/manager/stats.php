@@ -40,9 +40,9 @@ ob_start();
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <div class="text-muted small">Мероприятий всего</div>
+                    <div class="text-muted small">Мероприятий одобрено</div>
                     <div class="fs-3 fw-semibold"><?= $stats['total_events'] ?? 0 ?></div>
-                    <div class="text-muted small">Ожидают: <?= $stats['pending_events'] ?? 0 ?></div>
+                    <div class="text-muted small">Активных: <?= $stats['active_events'] ?? 0 ?> · Ожидают: <?= $stats['pending_events'] ?? 0 ?></div>
                 </div>
             </div>
         </div>
@@ -79,6 +79,14 @@ ob_start();
                                     <td class="text-end"><strong><?= $stats['users_week'] ?? 0 ?></strong></td>
                                 </tr>
                                 <tr>
+                                    <td class="text-muted">Мероприятия (одобрено / активных / ожидают)</td>
+                                    <td class="text-end">
+                                        <strong><?= $stats['total_events'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['active_events'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['pending_events'] ?? 0 ?></strong>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td class="text-muted">Новых мероприятий (сегодня / неделя)</td>
                                     <td class="text-end">
                                         <strong><?= $stats['events_today'] ?? 0 ?></strong> /
@@ -86,12 +94,18 @@ ob_start();
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">Новых свиданий (сегодня)</td>
-                                    <td class="text-end"><strong><?= $stats['dates_today'] ?? 0 ?></strong></td>
+                                    <td class="text-muted">Свиданий (всего / активных)</td>
+                                    <td class="text-end">
+                                        <strong><?= $stats['total_dates'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['active_dates'] ?? 0 ?></strong>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">Свиданий всего</td>
-                                    <td class="text-end"><strong><?= $stats['total_dates'] ?? 0 ?></strong></td>
+                                    <td class="text-muted">Новых свиданий (сегодня / неделя)</td>
+                                    <td class="text-end">
+                                        <strong><?= $stats['dates_today'] ?? 0 ?></strong> /
+                                        <strong><?= $stats['dates_week'] ?? 0 ?></strong>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">Реклама (активная / ожидает)</td>
@@ -121,9 +135,7 @@ ob_start();
                 </div>
                 <div class="card-body">
                     <?php if (empty($daily_visits ?? [])): ?>
-                        <div class="text-muted small">
-                            Данных пока нет (или не применена миграция <code>daily_visits</code>).
-                        </div>
+                        <div class="text-muted small">Данных пока нет. Посещения начнут учитываться после первых заходов на сайт.</div>
                     <?php else: ?>
                         <div class="table-responsive">
                             <table class="table table-sm table-hover mb-0">
