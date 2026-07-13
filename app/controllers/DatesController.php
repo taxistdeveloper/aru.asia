@@ -234,11 +234,11 @@ class DatesController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dateTime = trim($_POST['date_time'] ?? '');
-            $endOfCurrentYear = strtotime(date('Y') . '-12-31 23:59:59');
-            if (!empty($dateTime) && strtotime($dateTime) > $endOfCurrentYear) {
+            $dateError = Helper::validatePlanningDateTime($dateTime);
+            if ($dateError !== null) {
                 $categories = $this->categoryModel->getAllActive();
                 View::render('dates/create', [
-                    'error' => 'Дата не может быть позже 31 декабря ' . date('Y') . ' года',
+                    'error' => $dateError,
                     'categories' => $categories ?? [],
                     'isMobile' => View::isMobile()
                 ]);
@@ -359,9 +359,9 @@ class DatesController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dateTime = trim($_POST['date_time'] ?? '');
-            $endOfCurrentYear = strtotime(date('Y') . '-12-31 23:59:59');
-            if (!empty($dateTime) && strtotime($dateTime) > $endOfCurrentYear) {
-                $_SESSION['error_message'] = 'Дата не может быть позже 31 декабря ' . date('Y') . ' года';
+            $dateError = Helper::validatePlanningDateTime($dateTime);
+            if ($dateError !== null) {
+                $_SESSION['error_message'] = $dateError;
                 Helper::redirect('dates/edit?id=' . (int)$dateId);
                 return;
             }

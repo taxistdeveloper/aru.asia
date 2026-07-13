@@ -124,8 +124,12 @@ class Router
         $this->routes['admin/ads/reject'] = ['controller' => 'Admin', 'method' => 'rejectAd'];
         $this->routes['admin/ads/delete'] = ['controller' => 'Admin', 'method' => 'deleteAd'];
         $this->routes['admin/events'] = ['controller' => 'Admin', 'method' => 'events'];
+        $this->routes['admin/events/all'] = ['controller' => 'Admin', 'method' => 'allEvents'];
         $this->routes['admin/events/approve'] = ['controller' => 'Admin', 'method' => 'approveEvent'];
         $this->routes['admin/events/reject'] = ['controller' => 'Admin', 'method' => 'rejectEvent'];
+        $this->routes['admin/events/delete'] = ['controller' => 'Admin', 'method' => 'deleteEvent'];
+        $this->routes['admin/dates/all'] = ['controller' => 'Admin', 'method' => 'allDates'];
+        $this->routes['admin/dates/delete'] = ['controller' => 'Admin', 'method' => 'deleteDate'];
         $this->routes['admin/feedback'] = ['controller' => 'Admin', 'method' => 'feedback'];
         $this->routes['admin/feedback/update-status'] = ['controller' => 'Admin', 'method' => 'updateFeedbackStatus'];
         $this->routes['admin/feedback/delete'] = ['controller' => 'Admin', 'method' => 'deleteFeedback'];

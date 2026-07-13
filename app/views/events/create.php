@@ -1250,7 +1250,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         class="form-control"
                         id="event_date"
                         name="event_date"
-                        max="<?= date('Y') ?>-12-31T23:59"
+                        max="<?= Helper::getMaxPlanningDateTimeLocal() ?>"
                         required>
                 </div>
 

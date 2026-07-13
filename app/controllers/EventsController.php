@@ -230,9 +230,9 @@ class EventsController
                 Helper::redirect('events/create');
                 return;
             }
-            $endOfCurrentYear = strtotime(date('Y') . '-12-31 23:59:59');
-            if ($eventTimestamp > $endOfCurrentYear) {
-                $_SESSION['error_message'] = 'Дата проведения не может быть позже 31 декабря ' . date('Y') . ' года';
+            $dateError = Helper::validatePlanningDateTime($eventDate);
+            if ($dateError !== null) {
+                $_SESSION['error_message'] = $dateError;
                 Helper::redirect('events/create');
                 return;
             }
@@ -429,9 +429,9 @@ class EventsController
             }
 
             $eventDate = trim($_POST['event_date'] ?? '');
-            $endOfCurrentYear = strtotime(date('Y') . '-12-31 23:59:59');
-            if (!empty($eventDate) && strtotime($eventDate) > $endOfCurrentYear) {
-                $_SESSION['error_message'] = 'Дата проведения не может быть позже 31 декабря ' . date('Y') . ' года';
+            $dateError = Helper::validatePlanningDateTime($eventDate);
+            if ($dateError !== null) {
+                $_SESSION['error_message'] = $dateError;
                 Helper::redirect('events/edit?id=' . $eventId);
                 return;
             }

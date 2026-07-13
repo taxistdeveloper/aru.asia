@@ -222,6 +222,11 @@
                                 <i class="bi bi-calendar-event"></i>
                                 <span>Все мероприятия</span>
                             </a>
+                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/dates/all') !== false ? 'active' : '' ?>"
+                               href="<?= BASE_URL ?>admin/dates/all">
+                                <i class="bi bi-heart"></i>
+                                <span>Все свидания</span>
+                            </a>
                             <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/ads') !== false ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>admin/ads">
                                 <i class="bi bi-megaphone"></i>
@@ -358,6 +363,11 @@
                        href="<?= BASE_URL ?>admin/events/all">
                         <i class="bi bi-calendar-event"></i>
                         <span>Все мероприятия</span>
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/dates/all') !== false ? 'active' : '' ?>"
+                       href="<?= BASE_URL ?>admin/dates/all">
+                        <i class="bi bi-heart"></i>
+                        <span>Все свидания</span>
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/ads') !== false ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin/ads">

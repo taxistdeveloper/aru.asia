@@ -81,6 +81,11 @@ ob_start();
                                     data-bs-target="#rejectModal<?= $event['id'] ?>">
                                 <i class="bi bi-x-circle"></i> Отклонить
                             </button>
+                            <button type="button" class="btn btn-outline-danger w-100 mt-2" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal<?= $event['id'] ?>">
+                                <i class="bi bi-trash"></i> Удалить
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -114,6 +119,29 @@ ob_start();
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                                     <button type="submit" class="btn btn-danger">Отклонить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal для удаления -->
+                <div class="modal fade" id="deleteModal<?= $event['id'] ?>" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Удалить мероприятие</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="<?= BASE_URL ?>admin/events/delete">
+                                <div class="modal-body">
+                                    <input type="hidden" name="event_id" value="<?= $event['id'] ?>">
+                                    <input type="hidden" name="from" value="moderation">
+                                    <p>Удалить мероприятие «<?= Helper::escape($event['title']) ?>»? Действие нельзя отменить.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                    <button type="submit" class="btn btn-danger">Удалить</button>
                                 </div>
                             </form>
                         </div>

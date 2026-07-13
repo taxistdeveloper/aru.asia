@@ -313,7 +313,7 @@ ob_start();
                         class="form-control"
                         id="date_time"
                         name="date_time"
-                        max="<?= date('Y') ?>-12-31T23:59"
+                        max="<?= Helper::getMaxPlanningDateTimeLocal() ?>"
                         required
                         value="<?= date('Y-m-d\TH:i', strtotime($date['date_time'])) ?>">
                 </div>

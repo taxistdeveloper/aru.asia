@@ -503,7 +503,7 @@ ob_start();
                         class="form-control"
                         id="event_date"
                         name="event_date"
-                        max="<?= date('Y') ?>-12-31T23:59"
+                        max="<?= Helper::getMaxPlanningDateTimeLocal() ?>"
                         required
                         value="<?= !empty($event['event_date']) ? date('Y-m-d\TH:i', strtotime($event['event_date'])) : '' ?>">
                 </div>

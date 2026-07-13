@@ -833,22 +833,24 @@ class AdminController
     {
         Helper::requireAdmin();
 
+        $redirectTo = (isset($_POST['from']) && $_POST['from'] === 'moderation') ? 'admin/events' : 'admin/events/all';
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            Helper::redirect('admin/events/all');
+            Helper::redirect($redirectTo);
             return;
         }
 
         $eventId = (int)($_POST['event_id'] ?? 0);
         if (!$eventId) {
             $_SESSION['error_message'] = 'Не указано мероприятие';
-            Helper::redirect('admin/events/all');
+            Helper::redirect($redirectTo);
             return;
         }
 
         $event = $this->eventModel->getById($eventId);
         if (!$event) {
             $_SESSION['error_message'] = 'Мероприятие не найдено';
-            Helper::redirect('admin/events/all');
+            Helper::redirect($redirectTo);
             return;
         }
 
@@ -858,7 +860,78 @@ class AdminController
             $_SESSION['error_message'] = 'Не удалось удалить мероприятие';
         }
 
-        Helper::redirect('admin/events/all');
+        Helper::redirect($redirectTo);
+    }
+
+    /**
+     * Список всех свиданий — для просмотра и удаления
+     */
+    public function allDates()
+    {
+        Helper::requireAdmin();
+
+        $db = Database::getInstance()->getConnection();
+        $totalDates = (int)$db->query("SELECT COUNT(*) FROM dates")->fetchColumn();
+        $perPage = 8;
+        $totalPages = $totalDates > 0 ? ceil($totalDates / $perPage) : 1;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($page < 1) $page = 1;
+        if ($page > $totalPages && $totalPages > 0) $page = $totalPages;
+        $offset = ($page - 1) * $perPage;
+
+        $dates = $db->query("
+            SELECT d.id, d.user_id, d.title, d.category_id, d.date_time, d.location, d.created_at,
+                   u.email as user_email, u.full_name,
+                   dc.name as category_name
+            FROM dates d
+            LEFT JOIN users u ON d.user_id = u.id
+            LEFT JOIN date_categories dc ON d.category_id = dc.id
+            ORDER BY d.created_at DESC
+            LIMIT $perPage OFFSET $offset
+        ")->fetchAll();
+
+        View::render('admin/all_dates', [
+            'dates' => $dates,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalDates' => $totalDates,
+            'isMobile' => View::isMobile()
+        ]);
+    }
+
+    /**
+     * Удаление свидания администратором
+     */
+    public function deleteDate()
+    {
+        Helper::requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect('admin/dates/all');
+            return;
+        }
+
+        $dateId = (int)($_POST['date_id'] ?? 0);
+        if (!$dateId) {
+            $_SESSION['error_message'] = 'Не указано свидание';
+            Helper::redirect('admin/dates/all');
+            return;
+        }
+
+        $date = $this->dateModel->getById($dateId);
+        if (!$date) {
+            $_SESSION['error_message'] = 'Свидание не найдено';
+            Helper::redirect('admin/dates/all');
+            return;
+        }
+
+        if ($this->dateModel->deleteById($dateId)) {
+            $_SESSION['success_message'] = 'Свидание удалено';
+        } else {
+            $_SESSION['error_message'] = 'Не удалось удалить свидание';
+        }
+
+        Helper::redirect('admin/dates/all');
     }
 
     /**

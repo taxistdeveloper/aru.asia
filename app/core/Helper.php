@@ -965,4 +965,51 @@ class Helper
 
         return true;
     }
+
+    /**
+     * Максимальный срок планирования свиданий и мероприятий (дней от текущего момента)
+     */
+    public static function getMaxPlanningDays(): int
+    {
+        return defined('MAX_PLANNING_DAYS') ? (int) MAX_PLANNING_DAYS : 30;
+    }
+
+    /**
+     * Unix-timestamp крайней допустимой даты планирования
+     */
+    public static function getMaxPlanningTimestamp(): int
+    {
+        return strtotime('+' . self::getMaxPlanningDays() . ' days');
+    }
+
+    /**
+     * Крайняя дата для input[type=datetime-local] (YYYY-MM-DDTHH:MM)
+     */
+    public static function getMaxPlanningDateTimeLocal(): string
+    {
+        return date('Y-m-d\TH:i', self::getMaxPlanningTimestamp());
+    }
+
+    /**
+     * Проверяет дату свидания/мероприятия. Возвращает текст ошибки или null.
+     */
+    public static function validatePlanningDateTime(?string $dateTime): ?string
+    {
+        if ($dateTime === null || $dateTime === '') {
+            return null;
+        }
+
+        $timestamp = strtotime($dateTime);
+        if ($timestamp === false) {
+            return 'Неверный формат даты и времени';
+        }
+
+        if ($timestamp > self::getMaxPlanningTimestamp()) {
+            $days = self::getMaxPlanningDays();
+            $word = $days === 1 ? 'день' : ($days < 5 ? 'дня' : 'дней');
+            return "Дата не может быть позже чем через {$days} {$word} от сегодня";
+        }
+
+        return null;
+    }
 }
