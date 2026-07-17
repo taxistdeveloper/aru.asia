@@ -248,6 +248,18 @@ class Event {
     }
 
     /**
+     * Обновляет фотографию мероприятия без изменения статуса модерации
+     */
+    public function updatePhoto($id, $photo) {
+        $sql = "UPDATE events SET photo = :photo WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':id' => $id,
+            ':photo' => $photo
+        ]);
+    }
+
+    /**
      * Получает все активные мероприятия (без фильтрации по геолокации)
      * Используется для неавторизованных пользователей и пользователей без геолокации
      */

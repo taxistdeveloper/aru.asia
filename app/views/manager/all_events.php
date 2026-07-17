@@ -111,6 +111,33 @@ ob_start();
                         </div>
                         <div class="collapse" id="eventCollapse<?= $event['id'] ?>">
                             <div class="card-body">
+                                <?php if (!empty($event['photo'])): ?>
+                                    <img src="<?= BASE_URL ?>uploads/photos/<?= rawurlencode(basename($event['photo'])) ?>"
+                                         class="img-fluid rounded mb-3 w-100"
+                                         style="height: 180px; object-fit: cover;"
+                                         alt="<?= Helper::escape($event['title']) ?>">
+                                <?php endif; ?>
+
+                                <form method="POST"
+                                      action="<?= BASE_URL ?>manager/events/update-photo"
+                                      enctype="multipart/form-data"
+                                      class="border rounded p-2 mb-3">
+                                    <input type="hidden" name="event_id" value="<?= (int)$event['id'] ?>">
+                                    <input type="hidden" name="page" value="<?= (int)$currentPage ?>">
+                                    <label for="managerEventPhoto<?= (int)$event['id'] ?>" class="form-label small fw-bold">
+                                        Фото мероприятия
+                                    </label>
+                                    <input type="file"
+                                           class="form-control form-control-sm mb-2"
+                                           id="managerEventPhoto<?= (int)$event['id'] ?>"
+                                           name="photo"
+                                           accept="image/jpeg,image/png,image/gif,image/webp"
+                                           required>
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-image"></i> Установить фото
+                                    </button>
+                                </form>
+
                                 <p class="card-text">
                                     <strong>Описание:</strong><br>
                                     <?= Helper::escape(mb_substr($event['description'], 0, 150)) ?><?= mb_strlen($event['description']) > 150 ? '...' : '' ?>

@@ -128,6 +128,7 @@ class Router
         $this->routes['admin/events/approve'] = ['controller' => 'Admin', 'method' => 'approveEvent'];
         $this->routes['admin/events/reject'] = ['controller' => 'Admin', 'method' => 'rejectEvent'];
         $this->routes['admin/events/delete'] = ['controller' => 'Admin', 'method' => 'deleteEvent'];
+        $this->routes['admin/events/update-photo'] = ['controller' => 'Admin', 'method' => 'updateEventPhoto'];
         $this->routes['admin/dates/all'] = ['controller' => 'Admin', 'method' => 'allDates'];
         $this->routes['admin/dates/delete'] = ['controller' => 'Admin', 'method' => 'deleteDate'];
         $this->routes['admin/feedback'] = ['controller' => 'Admin', 'method' => 'feedback'];
@@ -156,6 +157,7 @@ class Router
         $this->routes['manager/events/approve'] = ['controller' => 'Manager', 'method' => 'approveEvent'];
         $this->routes['manager/events/reject'] = ['controller' => 'Manager', 'method' => 'rejectEvent'];
         $this->routes['manager/events/delete'] = ['controller' => 'Manager', 'method' => 'deleteEvent'];
+        $this->routes['manager/events/update-photo'] = ['controller' => 'Manager', 'method' => 'updateEventPhoto'];
         $this->routes['manager/events/extend-deadline'] = ['controller' => 'Manager', 'method' => 'extendEventDeadline'];
         $this->routes['manager/dates/all'] = ['controller' => 'Manager', 'method' => 'allDates'];
         $this->routes['manager/dates/extend-deadline'] = ['controller' => 'Manager', 'method' => 'extendDateDeadline'];

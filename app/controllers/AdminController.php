@@ -735,6 +735,68 @@ class AdminController
     }
 
     /**
+     * Устанавливает фотографию мероприятия от имени администратора
+     */
+    public function updateEventPhoto()
+    {
+        Helper::requireAdmin();
+
+        $page = max(1, (int)($_POST['page'] ?? 1));
+        $redirectTo = 'admin/events/all?page=' . $page;
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect($redirectTo);
+            return;
+        }
+
+        $eventId = (int)($_POST['event_id'] ?? 0);
+        $event = $eventId ? $this->eventModel->getById($eventId) : null;
+        $photo = $_FILES['photo'] ?? null;
+
+        if (!$event) {
+            $_SESSION['error_message'] = 'Мероприятие не найдено';
+            Helper::redirect($redirectTo);
+            return;
+        }
+
+        if (!$photo || ($photo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $_SESSION['error_message'] = 'Выберите фотографию для загрузки';
+            Helper::redirect($redirectTo);
+            return;
+        }
+
+        if (($photo['size'] ?? 0) > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            $_SESSION['error_message'] = 'Файл слишком большой. Максимальный размер — ' . MAX_FILE_SIZE_MB . ' МБ';
+            Helper::redirect($redirectTo);
+            return;
+        }
+
+        $newPhoto = Helper::uploadFile($photo, UPLOAD_DIR . 'photos/');
+        if (!$newPhoto) {
+            $_SESSION['error_message'] = 'Не удалось загрузить фото. Используйте JPG, PNG, GIF или WebP';
+            Helper::redirect($redirectTo);
+            return;
+        }
+
+        $photosDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . rtrim(UPLOAD_DIR, '/\\') . DIRECTORY_SEPARATOR . 'photos';
+        if ($this->eventModel->updatePhoto($eventId, $newPhoto)) {
+            $oldPhoto = basename((string)($event['photo'] ?? ''));
+            if ($oldPhoto !== '' && $oldPhoto !== $newPhoto) {
+                $oldPath = $photosDir . DIRECTORY_SEPARATOR . $oldPhoto;
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $_SESSION['success_message'] = 'Фотография мероприятия обновлена';
+        } else {
+            @unlink($photosDir . DIRECTORY_SEPARATOR . $newPhoto);
+            $_SESSION['error_message'] = 'Не удалось сохранить фотографию мероприятия';
+        }
+
+        Helper::redirect($redirectTo);
+    }
+
+    /**
      * Удаление мероприятия администратором (после одобрения или в любой момент)
      */
     public function deleteEvent()
