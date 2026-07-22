@@ -445,42 +445,45 @@ function validateForm(formId) {
             });
     }
 
-    // Глобальная функция для добавления сообщения в чат (доступна из других скриптов)
-    window.addMessageToChat = function(container, msg) {
-        const isOwnMessage = msg.from_user_id == (window.currentUserId || 0);
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'mb-3 ' + (isOwnMessage ? 'text-end' : '');
-        messageDiv.setAttribute('data-message-id', msg.id);
+    // Fallback: только если страница чата сама не задала addMessageToChat
+    if (typeof window.addMessageToChat !== 'function') {
+        window.addMessageToChat = function(container, msg) {
+            const isOwnMessage = msg.from_user_id == (window.currentUserId || 0);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-item ' + (isOwnMessage ? 'text-end' : 'text-start');
+            messageDiv.setAttribute('data-message-id', msg.id);
 
-        const messageClass = isOwnMessage ? 'bg-primary text-white' : 'bg-light';
-        const timeClass = isOwnMessage ? 'text-white-50' : 'text-muted';
-        const date = new Date(msg.created_at);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const formattedDate = `${day}.${month}.${year} ${hours}:${minutes}`;
+            const date = new Date(msg.created_at);
+            const timeStr = date.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
 
-        // Удаляем сообщение "Нет сообщений" если оно есть
-        const noMessages = container.querySelector('.text-muted.text-center');
-        if (noMessages) {
-            noMessages.remove();
-        }
+            const empty = container.querySelector('.wa-empty-state, .text-muted.text-center');
+            if (empty) empty.remove();
 
-        // Если есть from_email (для чатов свиданий/мероприятий), показываем его
-        const emailPart = msg.from_email ? `<small class="${timeClass}">${escapeHtml(msg.from_email)}</small><br>` : '';
+            const senderName = msg.from_full_name || msg.from_email || '';
+            const senderHtml = (!isOwnMessage && senderName)
+                ? `<div class="message-sender">${escapeHtml(senderName)}</div>`
+                : '';
+            const checksHtml = isOwnMessage
+                ? '<span class="wa-checks" title="Доставлено"><i class="bi bi-check2-all"></i></span>'
+                : '';
+            const safeMessage = escapeHtml(msg.message || '').replace(/\n/g, '<br>');
 
-        messageDiv.innerHTML = `
-            <div class="d-inline-block p-2 rounded ${messageClass}" style="max-width: 70%;">
-                ${emailPart}
-                ${escapeHtml(msg.message)}
-                <br>
-                <small class="${timeClass}">${formattedDate}</small>
-            </div>
-        `;
+            messageDiv.innerHTML = `
+                <div class="message-bubble ${isOwnMessage ? 'own' : 'other'}">
+                    ${senderHtml}
+                    <div class="message-content">${safeMessage}</div>
+                    <div class="message-meta">
+                        <span class="message-time">${timeStr}</span>
+                        ${checksHtml}
+                    </div>
+                </div>
+            `;
 
-        container.appendChild(messageDiv);
+            container.appendChild(messageDiv);
+        };
     }
 
     // Экранирование HTML
