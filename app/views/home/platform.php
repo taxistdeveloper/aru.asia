@@ -86,7 +86,7 @@ ob_start();
         .ad-banner-image-wrapper {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: auto;
             overflow: hidden;
             background: linear-gradient(135deg, #e0e6ed 0%, #f4f6f9 100%);
             box-sizing: border-box;
@@ -94,9 +94,10 @@ ob_start();
 
         .ad-banner-image {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
+            height: auto;
+            max-height: none;
+            object-fit: contain;
+            object-position: center top;
             display: block;
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -1217,7 +1218,7 @@ ob_start();
             /* Рекламный слайдер для мобильных */
             .ad-carousel-container {
                 margin-bottom: 16px;
-                padding: 0;
+                padding: 0 12px;
             }
 
             .ad-carousel {
@@ -1230,16 +1231,18 @@ ob_start();
             }
 
             .ad-banner-image-wrapper {
-                height: 180px;
+                height: auto;
             }
 
             .ad-banner-image {
-                height: 100%;
-                object-fit: cover;
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                object-position: center top;
             }
 
             .ad-banner-placeholder {
-                height: 180px;
+                height: 160px;
             }
 
             .ad-banner-footer {
@@ -1363,20 +1366,22 @@ ob_start();
         /* Очень маленькие телефоны: делаем карточки чуть уже/компактнее */
         @media (max-width: 360px) {
             .ad-carousel-container {
-                padding: 0;
+                padding: 0 10px;
             }
 
             .ad-banner-image-wrapper {
-                height: 150px;
+                height: auto;
             }
 
             .ad-banner-image {
-                height: 100%;
-                object-fit: cover;
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                object-position: center top;
             }
 
             .ad-banner-placeholder {
-                height: 150px;
+                height: 140px;
             }
 
             .ad-banner-badge {
@@ -1433,16 +1438,18 @@ ob_start();
             }
 
             .ad-banner-image-wrapper {
-                height: 240px;
+                height: auto;
             }
 
             .ad-banner-image {
-                height: 100%;
-                object-fit: cover;
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                object-position: center top;
             }
 
             .ad-banner-placeholder {
-                height: 240px;
+                height: 200px;
             }
 
             .ad-banner-footer {
