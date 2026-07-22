@@ -10,7 +10,7 @@ ob_start();
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
         <div>
             <h2 class="mb-1"><i class="bi bi-graph-up"></i> Статистика</h2>
-            <p class="text-muted mb-0">Заходы по разделам сайта (без админки и повторных обновлений)</p>
+            <p class="text-muted mb-0">Уникальные люди по разделам (один человек = 1, сколько бы раз ни заходил)</p>
         </div>
         <div class="mt-2 mt-md-0 text-md-end">
             <small class="text-muted d-block">Обновлено: <?= date('d.m.Y H:i') ?></small>
@@ -68,8 +68,8 @@ ob_start();
                     <thead>
                         <tr>
                             <th>Раздел</th>
-                            <th class="text-end">Сегодня</th>
-                            <th class="text-end">За 30 дней</th>
+                            <th class="text-end">Людей сегодня</th>
+                            <th class="text-end">Людей за 30 дней</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +83,11 @@ ob_start();
                     </tbody>
                 </table>
             </div>
-            <small class="text-muted">Один браузер = один визит в раздел за сутки. Админка не учитывается.</small>
+            <small class="text-muted">
+                Один человек = 1 в каждом разделе, даже если заходил или писал сообщения много раз.
+                «Вход» — кто открывал страницу входа; «Регистрация» — кто реально создал аккаунт.
+                Админка не учитывается.
+            </small>
         </div>
     </div>
 

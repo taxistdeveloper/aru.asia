@@ -3,6 +3,7 @@
 /**
  * Сводная статистика для админки и панели менеджера.
  * Все показатели считаются из реальных данных БД.
+ * По разделам — уникальные люди, а не число действий.
  */
 class AdminStats
 {
@@ -69,7 +70,7 @@ class AdminStats
     }
 
     /**
-     * Заходы по разделам за сегодня.
+     * Уникальные люди по разделам за сегодня.
      *
      * @return array<string, int>
      */
@@ -81,17 +82,21 @@ class AdminStats
         $result = array_fill_keys(array_keys($labels), 0);
 
         $rows = $this->fetchAll("
-            SELECT section, unique_total
-            FROM daily_section_visits
+            SELECT section, COUNT(DISTINCT visitor_key) AS total
+            FROM daily_section_visitors
             WHERE visit_date = CURDATE()
+            GROUP BY section
         ");
 
         foreach ($rows as $row) {
             $section = $row['section'] ?? '';
             if (isset($result[$section])) {
-                $result[$section] = (int)($row['unique_total'] ?? 0);
+                $result[$section] = (int)($row['total'] ?? 0);
             }
         }
+
+        // Регистрация — реальные новые аккаунты, не заходы на страницу
+        $result['auth_register'] = $this->getRegistrationsCount(0);
 
         return $result;
     }
@@ -105,15 +110,16 @@ class AdminStats
         $days = max(1, min(365, $days));
 
         return $this->fetchAll("
-            SELECT visit_date, section, unique_total
-            FROM daily_section_visits
+            SELECT visit_date, section, COUNT(DISTINCT visitor_key) AS unique_total
+            FROM daily_section_visitors
             WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+            GROUP BY visit_date, section
             ORDER BY visit_date DESC, section ASC
         ");
     }
 
     /**
-     * Сумма заходов по разделу за период.
+     * Уникальные люди по разделу за период (один человек = 1 за весь период).
      */
     public function getSectionVisitsTotals(int $days = 30): array
     {
@@ -124,8 +130,8 @@ class AdminStats
         $result = array_fill_keys(array_keys($labels), 0);
 
         $rows = $this->fetchAll("
-            SELECT section, SUM(unique_total) AS total
-            FROM daily_section_visits
+            SELECT section, COUNT(DISTINCT visitor_key) AS total
+            FROM daily_section_visitors
             WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
             GROUP BY section
         ");
@@ -137,7 +143,33 @@ class AdminStats
             }
         }
 
+        // Регистрация — реальные новые аккаунты за период
+        $result['auth_register'] = $this->getRegistrationsCount($days);
+
         return $result;
+    }
+
+    /**
+     * Количество новых пользователей (роль user) за сегодня или за N дней.
+     * $days = 0 — только сегодня.
+     */
+    private function getRegistrationsCount(int $days): int
+    {
+        $userFilter = "(role = 'user' OR role IS NULL OR role = '')";
+
+        if ($days <= 0) {
+            return $this->queryInt("
+                SELECT COUNT(*) FROM users
+                WHERE {$userFilter} AND DATE(created_at) = CURDATE()
+            ");
+        }
+
+        $days = max(1, min(365, $days));
+        return $this->queryInt("
+            SELECT COUNT(*) FROM users
+            WHERE {$userFilter}
+              AND created_at >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+        ");
     }
 
     private function queryInt(string $sql, int $default = 0): int

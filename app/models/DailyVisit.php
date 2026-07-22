@@ -3,8 +3,11 @@
 /**
  * DAILY VISITS — посещения по разделам сайта.
  *
- * Считает уникальные заходы (1 браузер = 1 визит в раздел за сутки).
- * Не учитывает админку, менеджер-панель, API и действия администратора.
+ * Считает уникальных людей (не действия):
+ * - авторизованный пользователь = 1 человек по user_id;
+ * - гость = 1 человек по постоянному cookie.
+ * Повторные заходы и сообщения одного человека не увеличивают счётчик.
+ * Не учитывает админку, менеджер-панель, API и фоновые AJAX/fetch-запросы.
  */
 class DailyVisit
 {
@@ -22,7 +25,8 @@ class DailyVisit
             'profile' => 'Профиль',
             'messages' => 'Сообщения',
             'ads' => 'Реклама',
-            'auth' => 'Вход / регистрация',
+            'auth_login' => 'Вход',
+            'auth_register' => 'Регистрация',
         ];
     }
 
@@ -70,6 +74,11 @@ class DailyVisit
             return null;
         }
 
+        // Фоновые эндпоинты сообщений (поллинг) — не заходы в раздел
+        if (preg_match('#^messages/(getUnreadCount|getNewMessages|getUnreadDateCount|getUnreadEventCount|getTotalUnreadDatesCount|getTotalUnreadEventsCount|event-updates)$#', $uri)) {
+            return null;
+        }
+
         $map = [
             'platform' => 'platform',
             'info' => 'info',
@@ -100,8 +109,14 @@ class DailyVisit
             return 'ads';
         }
 
-        if (str_starts_with($uri, 'auth/login') || str_starts_with($uri, 'auth/register')) {
-            return 'auth';
+        if (str_starts_with($uri, 'auth/login')) {
+            return 'auth_login';
+        }
+
+        // Страницу регистрации не считаем как «зарегистрировались» —
+        // в статистике берём реальные новые аккаунты из users.
+        if (str_starts_with($uri, 'auth/register')) {
+            return null;
         }
 
         return null;
@@ -130,6 +145,17 @@ class DailyVisit
 
         $secPurpose = strtolower($_SERVER['HTTP_SEC_PURPOSE'] ?? $_SERVER['HTTP_PURPOSE'] ?? '');
         if ($secPurpose !== '' && str_contains($secPurpose, 'prefetch')) {
+            return false;
+        }
+
+        // Только полноценные переходы по страницам, не AJAX/fetch/iframe
+        $fetchDest = strtolower($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '');
+        if ($fetchDest !== '' && $fetchDest !== 'document') {
+            return false;
+        }
+
+        $xrw = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        if ($xrw === 'xmlhttprequest') {
             return false;
         }
 
@@ -170,6 +196,17 @@ class DailyVisit
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             ");
 
+            $db->exec("
+                CREATE TABLE IF NOT EXISTS daily_section_visitors (
+                    visit_date DATE NOT NULL,
+                    section VARCHAR(32) NOT NULL,
+                    visitor_key VARCHAR(64) NOT NULL,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (visit_date, section, visitor_key),
+                    KEY idx_section_period (section, visit_date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+
             self::$tablesReady = true;
         } catch (Exception $e) {
             error_log('DailyVisit::ensureTables error: ' . $e->getMessage());
@@ -178,7 +215,37 @@ class DailyVisit
     }
 
     /**
-     * Регистрирует визит в соответствующий раздел за сегодня.
+     * Ключ уникального человека: user_id либо постоянный guest cookie.
+     */
+    public static function getVisitorKey(): string
+    {
+        if (Helper::isLoggedIn()) {
+            $userId = (int)Helper::getUserId();
+            if ($userId > 0) {
+                return 'u:' . $userId;
+            }
+        }
+
+        $cookieName = 'aru_vid';
+        $visitorId = $_COOKIE[$cookieName] ?? ($_SESSION[$cookieName] ?? '');
+
+        if (!is_string($visitorId) || !preg_match('/^[a-f0-9]{32}$/', $visitorId)) {
+            $visitorId = bin2hex(random_bytes(16));
+            $_SESSION[$cookieName] = $visitorId;
+            setcookie($cookieName, $visitorId, [
+                'expires' => time() + 86400 * 400,
+                'path' => '/',
+                'secure' => !empty($_SERVER['HTTPS']),
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+        }
+
+        return 'v:' . $visitorId;
+    }
+
+    /**
+     * Регистрирует визит в соответствующий раздел за сегодня (1 человек = 1).
      */
     public static function trackToday(): void
     {
@@ -192,28 +259,31 @@ class DailyVisit
         }
 
         $today = date('Y-m-d');
-        $cookieName = 'aru_uv_' . $section . '_' . date('Ymd');
-
-        $isUnique = empty($_COOKIE[$cookieName]) && empty($_SESSION[$cookieName]);
-
-        if (!$isUnique) {
-            return;
-        }
-
-        $_SESSION[$cookieName] = 1;
-
-        $endOfDay = strtotime('tomorrow') - 1;
-        setcookie($cookieName, '1', [
-            'expires' => $endOfDay,
-            'path' => '/',
-            'secure' => !empty($_SERVER['HTTPS']),
-            'httponly' => true,
-            'samesite' => 'Lax'
-        ]);
+        $visitorKey = self::getVisitorKey();
 
         try {
             self::ensureTables();
+            if (self::$tablesReady !== true) {
+                return;
+            }
+
             $db = Database::getInstance()->getConnection();
+
+            $visitorSql = "
+                INSERT IGNORE INTO daily_section_visitors (visit_date, section, visitor_key)
+                VALUES (:visit_date, :section, :visitor_key)
+            ";
+            $visitorStmt = $db->prepare($visitorSql);
+            $visitorStmt->execute([
+                ':visit_date' => $today,
+                ':section' => $section,
+                ':visitor_key' => $visitorKey,
+            ]);
+
+            // Уже учитывали этого человека в разделе сегодня
+            if ($visitorStmt->rowCount() === 0) {
+                return;
+            }
 
             $sectionSql = "
                 INSERT INTO daily_section_visits (visit_date, section, visits_total, unique_total)
