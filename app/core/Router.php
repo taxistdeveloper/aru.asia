@@ -39,6 +39,7 @@ class Router
         $this->routes['auth/verify'] = ['controller' => 'Auth', 'method' => 'verify'];
         $this->routes['auth/forgot-password'] = ['controller' => 'Auth', 'method' => 'forgotPassword'];
         $this->routes['auth/reset-password'] = ['controller' => 'Auth', 'method' => 'resetPassword'];
+        $this->routes['auth/delete-account'] = ['controller' => 'Auth', 'method' => 'deleteAccount'];
 
         // Личный кабинет
         $this->routes['profile'] = ['controller' => 'Profile', 'method' => 'index'];

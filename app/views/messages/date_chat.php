@@ -94,25 +94,38 @@ ob_start();
             display: inline-flex !important;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             color: #fff !important;
-            background: transparent;
-            border: none;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             text-decoration: none;
             flex-shrink: 0;
             margin-right: 4px;
-            transition: background 0.15s;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
         }
 
         .wa-back-btn:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.45);
             color: #fff !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .wa-back-btn:active {
+            transform: scale(0.94);
+            background: rgba(255, 255, 255, 0.22);
         }
 
         .wa-back-btn i {
-            font-size: 1.25rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            line-height: 1;
+            margin-left: -1px;
         }
 
         #chat-view .chat-page-header .chat-header-user {
@@ -937,8 +950,8 @@ ob_start();
             <div class="chat-page-header">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div class="d-flex align-items-center flex-grow-1 chat-header-user" style="min-width: 0;">
-                        <a href="<?= BASE_URL ?>messages/dates-list" class="wa-back-btn" title="Назад">
-                            <i class="bi bi-arrow-left"></i>
+                        <a href="<?= BASE_URL ?>messages/dates-list" class="wa-back-btn" title="Назад" aria-label="Назад">
+                            <i class="bi bi-chevron-left"></i>
                         </a>
                         <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$selectedUserId ?>&from=date_chat&date_id=<?= (int)$date['id'] ?>"
                            class="chat-header-profile"

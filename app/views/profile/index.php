@@ -283,6 +283,13 @@ ob_start();
 </style>
 
 <div class="mobile-page-container mt-3 mt-md-4">
+    <?php if (!empty($_SESSION['account_restored_message'])): ?>
+        <div class="alert alert-success">
+            <?= Helper::escape($_SESSION['account_restored_message']) ?>
+        </div>
+        <?php unset($_SESSION['account_restored_message']); ?>
+    <?php endif; ?>
+
     <div class="d-flex justify-content-between align-items-center mb-4 profile-header">
         <h2>Мой кабинет</h2>
         <div class="profile-header-actions">

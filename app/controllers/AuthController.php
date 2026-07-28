@@ -40,6 +40,23 @@ class AuthController
 
             // Проверяем пароль
             if ($user && password_verify($password, $user['password'])) {
+                // Аккаунт в периоде мягкого удаления — восстанавливаем или окончательно чистим
+                if ($this->userModel->isSoftDeleted($user)) {
+                    if ($this->userModel->canRestore($user)) {
+                        $this->userModel->restore($user['id']);
+                        $user['deleted_at'] = null;
+                        $_SESSION['account_restored_message'] = 'Аккаунт восстановлен. Переписка и фото были удалены ранее.';
+                    } else {
+                        $this->userModel->delete($user['id']);
+                        $error = "Срок хранения аккаунта истёк. Аккаунт удалён безвозвратно.";
+                        View::render('auth/login', [
+                            'error' => $error,
+                            'isMobile' => View::isMobile()
+                        ]);
+                        return;
+                    }
+                }
+
                 if ($user['email_verified']) {
                     // Сохраняем данные в сессию
                     $_SESSION['user_id'] = $user['id'];
@@ -99,6 +116,9 @@ class AuthController
             $email = trim(strtolower($email));
 
             // Валидация
+            $error = null;
+            $canRegister = false;
+
             if (empty($email) || empty($password)) {
                 $error = "Заполните все поля";
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -107,9 +127,27 @@ class AuthController
                 $error = "Пароли не совпадают";
             } elseif (strlen($password) < 6) {
                 $error = "Пароль должен быть не менее 6 символов";
-            } elseif ($this->userModel->findByEmail($email)) {
-                $error = "Пользователь с таким email уже существует";
             } else {
+                $existing = $this->userModel->findByEmail($email);
+                if ($existing) {
+                    if ($this->userModel->isSoftDeleted($existing)) {
+                        if ($this->userModel->canRestore($existing)) {
+                            $error = "Аккаунт с этим email был удалён. Войдите с прежним паролем, чтобы восстановить его в течение "
+                                . User::SOFT_DELETE_MONTHS . " месяцев.";
+                        } else {
+                            // Срок истёк — окончательно удаляем и разрешаем регистрацию
+                            $this->userModel->delete($existing['id']);
+                            $canRegister = true;
+                        }
+                    } else {
+                        $error = "Пользователь с таким email уже существует";
+                    }
+                } else {
+                    $canRegister = true;
+                }
+            }
+
+            if ($canRegister && empty($error)) {
                 // Генерируем токен для подтверждения email
                 $token = Helper::generateToken();
 
@@ -342,5 +380,51 @@ class AuthController
         unset($_SESSION['user_role']);
 
         Helper::redirect('home');
+    }
+
+    /**
+     * Мягкое удаление аккаунта текущего пользователя
+     */
+    public function deleteAccount()
+    {
+        if (!Helper::isLoggedIn()) {
+            Helper::redirect('auth/login');
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect('info');
+            return;
+        }
+
+        $userId = Helper::getUserId();
+        if (!$userId || !$this->userModel->softDelete($userId)) {
+            $_SESSION['delete_account_error'] = 'Не удалось удалить аккаунт. Попробуйте позже.';
+            Helper::redirect('info');
+            return;
+        }
+
+        // Удаляем cookie remember_token
+        if (isset($_COOKIE['remember_token'])) {
+            setcookie('remember_token', '', [
+                'expires' => time() - 3600,
+                'path' => '/',
+                'domain' => '',
+                'secure' => isset($_SERVER['HTTPS']),
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+        }
+
+        unset($_SESSION['user_id']);
+        unset($_SESSION['user_email']);
+        unset($_SESSION['user_gender']);
+        unset($_SESSION['user_role']);
+
+        $_SESSION['deleted_user_message'] = 'Аккаунт удалён. Переписка и фото удалены. В течение '
+            . User::SOFT_DELETE_MONTHS
+            . ' месяцев вы можете войти по тому же email и восстановить аккаунт.';
+
+        Helper::redirect('auth/login');
     }
 }

@@ -27,6 +27,13 @@ ob_start();
                         <?php unset($_SESSION['deleted_user_message']); ?>
                     <?php endif; ?>
 
+                    <?php if (isset($_SESSION['account_restored_message'])): ?>
+                        <div class="alert alert-success">
+                            <?= Helper::escape($_SESSION['account_restored_message']) ?>
+                        </div>
+                        <?php unset($_SESSION['account_restored_message']); ?>
+                    <?php endif; ?>
+
                     <?php if (isset($_GET['password_reset']) && $_GET['password_reset'] === 'success'): ?>
                         <div class="alert alert-success">
                             Пароль успешно изменен! Теперь вы можете войти с новым паролем.

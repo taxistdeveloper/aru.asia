@@ -48,6 +48,7 @@ class ManagerController
         // Последние пользователи
         $recent_users = $db->query("SELECT id, email, gender, age, city, email_verified, role, created_at
                                    FROM users
+                                   WHERE deleted_at IS NULL
                                    ORDER BY created_at DESC
                                    LIMIT 10")->fetchAll();
 
@@ -124,14 +125,13 @@ class ManagerController
         }
 
         // Формируем SQL в зависимости от фильтра и поиска
-        $whereClause = "";
+        $whereClause = "WHERE u.deleted_at IS NULL";
         $params = [];
         if ($filter === 'new') {
-            $whereClause = "WHERE u.created_at >= DATE_SUB(NOW(), INTERVAL 2 DAY)";
+            $whereClause .= " AND u.created_at >= DATE_SUB(NOW(), INTERVAL 2 DAY)";
         }
         if ($search !== '') {
-            $whereClause .= ($whereClause ? " AND " : "WHERE ")
-                . "(u.registration_ip = :search_exact"
+            $whereClause .= " AND (u.registration_ip = :search_exact"
                 . " OR u.full_name LIKE :search_like"
                 . " OR u.email LIKE :search_like2)";
             $params['search_exact'] = $search;
@@ -443,8 +443,8 @@ class ManagerController
             $db = Database::getInstance()->getConnection();
             $sql = "SELECT id, email, full_name, gender, age, city
                     FROM users
-                    WHERE email LIKE :search
-                    OR full_name LIKE :search2
+                    WHERE deleted_at IS NULL
+                    AND (email LIKE :search OR full_name LIKE :search2)
                     ORDER BY created_at DESC
                     LIMIT 50";
             $stmt = $db->prepare($sql);
@@ -459,6 +459,7 @@ class ManagerController
             $db = Database::getInstance()->getConnection();
             $sql = "SELECT id, email, full_name, gender, age, city
                     FROM users
+                    WHERE deleted_at IS NULL
                     ORDER BY created_at DESC
                     LIMIT 20";
             $users = $db->query($sql)->fetchAll();
@@ -503,7 +504,7 @@ class ManagerController
         if ($recipientType === 'all') {
             // Отправляем всем пользователям
             $db = Database::getInstance()->getConnection();
-            $sql = "SELECT id FROM users WHERE email_verified = 1";
+            $sql = "SELECT id FROM users WHERE email_verified = 1 AND deleted_at IS NULL";
             $users = $db->query($sql)->fetchAll();
 
             foreach ($users as $user) {

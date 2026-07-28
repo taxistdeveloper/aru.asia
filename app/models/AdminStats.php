@@ -21,7 +21,7 @@ class AdminStats
     {
         DailyVisit::ensureTable();
 
-        $userFilter = "role = 'user' OR role IS NULL OR role = ''";
+        $userFilter = "(role = 'user' OR role IS NULL OR role = '') AND deleted_at IS NULL";
 
         return [
             'total_users' => $this->queryInt("SELECT COUNT(*) FROM users WHERE {$userFilter}"),
@@ -155,7 +155,7 @@ class AdminStats
      */
     private function getRegistrationsCount(int $days): int
     {
-        $userFilter = "(role = 'user' OR role IS NULL OR role = '')";
+        $userFilter = "(role = 'user' OR role IS NULL OR role = '') AND deleted_at IS NULL";
 
         if ($days <= 0) {
             return $this->queryInt("

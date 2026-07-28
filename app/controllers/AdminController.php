@@ -161,6 +161,7 @@ class AdminController
             // Последние пользователи
             $recent_users = $safeFetchAll("SELECT id, email, gender, age, city, email_verified, role, created_at
                                            FROM users
+                                           WHERE deleted_at IS NULL
                                            ORDER BY created_at DESC
                                            LIMIT 5", []);
 
@@ -278,6 +279,7 @@ class AdminController
         $sql = "SELECT u.*,
                 (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo
                 FROM users u
+                WHERE u.deleted_at IS NULL
                 ORDER BY u.created_at DESC
                 LIMIT 100";
         $users = $db->query($sql)->fetchAll();
@@ -1147,8 +1149,8 @@ class AdminController
             $db = Database::getInstance()->getConnection();
             $sql = "SELECT id, email, full_name, gender, age, city
                     FROM users
-                    WHERE email LIKE :search
-                    OR full_name LIKE :search2
+                    WHERE deleted_at IS NULL
+                    AND (email LIKE :search OR full_name LIKE :search2)
                     ORDER BY created_at DESC
                     LIMIT 50";
             $stmt = $db->prepare($sql);
@@ -1163,6 +1165,7 @@ class AdminController
             $db = Database::getInstance()->getConnection();
             $sql = "SELECT id, email, full_name, gender, age, city
                     FROM users
+                    WHERE deleted_at IS NULL
                     ORDER BY created_at DESC
                     LIMIT 20";
             $users = $db->query($sql)->fetchAll();
@@ -1206,7 +1209,7 @@ class AdminController
         if ($recipientType === 'all') {
             // Отправляем всем пользователям
             $db = Database::getInstance()->getConnection();
-            $sql = "SELECT id FROM users WHERE email_verified = 1";
+            $sql = "SELECT id FROM users WHERE email_verified = 1 AND deleted_at IS NULL";
             $users = $db->query($sql)->fetchAll();
 
             foreach ($users as $user) {

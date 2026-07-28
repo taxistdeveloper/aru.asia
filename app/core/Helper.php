@@ -44,8 +44,8 @@ class Helper
         $userModel = new User();
         $user = $userModel->findById($userId);
 
-        // Если пользователя нет в базе данных
-        if (!$user) {
+        // Если пользователя нет в базе данных или аккаунт помечен как удалённый
+        if (!$user || !empty($user['deleted_at'])) {
             // Очищаем remember token если есть
             if (isset($_COOKIE['remember_token'])) {
                 setcookie('remember_token', '', [
@@ -65,7 +65,13 @@ class Helper
             unset($_SESSION['user_role']);
 
             // Сохраняем сообщение о том, что пользователь был удален
-            $_SESSION['deleted_user_message'] = 'Вас удалили из базы';
+            if (!$user) {
+                $_SESSION['deleted_user_message'] = 'Вас удалили из базы';
+            } else {
+                $_SESSION['deleted_user_message'] = 'Аккаунт удалён. Войдите по email в течение '
+                    . User::SOFT_DELETE_MONTHS
+                    . ' месяцев, чтобы восстановить его.';
+            }
 
             // Перенаправляем на страницу входа
             self::redirect('auth/login');

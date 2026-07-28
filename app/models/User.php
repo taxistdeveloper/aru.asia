@@ -9,6 +9,9 @@
 
 class User
 {
+    /** Сколько месяцев хранить аккаунт после удаления (для восстановления по email) */
+    public const SOFT_DELETE_MONTHS = 6;
+
     private $db; // Подключение к базе данных
 
     public function __construct()
@@ -229,6 +232,7 @@ class User
                 (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo
                 FROM users u
                 WHERE u.email_verified = 1
+                AND u.deleted_at IS NULL
                 AND (u.marital_status IS NULL OR u.marital_status != 'married')
                 AND (u.profile_blocked IS NULL OR u.profile_blocked = 0)";
 
@@ -312,6 +316,7 @@ class User
                 sin(radians(:lat2)) * sin(radians(latitude)))) AS distance
                 FROM users
                 WHERE email_verified = 1
+                AND deleted_at IS NULL
                 AND latitude IS NOT NULL
                 AND longitude IS NOT NULL
                 AND (marital_status IS NULL OR marital_status != 'married')
@@ -405,7 +410,7 @@ class User
      */
     public function findByRememberToken($token)
     {
-        $sql = "SELECT * FROM users WHERE remember_token = :token AND remember_token_expires > NOW()";
+        $sql = "SELECT * FROM users WHERE remember_token = :token AND remember_token_expires > NOW() AND deleted_at IS NULL";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':token' => $token]);
         return $stmt->fetch();
@@ -463,28 +468,158 @@ class User
     }
 
     /**
+     * Проверяет, помечен ли аккаунт как удалённый
+     */
+    public function isSoftDeleted(array $user): bool
+    {
+        return !empty($user['deleted_at']);
+    }
+
+    /**
+     * Можно ли восстановить аккаунт (срок хранения ещё не истёк)
+     */
+    public function canRestore(array $user): bool
+    {
+        if (!$this->isSoftDeleted($user)) {
+            return false;
+        }
+
+        $deletedAt = strtotime($user['deleted_at']);
+        if ($deletedAt === false) {
+            return false;
+        }
+
+        $expiresAt = strtotime('+' . self::SOFT_DELETE_MONTHS . ' months', $deletedAt);
+        return $expiresAt !== false && time() < $expiresAt;
+    }
+
+    /**
+     * Мягкое удаление: аккаунт сохраняется 6 месяцев для входа по email.
+     * Переписка, фото, свидания и мероприятия удаляются сразу.
+     */
+    public function softDelete($userId)
+    {
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $user = $this->findById($userId);
+        if (!$user || $this->isSoftDeleted($user)) {
+            return false;
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $this->purgeUserContent($userId);
+            $this->clearRememberToken($userId);
+
+            $sql = "UPDATE users SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND deleted_at IS NULL";
+            $stmt = $this->db->prepare($sql);
+            $ok = $stmt->execute([':id' => $userId]);
+
+            if (!$ok || $stmt->rowCount() === 0) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log('User::softDelete error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Восстанавливает аккаунт после мягкого удаления
+     */
+    public function restore($userId)
+    {
+        $sql = "UPDATE users SET deleted_at = NULL, updated_at = NOW() WHERE id = :id AND deleted_at IS NOT NULL";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $userId]);
+    }
+
+    /**
+     * Удаляет контент пользователя (фото, сообщения, свидания, мероприятия, push-токены)
+     */
+    public function purgeUserContent($userId)
+    {
+        $userId = (int)$userId;
+        $projectRoot = dirname(__DIR__, 2);
+
+        // Фото: файлы + строки (даже если getByUserId уже подчистил «битые»)
+        $photoStmt = $this->db->prepare("SELECT photo FROM user_photos WHERE user_id = :user_id");
+        $photoStmt->execute([':user_id' => $userId]);
+        foreach ($photoStmt->fetchAll() as $photo) {
+            $filename = $photo['photo'] ?? '';
+            if ($filename !== '') {
+                $photoPath = $projectRoot . '/' . UPLOAD_DIR . 'photos/' . $filename;
+                if (file_exists($photoPath)) {
+                    @unlink($photoPath);
+                }
+            }
+        }
+        $this->db->prepare("DELETE FROM user_photos WHERE user_id = :user_id")->execute([':user_id' => $userId]);
+
+        // Сообщения (в т.ч. from_user_id без CASCADE FK)
+        $this->db->prepare(
+            "DELETE FROM messages WHERE from_user_id = :uid1 OR to_user_id = :uid2"
+        )->execute([':uid1' => $userId, ':uid2' => $userId]);
+
+        $this->db->prepare("DELETE FROM dates WHERE user_id = :user_id")->execute([':user_id' => $userId]);
+        $this->db->prepare("DELETE FROM events WHERE user_id = :user_id")->execute([':user_id' => $userId]);
+        $this->db->prepare(
+            "DELETE FROM blocked_users WHERE user_id = :uid1 OR blocked_user_id = :uid2"
+        )->execute([':uid1' => $userId, ':uid2' => $userId]);
+
+        $this->db->prepare(
+            "DELETE FROM push_notification_tokens WHERE user_id = :user_id"
+        )->execute([':user_id' => $userId]);
+    }
+
+    /**
+     * Окончательно удаляет аккаунты, у которых истёк срок хранения (6 месяцев)
+     */
+    public function purgeExpiredSoftDeleted()
+    {
+        $sql = "SELECT id FROM users
+                WHERE deleted_at IS NOT NULL
+                AND deleted_at < DATE_SUB(NOW(), INTERVAL " . (int)self::SOFT_DELETE_MONTHS . " MONTH)";
+        $stmt = $this->db->query($sql);
+        $ids = $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+
+        $purged = 0;
+        foreach ($ids as $id) {
+            if ($this->delete((int)$id)) {
+                $purged++;
+            }
+        }
+
+        return $purged;
+    }
+
+    /**
      * Удаляет пользователя и все связанные данные
      * Также удаляет физические файлы фотографий
      */
     public function delete($userId)
     {
-        // Получаем все фотографии пользователя перед удалением
-        $photoModel = new UserPhoto();
-        $photos = $photoModel->getByUserId($userId);
-
-        // Определяем корень проекта (на уровень выше app/)
-        $projectRoot = dirname(__DIR__, 2);
-
-        // Удаляем физические файлы фотографий
-        foreach ($photos as $photo) {
-            $photoPath = $projectRoot . '/' . UPLOAD_DIR . 'photos/' . $photo['photo'];
-            if (file_exists($photoPath)) {
-                @unlink($photoPath);
-            }
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return false;
         }
 
+        // Контент и сообщения (from_user_id без CASCADE) — до удаления строки users
+        $this->purgeUserContent($userId);
+
         // Удаляем пользователя из базы данных
-        // CASCADE автоматически удалит связанные записи (events, dates, messages, user_photos, blocked_users)
+        // CASCADE удалит оставшиеся связанные записи
         $sql = "DELETE FROM users WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([':id' => $userId]);
@@ -546,7 +681,7 @@ class User
      */
     public function getTotalCount()
     {
-        $sql = "SELECT COUNT(*) as total FROM users WHERE email_verified = 1";
+        $sql = "SELECT COUNT(*) as total FROM users WHERE email_verified = 1 AND deleted_at IS NULL";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch();

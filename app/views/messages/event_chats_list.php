@@ -39,8 +39,8 @@ $currentUserId = $currentUserId ?? null;
     }
 
     .btn-back-modern {
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         color: #fff;
         display: inline-flex;
@@ -48,16 +48,31 @@ $currentUserId = $currentUserId ?? null;
         justify-content: center;
         text-decoration: none;
         flex-shrink: 0;
-        transition: background 0.15s;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
     }
 
     .btn-back-modern:hover {
-        background: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.28);
+        border-color: rgba(255, 255, 255, 0.45);
         color: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn-back-modern:active {
+        transform: scale(0.94);
+        background: rgba(255, 255, 255, 0.22);
     }
 
     .btn-back-modern i {
-        font-size: 1.25rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1;
+        margin-left: -1px;
     }
 
     .chats-header-title h1 {
@@ -358,8 +373,8 @@ $currentUserId = $currentUserId ?? null;
 <div class="chats-page-container">
     <div class="chats-header">
         <div class="chats-header-content">
-            <a href="<?= BASE_URL ?>events" class="btn-back-modern" title="Назад">
-                <i class="bi bi-arrow-left"></i>
+            <a href="<?= BASE_URL ?>events" class="btn-back-modern" title="Назад" aria-label="Назад">
+                <i class="bi bi-chevron-left"></i>
             </a>
             <div class="chats-header-title">
                 <h1>Мои чаты</h1>

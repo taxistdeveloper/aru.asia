@@ -261,7 +261,8 @@ class PushNotificationService
                 cos(radians(u.longitude) - radians(:lon1)) +
                 sin(radians(:lat2)) * sin(radians(u.latitude)))) AS distance
                 FROM users u
-                WHERE u.latitude IS NOT NULL
+                WHERE u.deleted_at IS NULL
+                AND u.latitude IS NOT NULL
                 AND u.longitude IS NOT NULL";
 
         if ($gender !== null) {
