@@ -117,18 +117,26 @@ class ManagerController
         // Получаем параметр фильтра
         $filter = $_GET['filter'] ?? 'all';
 
-        // Поиск по IP — все, кто регистрировался с этого IP (для выявления мультиаккаунтов)
-        $searchIp = isset($_GET['search_ip']) ? trim($_GET['search_ip']) : '';
+        // Поиск по IP, ФИО или email (search_ip оставлен для обратной совместимости)
+        $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+        if ($search === '' && isset($_GET['search_ip'])) {
+            $search = trim($_GET['search_ip']);
+        }
 
-        // Формируем SQL в зависимости от фильтра и поиска по IP
+        // Формируем SQL в зависимости от фильтра и поиска
         $whereClause = "";
         $params = [];
         if ($filter === 'new') {
             $whereClause = "WHERE u.created_at >= DATE_SUB(NOW(), INTERVAL 2 DAY)";
         }
-        if ($searchIp !== '') {
-            $whereClause .= ($whereClause ? " AND " : "WHERE ") . "u.registration_ip = :search_ip";
-            $params['search_ip'] = $searchIp;
+        if ($search !== '') {
+            $whereClause .= ($whereClause ? " AND " : "WHERE ")
+                . "(u.registration_ip = :search_exact"
+                . " OR u.full_name LIKE :search_like"
+                . " OR u.email LIKE :search_like2)";
+            $params['search_exact'] = $search;
+            $params['search_like'] = '%' . $search . '%';
+            $params['search_like2'] = '%' . $search . '%';
         }
 
         // Получаем общее количество пользователей
@@ -172,7 +180,8 @@ class ManagerController
         View::render('manager/users', [
             'users' => $users,
             'filter' => $filter,
-            'searchIp' => $searchIp,
+            'search' => $search,
+            'searchIp' => $search, // обратная совместимость для шаблона
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalUsers' => $totalUsers,

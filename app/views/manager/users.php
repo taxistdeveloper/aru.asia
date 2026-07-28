@@ -378,35 +378,35 @@ ob_start();
         <?php unset($_SESSION['error_message']); ?>
     <?php endif; ?>
 
-    <!-- Поиск по IP (кто регистрировался с этого IP) -->
+    <!-- Поиск по IP, ФИО или email -->
+    <?php $searchQuery = $search ?? $searchIp ?? ''; ?>
     <div class="mb-4">
         <form method="get" action="<?= BASE_URL ?>manager/users" class="row g-2 align-items-end">
             <input type="hidden" name="filter" value="<?= Helper::escape($filter ?? 'all') ?>">
             <div class="col-auto">
-                <label for="search_ip" class="form-label mb-0">Поиск по IP</label>
+                <label for="search" class="form-label mb-0">Поиск по IP, ФИО или email</label>
                 <input type="text"
-                    id="search_ip"
-                    name="search_ip"
+                    id="search"
+                    name="search"
                     class="form-control"
-                    placeholder="Например: 192.168.1.1"
-                    value="<?= isset($searchIp) && $searchIp !== '' ? Helper::escape($searchIp) : '' ?>"
-                    style="min-width: 180px;">
+                    placeholder="IP, ФИО или email"
+                    value="<?= $searchQuery !== '' ? Helper::escape($searchQuery) : '' ?>"
+                    style="min-width: 260px;">
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i> Найти
                 </button>
             </div>
-            <?php if (isset($searchIp) && $searchIp !== ''): ?>
+            <?php if ($searchQuery !== ''): ?>
                 <div class="col-auto">
                     <a href="<?= BASE_URL ?>manager/users?filter=<?= $filter ?? 'all' ?>" class="btn btn-outline-secondary">Сбросить</a>
                 </div>
             <?php endif; ?>
         </form>
-        <?php if (isset($searchIp) && $searchIp !== ''): ?>
+        <?php if ($searchQuery !== ''): ?>
             <p class="text-muted mt-2 mb-0 small">
-                <i class="bi bi-info-circle"></i> Найдено пользователей с IP <strong><?= Helper::escape($searchIp) ?></strong>: <?= $totalUsers ?? 0 ?>.
-                <?php if ($totalUsers > 0): ?>Ниже — все анкеты, зарегистрированные с этого IP.<?php endif; ?>
+                <i class="bi bi-info-circle"></i> Найдено пользователей по запросу <strong><?= Helper::escape($searchQuery) ?></strong>: <?= $totalUsers ?? 0 ?>.
             </p>
         <?php endif; ?>
     </div>
@@ -414,11 +414,11 @@ ob_start();
     <!-- Фильтры -->
     <div class="mb-3">
         <div class="btn-group filter-buttons" role="group" aria-label="Фильтры пользователей">
-            <a href="<?= BASE_URL ?>manager/users?filter=all<?= (isset($searchIp) && $searchIp !== '') ? '&search_ip=' . urlencode($searchIp) : '' ?>"
+            <a href="<?= BASE_URL ?>manager/users?filter=all<?= $searchQuery !== '' ? '&search=' . urlencode($searchQuery) : '' ?>"
                 class="btn <?= ($filter ?? 'all') === 'all' ? 'btn-primary' : 'btn-outline-primary' ?>">
                 <i class="bi bi-people"></i> Все
             </a>
-            <a href="<?= BASE_URL ?>manager/users?filter=new<?= (isset($searchIp) && $searchIp !== '') ? '&search_ip=' . urlencode($searchIp) : '' ?>"
+            <a href="<?= BASE_URL ?>manager/users?filter=new<?= $searchQuery !== '' ? '&search=' . urlencode($searchQuery) : '' ?>"
                 class="btn <?= ($filter ?? 'all') === 'new' ? 'btn-primary' : 'btn-outline-primary' ?>">
                 <i class="bi bi-star"></i> Новые
             </a>
@@ -732,8 +732,9 @@ ob_start();
     <!-- Пагинация -->
     <?php
     $paginationBase = BASE_URL . 'manager/users?filter=' . $filter;
-    if (!empty($searchIp)) {
-        $paginationBase .= '&search_ip=' . urlencode($searchIp);
+    $searchQuery = $search ?? $searchIp ?? '';
+    if ($searchQuery !== '') {
+        $paginationBase .= '&search=' . urlencode($searchQuery);
     }
     $paginationBase .= '&page=';
     ?>
