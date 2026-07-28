@@ -1218,10 +1218,10 @@ ob_start();
            ============================================ */
         @media (max-width: 767px) {
 
-            /* Рекламный слайдер для мобильных */
+            /* Рекламный слайдер для мобильных — та же ширина, что у сетки профилей */
             .ad-carousel-container {
                 margin-bottom: 16px;
-                padding: 0 12px;
+                padding: 0;
             }
 
             .ad-carousel {
@@ -1369,7 +1369,7 @@ ob_start();
         /* Очень маленькие телефоны: делаем карточки чуть уже/компактнее */
         @media (max-width: 360px) {
             .ad-carousel-container {
-                padding: 0 10px;
+                padding: 0;
             }
 
             .ad-banner-image-wrapper {
