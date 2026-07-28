@@ -120,6 +120,25 @@ ob_start();
             cursor: default;
         }
 
+        #chat-view .chat-page-header .chat-header-profile {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex: 1;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: -4px 0;
+            padding: 4px 0;
+        }
+
+        #chat-view .chat-page-header .chat-header-profile:hover .chat-header-fio,
+        #chat-view .chat-page-header .chat-header-profile:focus .chat-header-fio {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
         #chat-view .chat-page-header .chat-header-fio {
             min-width: 0;
             flex: 1;
@@ -921,18 +940,22 @@ ob_start();
                         <a href="<?= BASE_URL ?>messages/dates-list" class="wa-back-btn" title="Назад">
                             <i class="bi bi-arrow-left"></i>
                         </a>
-                        <?php if ($firstPhoto): ?>
-                            <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $firstPhoto ?>"
-                                class="wa-header-avatar"
-                                alt="">
-                        <?php else: ?>
-                            <div class="wa-header-avatar-placeholder">
-                                <i class="bi bi-person-fill"></i>
+                        <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$selectedUserId ?>&from=date_chat&date_id=<?= (int)$date['id'] ?>"
+                           class="chat-header-profile"
+                           title="Открыть профиль">
+                            <?php if ($firstPhoto): ?>
+                                <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $firstPhoto ?>"
+                                    class="wa-header-avatar"
+                                    alt="">
+                            <?php else: ?>
+                                <div class="wa-header-avatar-placeholder">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            <?php endif; ?>
+                            <div class="chat-header-fio" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <?= Helper::escape($selectedUser['full_name'] ?? $selectedUser['email'] ?? 'Пользователь') ?>
                             </div>
-                        <?php endif; ?>
-                        <div class="chat-header-fio" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            <?= Helper::escape($selectedUser['full_name'] ?? $selectedUser['email'] ?? 'Пользователь') ?>
-                        </div>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -41,7 +41,11 @@ ob_start();
     <div class="mb-4">
         <h2 class="mb-3">Профиль пользователя</h2>
         <div class="d-flex flex-column flex-md-row gap-2">
-            <?php if (isset($isAdmin) && $isAdmin): ?>
+            <?php if (!empty($backToChatUrl)): ?>
+                <a href="<?= Helper::escape($backToChatUrl) ?>" class="btn btn-primary">
+                    <i class="bi bi-chat-dots"></i> <?= Helper::escape($backToChatLabel ?? 'Вернуться в чат') ?>
+                </a>
+            <?php elseif (isset($isAdmin) && $isAdmin): ?>
                 <a href="<?= BASE_URL ?>admin/users" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Назад к пользователям
                 </a>
@@ -54,10 +58,14 @@ ob_start();
                     <i class="bi bi-box-arrow-in-right"></i> Войти для общения
                 </a>
             <?php endif; ?>
-            <?php if (!isset($isAdmin) || !$isAdmin): ?>
+            <?php if (empty($backToChatUrl) && (!isset($isAdmin) || !$isAdmin)): ?>
                 <button type="button" onclick="history.back()" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Назад
                 </button>
+            <?php elseif (!empty($backToChatUrl) && $currentUserId && (!isset($isAdmin) || !$isAdmin)): ?>
+                <a href="<?= BASE_URL ?>messages?user_id=<?= $user['id'] ?>" class="btn btn-outline-primary">
+                    <i class="bi bi-envelope"></i> Написать в личные
+                </a>
             <?php endif; ?>
         </div>
     </div>

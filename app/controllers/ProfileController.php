@@ -221,6 +221,24 @@ class ProfileController
             $remarkType = $this->userModel->getRemarkType($viewUserId);
         }
 
+        // Кнопка «Вернуться в чат» при переходе из переписки
+        $backToChatUrl = null;
+        $backToChatLabel = 'Вернуться в чат';
+        $from = $_GET['from'] ?? '';
+        if ($from === 'date_chat') {
+            $dateId = isset($_GET['date_id']) ? (int)$_GET['date_id'] : 0;
+            if ($dateId > 0) {
+                $backToChatUrl = BASE_URL . 'messages/date?date_id=' . $dateId . '&user_id=' . (int)$viewUserId;
+            }
+        } elseif ($from === 'event_chat') {
+            $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
+            if ($eventId > 0) {
+                $backToChatUrl = BASE_URL . 'messages/event?event_id=' . $eventId;
+            }
+        } elseif ($from === 'chat') {
+            $backToChatUrl = BASE_URL . 'messages?user_id=' . (int)$viewUserId;
+        }
+
         View::render('profile/view', [
             'user' => $viewUser,
             'photos' => $photos,
@@ -231,6 +249,8 @@ class ProfileController
             'isProfileBlocked' => $isProfileBlocked,
             'adminRemark' => $adminRemark,
             'remarkType' => $remarkType,
+            'backToChatUrl' => $backToChatUrl,
+            'backToChatLabel' => $backToChatLabel,
             'isMobile' => View::isMobile()
         ]);
     }
