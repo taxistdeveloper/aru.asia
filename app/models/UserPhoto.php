@@ -26,13 +26,35 @@ class UserPhoto {
     }
     
     /**
-     * Получает все фото пользователя
+     * Получает все фото пользователя, у которых файл реально есть на диске.
+     * Записи без файла удаляются из БД, чтобы не показывать пустые квадраты
+     * и не блокировать лимит загрузки.
      */
     public function getByUserId($userId) {
         $sql = "SELECT * FROM user_photos WHERE user_id = :user_id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
-        return $stmt->fetchAll();
+        $photos = $stmt->fetchAll();
+
+        $projectRoot = dirname(__DIR__, 2);
+        $existing = [];
+
+        foreach ($photos as $photo) {
+            $filename = $photo['photo'] ?? '';
+            if ($filename === '') {
+                $this->delete((int)$photo['id'], $userId);
+                continue;
+            }
+
+            $photoPath = $projectRoot . '/' . UPLOAD_DIR . 'photos/' . $filename;
+            if (is_file($photoPath)) {
+                $existing[] = $photo;
+            } else {
+                $this->delete((int)$photo['id'], $userId);
+            }
+        }
+
+        return $existing;
     }
     
     /**
@@ -48,14 +70,10 @@ class UserPhoto {
     }
     
     /**
-     * Подсчитывает количество фото пользователя
+     * Подсчитывает количество фото пользователя (только с существующими файлами)
      */
     public function countByUserId($userId) {
-        $sql = "SELECT COUNT(*) as count FROM user_photos WHERE user_id = :user_id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':user_id' => $userId]);
-        $result = $stmt->fetch();
-        return $result['count'] ?? 0;
+        return count($this->getByUserId($userId));
     }
 }
 

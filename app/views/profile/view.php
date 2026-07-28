@@ -173,7 +173,7 @@ ob_start();
                                 src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $photo['photo'] ?>"
                                 alt="Фото <?= $index + 1 ?>"
                                 loading="lazy"
-                                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3EОшибка загрузки%3C/text%3E%3C/svg%3E';">
+                                onerror="this.closest('.photo-item')?.remove()">
                             <div class="photo-overlay">
                                 <i class="bi bi-zoom-in photo-overlay-icon"></i>
                             </div>
