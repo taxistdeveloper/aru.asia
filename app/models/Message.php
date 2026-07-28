@@ -20,8 +20,8 @@ class Message
      */
     public function send($fromUserId, $toUserId, $message, $dateId = null, $eventId = null)
     {
-        $sql = "INSERT INTO messages (from_user_id, to_user_id, date_id, event_id, message, created_at)
-                VALUES (:from_user_id, :to_user_id, :date_id, :event_id, :message, NOW())";
+        $sql = "INSERT INTO messages (from_user_id, to_user_id, date_id, event_id, message, is_read, created_at)
+                VALUES (:from_user_id, :to_user_id, :date_id, :event_id, :message, 0, NOW())";
         $stmt = $this->db->prepare($sql);
         
         // Логируем для отладки
@@ -1002,6 +1002,72 @@ class Message
             ':date_id' => $dateId,
             ':user_id' => $userId
         ]);
+    }
+
+    /**
+     * Помечает сообщения от конкретного пользователя в чате свидания как прочитанные
+     */
+    public function markDateConversationAsRead($dateId, $userId, $fromUserId)
+    {
+        $sql = "UPDATE messages
+                SET is_read = 1
+                WHERE date_id = :date_id
+                AND to_user_id = :user_id
+                AND from_user_id = :from_user_id
+                AND (is_read = 0 OR is_read IS NULL)";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':date_id' => $dateId,
+            ':user_id' => $userId,
+            ':from_user_id' => $fromUserId
+        ]);
+    }
+
+    /**
+     * ID собственных сообщений, которые собеседник уже прочитал
+     */
+    public function getOwnReadMessageIds($userId, $otherUserId, $dateId = null, $eventId = null)
+    {
+        $sql = "SELECT id FROM messages
+                WHERE from_user_id = :user_id
+                AND to_user_id = :other_user_id
+                AND is_read = 1";
+
+        $params = [
+            ':user_id' => $userId,
+            ':other_user_id' => $otherUserId
+        ];
+
+        if ($dateId) {
+            $sql .= " AND date_id = :date_id";
+            $params[':date_id'] = $dateId;
+        } elseif ($eventId) {
+            $sql .= " AND event_id = :event_id";
+            $params[':event_id'] = $eventId;
+        } else {
+            $sql .= " AND date_id IS NULL AND event_id IS NULL";
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /**
+     * ID собственных сообщений в чате мероприятия, которые уже прочитаны
+     */
+    public function getOwnReadMessageIdsForEvent($userId, $eventId)
+    {
+        $sql = "SELECT id FROM messages
+                WHERE from_user_id = :user_id
+                AND event_id = :event_id
+                AND is_read = 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':event_id' => $eventId
+        ]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
     /**

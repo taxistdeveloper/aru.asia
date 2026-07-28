@@ -152,6 +152,9 @@ function validateForm(formId) {
 
                 // Обновляем время последней проверки (для подгрузки новых сообщений в открытый чат)
                 lastCheckTime = new Date().toISOString();
+
+                // Обновляем синие/серые галочки прочтения в открытом чате
+                updateReadReceipts();
             })
             .catch(error => {
                 console.error('Ошибка при проверке новых сообщений:', error);
@@ -449,6 +452,8 @@ function validateForm(formId) {
                         // Прокручиваем вниз если есть новые сообщения
                         if (hasNewMessages) {
                             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            // Собеседник смотрит чат — помечаем входящие прочитанными
+                            markOpenChatAsRead();
                         }
                     }
                 }
@@ -456,6 +461,66 @@ function validateForm(formId) {
             .catch(error => {
                 console.error('Ошибка при обновлении списка сообщений:', error);
             });
+    }
+
+    function markOpenChatAsRead() {
+        if (typeof BASE_URL === 'undefined') return;
+
+        const params = new URLSearchParams(window.location.search);
+        const otherUserId = window.selectedUserId || params.get('user_id');
+        const dateId = window.dateId || params.get('date_id');
+        const eventId = window.eventId || params.get('event_id');
+
+        if (!otherUserId && !eventId) return;
+
+        const body = new URLSearchParams();
+        if (otherUserId) body.set('other_user_id', otherUserId);
+        if (dateId) body.set('date_id', dateId);
+        if (eventId) body.set('event_id', eventId);
+
+        fetch(BASE_URL + 'messages/mark-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: body.toString()
+        }).catch(function() { /* ignore */ });
+    }
+
+    // Серые → синие галочки, когда собеседник открыл чат
+    function updateReadReceipts() {
+        if (typeof BASE_URL === 'undefined') return;
+
+        const params = new URLSearchParams(window.location.search);
+        const otherUserId = window.selectedUserId || params.get('user_id');
+        const dateId = window.dateId || params.get('date_id');
+        const eventId = window.eventId || params.get('event_id');
+
+        if (!otherUserId && !eventId) return;
+
+        const query = new URLSearchParams();
+        if (otherUserId) query.set('other_user_id', otherUserId);
+        if (dateId) query.set('date_id', dateId);
+        if (eventId) query.set('event_id', eventId);
+
+        fetch(BASE_URL + 'messages/read-receipts?' + query.toString())
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                const ids = data.ids || [];
+                if (!ids.length) return;
+
+                ids.forEach(function(id) {
+                    const item = document.querySelector('[data-message-id="' + id + '"]');
+                    if (!item) return;
+                    const checks = item.querySelector('.wa-checks');
+                    if (checks && !checks.classList.contains('read')) {
+                        checks.classList.add('read');
+                        checks.setAttribute('title', 'Прочитано');
+                    }
+                });
+            })
+            .catch(function() { /* ignore */ });
     }
 
     // Fallback: только если страница чата сама не задала addMessageToChat
@@ -480,7 +545,10 @@ function validateForm(formId) {
                 ? `<div class="message-sender">${escapeHtml(senderName)}</div>`
                 : '';
             const checksHtml = isOwnMessage
-                ? '<span class="wa-checks" title="Доставлено"><i class="bi bi-check2-all"></i></span>'
+                ? (() => {
+                    const isMsgRead = !!(msg.is_read == 1 || msg.is_read === true || msg.is_read === '1');
+                    return `<span class="wa-checks${isMsgRead ? ' read' : ''}" title="${isMsgRead ? 'Прочитано' : 'Доставлено'}"><i class="bi bi-check2-all"></i></span>`;
+                })()
                 : '';
             const safeMessage = escapeHtml(msg.message || '').replace(/\n/g, '<br>');
 

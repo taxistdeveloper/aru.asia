@@ -159,6 +159,38 @@ ob_start();
             opacity: 0.9;
         }
 
+        .message-meta {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .message-meta .message-time {
+            margin-top: 0;
+        }
+
+        .wa-checks {
+            display: inline-flex;
+            align-items: center;
+            color: #9aa0b5;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .wa-checks.read {
+            color: #667eea;
+        }
+
+        .message-bubble.own .wa-checks:not(.read) {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .message-bubble.own .wa-checks.read {
+            color: #dce3ff;
+        }
+
         /* Заголовок страницы */
         .chat-page-header {
             background: white;
@@ -1333,8 +1365,12 @@ ob_start();
                                     <div class="message-content">
                                         <?= nl2br(Helper::escape($msg['message'])) ?>
                                     </div>
-                                    <div class="message-time">
-                                        <?= date('H:i', strtotime($msg['created_at'])) ?>
+                                    <div class="message-meta">
+                                        <span class="message-time"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
+                                        <?php if ($isOwnMessage): ?>
+                                            <?php $isMsgRead = !empty($msg['is_read']); ?>
+                                            <span class="wa-checks<?= $isMsgRead ? ' read' : '' ?>" title="<?= $isMsgRead ? 'Прочитано' : 'Доставлено' ?>"><i class="bi bi-check2-all"></i></span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -1616,8 +1652,12 @@ ob_start();
                                         <div class="message-content">
                                             <?= nl2br(Helper::escape($msg['message'])) ?>
                                         </div>
-                                        <div class="message-time">
-                                            <?= date('H:i', strtotime($msg['created_at'])) ?>
+                                        <div class="message-meta">
+                                            <span class="message-time"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
+                                            <?php if ($isOwnMessage): ?>
+                                                <?php $isMsgRead = !empty($msg['is_read']); ?>
+                                                <span class="wa-checks<?= $isMsgRead ? ' read' : '' ?>" title="<?= $isMsgRead ? 'Прочитано' : 'Доставлено' ?>"><i class="bi bi-check2-all"></i></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -1722,7 +1762,13 @@ ob_start();
             <div class="message-bubble ${bubbleClass}">
                 ${senderHtml}
                 <div class="message-content">${(messageData.message || '').replace(/\n/g, '<br>')}</div>
-                <div class="message-time">${timeStr}</div>
+                <div class="message-meta">
+                    <span class="message-time">${timeStr}</span>
+                    ${isOwnMessage ? (() => {
+                        const isMsgRead = !!(messageData.is_read == 1 || messageData.is_read === true || messageData.is_read === '1');
+                        return `<span class="wa-checks${isMsgRead ? ' read' : ''}" title="${isMsgRead ? 'Прочитано' : 'Доставлено'}"><i class="bi bi-check2-all"></i></span>`;
+                    })() : ''}
+                </div>
             </div>
         `;
 

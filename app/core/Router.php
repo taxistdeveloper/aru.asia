@@ -62,6 +62,8 @@ class Router
         $this->routes['messages/clearNotifications'] = ['controller' => 'Messages', 'method' => 'clearNotifications'];
         $this->routes['messages/unread'] = ['controller' => 'Messages', 'method' => 'getUnreadCount'];
         $this->routes['messages/new'] = ['controller' => 'Messages', 'method' => 'getNewMessages'];
+        $this->routes['messages/read-receipts'] = ['controller' => 'Messages', 'method' => 'getReadReceipts'];
+        $this->routes['messages/mark-read'] = ['controller' => 'Messages', 'method' => 'markRead'];
         $this->routes['messages/unread-date'] = ['controller' => 'Messages', 'method' => 'getUnreadDateCount'];
         $this->routes['messages/unread-event'] = ['controller' => 'Messages', 'method' => 'getUnreadEventCount'];
         $this->routes['messages/unread-dates-total'] = ['controller' => 'Messages', 'method' => 'getTotalUnreadDatesCount'];

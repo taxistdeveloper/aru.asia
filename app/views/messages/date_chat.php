@@ -359,10 +359,14 @@ ob_start();
         .wa-checks {
             display: inline-flex;
             align-items: center;
-            color: #667eea;
+            color: #9aa0b5;
             font-size: 14px;
             line-height: 1;
             margin-left: 1px;
+        }
+
+        .wa-checks.read {
+            color: #667eea;
         }
 
         .wa-checks i {
@@ -969,7 +973,8 @@ ob_start();
                                     <div class="message-meta">
                                         <span class="message-time"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
                                         <?php if ($msg['from_user_id'] == $currentUserId): ?>
-                                            <span class="wa-checks" title="Доставлено"><i class="bi bi-check2-all"></i></span>
+                                            <?php $isMsgRead = !empty($msg['is_read']); ?>
+                                            <span class="wa-checks<?= $isMsgRead ? ' read' : '' ?>" title="<?= $isMsgRead ? 'Прочитано' : 'Доставлено' ?>"><i class="bi bi-check2-all"></i></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -1020,6 +1025,7 @@ ob_start();
     <script>
         window.currentUserId = <?= $currentUserId ?>;
         window.dateId = <?= $date['id'] ?>;
+        window.selectedUserId = <?= (int)$selectedUserId ?>;
 
         if (typeof window.PushNotifications !== 'undefined' && window.PushNotifications.isSupported()) {
             if (typeof window.PushNotifications.init === 'function') {
@@ -1088,8 +1094,9 @@ ob_start();
 
             const senderName = messageData.from_full_name || messageData.from_email || 'Пользователь';
             const senderHtml = isOwnMessage ? '' : `<div class="message-sender">${escapeHtml(senderName)}</div>`;
+            const isMsgRead = !!(messageData.is_read == 1 || messageData.is_read === true || messageData.is_read === '1');
             const checksHtml = isOwnMessage ?
-                '<span class="wa-checks" title="Доставлено"><i class="bi bi-check2-all"></i></span>' : '';
+                `<span class="wa-checks${isMsgRead ? ' read' : ''}" title="${isMsgRead ? 'Прочитано' : 'Доставлено'}"><i class="bi bi-check2-all"></i></span>` : '';
 
             const safeMessage = escapeHtml(messageData.message || '').replace(/\n/g, '<br>');
 

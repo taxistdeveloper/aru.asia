@@ -518,6 +518,75 @@ class MessagesController
     }
 
     /**
+     * API: ID собственных сообщений, прочитанных собеседником (для синих галочек)
+     */
+    public function getReadReceipts()
+    {
+        if (!Helper::isLoggedIn()) {
+            header('Content-Type: application/json');
+            echo json_encode(['ids' => []]);
+            return;
+        }
+
+        $userId = Helper::getUserId();
+        $otherUserId = isset($_GET['other_user_id']) ? (int)$_GET['other_user_id'] : 0;
+        $dateId = isset($_GET['date_id']) ? (int)$_GET['date_id'] : null;
+        $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : null;
+
+        if ($otherUserId <= 0 && !$eventId) {
+            header('Content-Type: application/json');
+            echo json_encode(['ids' => []]);
+            return;
+        }
+
+        // В групповом чате мероприятия to_user_id может отличаться — берём все свои прочитанные в event
+        if ($eventId && $otherUserId <= 0) {
+            $sqlIds = $this->messageModel->getOwnReadMessageIdsForEvent($userId, $eventId);
+            header('Content-Type: application/json');
+            echo json_encode(['ids' => $sqlIds]);
+            return;
+        }
+
+        $ids = $this->messageModel->getOwnReadMessageIds(
+            $userId,
+            $otherUserId,
+            $dateId ?: null,
+            $eventId ?: null
+        );
+
+        header('Content-Type: application/json');
+        echo json_encode(['ids' => $ids]);
+    }
+
+    /**
+     * API: Помечает сообщения в открытом диалоге как прочитанные
+     */
+    public function markRead()
+    {
+        if (!Helper::isLoggedIn()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false]);
+            return;
+        }
+
+        $userId = Helper::getUserId();
+        $otherUserId = isset($_POST['other_user_id']) ? (int)$_POST['other_user_id'] : (isset($_GET['other_user_id']) ? (int)$_GET['other_user_id'] : 0);
+        $dateId = isset($_POST['date_id']) ? (int)$_POST['date_id'] : (isset($_GET['date_id']) ? (int)$_GET['date_id'] : 0);
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : (isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0);
+
+        if ($dateId > 0 && $otherUserId > 0) {
+            $this->messageModel->markDateConversationAsRead($dateId, $userId, $otherUserId);
+        } elseif ($eventId > 0) {
+            $this->messageModel->markEventChatAsRead($eventId, $userId);
+        } elseif ($otherUserId > 0) {
+            $this->messageModel->markConversationAsRead($userId, $otherUserId);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+    }
+
+    /**
      * API: Получает количество непрочитанных сообщений для свидания (JSON)
      */
     public function getUnreadDateCount()
@@ -722,8 +791,8 @@ class MessagesController
                         $messages[] = $msg;
                     }
                 }
-                // Помечаем сообщения от выбранного пользователя как прочитанные
-                $this->messageModel->markConversationAsRead($userId, $selectedUserId);
+                // Помечаем сообщения от выбранного пользователя в этом свидании как прочитанные
+                $this->messageModel->markDateConversationAsRead($dateId, $userId, $selectedUserId);
             }
         }
 

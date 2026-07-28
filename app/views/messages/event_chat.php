@@ -343,10 +343,14 @@ $formatChatDate = function ($dateStr) {
     .wa-checks {
         display: inline-flex;
         align-items: center;
-        color: #667eea;
+        color: #9aa0b5;
         font-size: 14px;
         line-height: 1;
         margin-left: 1px;
+    }
+
+    .wa-checks.read {
+        color: #667eea;
     }
 
     .wa-checks i {
@@ -605,7 +609,8 @@ $formatChatDate = function ($dateStr) {
                             <div class="message-meta">
                                 <span class="message-time" data-time="<?= Helper::escape($msg['created_at']) ?>"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
                                 <?php if ($isOwnMessage): ?>
-                                    <span class="wa-checks" title="Доставлено"><i class="bi bi-check2-all"></i></span>
+                                    <?php $isMsgRead = !empty($msg['is_read']); ?>
+                                    <span class="wa-checks<?= $isMsgRead ? ' read' : '' ?>" title="<?= $isMsgRead ? 'Прочитано' : 'Доставлено' ?>"><i class="bi bi-check2-all"></i></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -768,7 +773,10 @@ $formatChatDate = function ($dateStr) {
         const senderHtml = isOwnMessage ? '' :
             `<div class="message-sender ${roleClass}">${escapeHtml(senderName)}</div>`;
         const checksHtml = isOwnMessage ?
-            '<span class="wa-checks" title="Доставлено"><i class="bi bi-check2-all"></i></span>' : '';
+            (() => {
+                const isMsgRead = !!(messageData.is_read == 1 || messageData.is_read === true || messageData.is_read === '1');
+                return `<span class="wa-checks${isMsgRead ? ' read' : ''}" title="${isMsgRead ? 'Прочитано' : 'Доставлено'}"><i class="bi bi-check2-all"></i></span>`;
+            })() : '';
         const messageContent = escapeHtml(messageData.message || '').replace(/\n/g, '<br>');
 
         messageItem.innerHTML = `
