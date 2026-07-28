@@ -124,21 +124,24 @@ function validateForm(formId) {
 (function() {
     let lastCheckTime = new Date().toISOString();
     let checkInterval = null;
+    let lastKnownUnreadCount = 0;
 
     // Проверка новых сообщений
     function checkNewMessages() {
         // Проверяем только если пользователь авторизован
         if (typeof BASE_URL === 'undefined') return;
 
-        fetch(BASE_URL + 'messages/unread?last_check=' + encodeURIComponent(lastCheckTime))
+        // Для бейджа всегда берём полное число непрочитанных (без last_check)
+        fetch(BASE_URL + 'messages/unread')
             .then(response => response.json())
             .then(data => {
                 const count = data.count || 0;
-                console.log('Получено непрочитанных сообщений:', count);
+                const hadNewSinceLastPoll = count > lastKnownUnreadCount;
+                lastKnownUnreadCount = count;
                 updateMessagesBadge(count);
 
                 // Если есть новые сообщения и мы на странице сообщений, обновляем список
-                if (count > 0 && window.location.pathname.includes('messages')) {
+                if (hadNewSinceLastPoll && count > 0 && window.location.pathname.includes('messages')) {
                     updateMessagesList();
                 }
 
@@ -147,7 +150,7 @@ function validateForm(formId) {
                     updateDatesEventsBadges();
                 }
 
-                // Обновляем время последней проверки
+                // Обновляем время последней проверки (для подгрузки новых сообщений в открытый чат)
                 lastCheckTime = new Date().toISOString();
             })
             .catch(error => {
@@ -284,88 +287,98 @@ function validateForm(formId) {
     }
 
     // Обновление badge с количеством непрочитанных сообщений
+    // count с сервера — источник истины: 0 = скрыть, >0 = показать
     function updateMessagesBadge(count) {
         const badgeMobile = document.getElementById('messages-badge');
         const badgeDesktop = document.getElementById('messages-badge-desktop');
 
-        console.log('updateMessagesBadge вызвана:', {
-            count,
-            badgeMobile: !!badgeMobile,
-            badgeDesktop: !!badgeDesktop
-        });
-
-        // Проверяем, не был ли бейдж скрыт пользователем вручную
         let isManuallyHidden = localStorage.getItem('messagesBadgeManuallyHidden') === 'true';
         const savedCount = localStorage.getItem('messagesBadgeCount');
         const lastCount = savedCount ? parseInt(savedCount, 10) : 0;
 
-        console.log('Состояние:', { isManuallyHidden, savedCount, lastCount, count });
-
-        // Если пришло новое сообщение (count > 0), сбрасываем флаг manuallyHidden
-        // Это нужно для того, чтобы бейдж показывался при новых сообщениях
-        if (count > 0) {
-            if (count > lastCount || (count > 0 && isManuallyHidden)) {
-                console.log('Новое сообщение, сбрасываю флаг скрытия');
-                isManuallyHidden = false;
-                localStorage.setItem('messagesBadgeManuallyHidden', 'false');
-            }
+        // Новые непрочитанные снова показывают бейдж (только если число выросло)
+        if (count > 0 && count > lastCount) {
+            isManuallyHidden = false;
+            localStorage.setItem('messagesBadgeManuallyHidden', 'false');
         }
 
-        // Определяем, нужно ли показывать бейдж
-        // Показываем если есть сообщения (count > 0) и бейдж не был скрыт вручную
-        // Или если count = 0, но было сохраненное значение и бейдж не был скрыт
-        const shouldShow = !isManuallyHidden && (count > 0 || (count === 0 && lastCount > 0));
-        const displayCount = count > 0 ? count : (lastCount > 0 ? lastCount : 0);
-        const badgeText = displayCount > 99 ? '99+' : displayCount.toString();
+        // Все прочитано — сразу убираем бейдж и сбрасываем кэш
+        if (count === 0) {
+            if (badgeMobile) badgeMobile.style.display = 'none';
+            if (badgeDesktop) badgeDesktop.style.display = 'none';
+            saveBadgeState(0, false);
+            localStorage.setItem('messagesBadgeManuallyHidden', 'false');
+            return;
+        }
 
-        console.log('Решение показать бейдж:', {
-            shouldShow,
-            displayCount,
-            badgeText,
-            isManuallyHidden,
-            count,
-            lastCount
-        });
+        const shouldShow = !isManuallyHidden;
+        const badgeText = count > 99 ? '99+' : count.toString();
 
-        if (shouldShow && displayCount > 0) {
-            // Показываем бейдж
+        if (shouldShow) {
             if (badgeMobile) {
                 badgeMobile.textContent = badgeText;
                 badgeMobile.style.display = 'block';
                 badgeMobile.style.visibility = 'visible';
                 badgeMobile.style.opacity = '1';
-                console.log('✅ Показываю мобильный бейдж:', badgeText);
-            } else {
-                console.error('❌ Элемент messages-badge не найден!');
             }
             if (badgeDesktop) {
                 badgeDesktop.textContent = badgeText;
                 badgeDesktop.style.display = 'block';
                 badgeDesktop.style.visibility = 'visible';
                 badgeDesktop.style.opacity = '1';
-                console.log('✅ Показываю десктопный бейдж:', badgeText);
-            } else {
-                console.error('❌ Элемент messages-badge-desktop не найден!');
             }
-
-            // Сохраняем состояние бейджа
-            saveBadgeState(displayCount, true);
+            saveBadgeState(count, true);
         } else {
-            console.log('❌ Бейдж не показывается:', { shouldShow, displayCount });
-            // Скрываем бейдж
-            if (badgeMobile) {
-                badgeMobile.style.display = 'none';
-            }
-            if (badgeDesktop) {
-                badgeDesktop.style.display = 'none';
-            }
-        }
-
-        // Показываем уведомление в браузере (если разрешено)
-        if (count > 0 && 'Notification' in window && Notification.permission === 'granted') {
-            // Можно добавить браузерные уведомления
+            if (badgeMobile) badgeMobile.style.display = 'none';
+            if (badgeDesktop) badgeDesktop.style.display = 'none';
+            saveBadgeState(count, false);
         }
     }
+
+    // Закрыть системные push по диалогу (и общий тег), когда пользователь открыл чат
+    function closeDialogPushNotifications(otherUserId) {
+        if (!('serviceWorker' in navigator) || !navigator.serviceWorker.ready) return;
+
+        navigator.serviceWorker.ready.then(function(registration) {
+            const tags = ['aru-notification'];
+            if (otherUserId) {
+                tags.push('message_' + otherUserId);
+            }
+
+            tags.forEach(function(tag) {
+                registration.getNotifications({ tag: tag }).then(function(notifications) {
+                    notifications.forEach(function(notification) {
+                        notification.close();
+                    });
+                });
+            });
+
+            // На случай кастомных notification_tag — закрываем все message-* от этого пользователя
+            if (otherUserId) {
+                registration.getNotifications().then(function(notifications) {
+                    notifications.forEach(function(notification) {
+                        const data = notification.data || {};
+                        if (data.type === 'message' && String(data.from_user_id) === String(otherUserId)) {
+                            notification.close();
+                        }
+                    });
+                });
+            }
+        }).catch(function() { /* ignore */ });
+    }
+
+    // Экспорт: обновить бейдж сразу после прочтения диалога
+    window.refreshMessagesBadge = function() {
+        if (typeof BASE_URL === 'undefined') return;
+        fetch(BASE_URL + 'messages/unread')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                const count = data.count || 0;
+                lastKnownUnreadCount = count;
+                updateMessagesBadge(count);
+            })
+            .catch(function() { /* ignore */ });
+    };
 
     // Скрытие бейджа при клике на ссылку уведомлений
     function hideMessagesBadge() {
@@ -511,11 +524,35 @@ function validateForm(formId) {
         // Восстанавливаем состояние бейджа из localStorage при загрузке страницы
         restoreBadgeState();
 
+        // Открыт конкретный диалог — сообщения уже помечены прочитанными на сервере
+        const openDialogUserId = new URLSearchParams(window.location.search).get('user_id');
+        const isMessagesPage = window.location.pathname.includes('messages');
+        if (isMessagesPage && openDialogUserId) {
+            // Клик по ссылке диалога мог выставить manuallyHidden — сбрасываем,
+            // чтобы бейдж отражал оставшиеся непрочитанные после прочтения
+            localStorage.setItem('messagesBadgeManuallyHidden', 'false');
+            closeDialogPushNotifications(openDialogUserId);
+            if (typeof window.refreshMessagesBadge === 'function') {
+                window.refreshMessagesBadge();
+            }
+        }
+
         // Добавляем обработчики клика на ссылки уведомлений для скрытия бейджа
-        // Бейдж скрывается ТОЛЬКО при клике на ссылку уведомлений, не при переходе на другие страницы
+        // Бейдж скрывается только при клике на «Уведомления» (список), не при входе в диалог
         const messagesLinks = document.querySelectorAll('a[href*="messages"]');
         messagesLinks.forEach(function(link) {
             link.addEventListener('click', function() {
+                try {
+                    const href = link.getAttribute('href') || '';
+                    const url = new URL(href, window.location.origin);
+                    // Вход в конкретный диалог / чат — не прячем «насовсем», сервер обновит счётчик
+                    if (url.searchParams.has('user_id') || url.searchParams.has('date_id') || url.searchParams.has('event_id')) {
+                        return;
+                    }
+                    if (url.pathname.indexOf('/messages/date') !== -1 || url.pathname.indexOf('/messages/event') !== -1) {
+                        return;
+                    }
+                } catch (e) { /* ignore */ }
                 hideMessagesBadge();
             });
         });

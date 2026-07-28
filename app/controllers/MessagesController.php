@@ -42,8 +42,25 @@ class MessagesController
         Helper::checkProfileComplete();
 
         $userId = Helper::getUserId();
-        $conversations = $this->messageModel->getConversations($userId);
         $blockedUsers = $this->blockedModel->getBlockedUsers($userId);
+
+        // Сначала помечаем открытый диалог прочитанным — чтобы бейджи и список сразу без unread
+        $selectedUserId = $_GET['user_id'] ?? null;
+        $messages = [];
+        $isBlockedByMe = false;
+        $isBlockedByOther = false;
+
+        if ($selectedUserId) {
+            $isBlockedByMe = $this->blockedModel->isBlocked($userId, $selectedUserId);
+            $isBlockedByOther = $this->blockedModel->isBlocked($selectedUserId, $userId);
+
+            if (!$isBlockedByMe && !$isBlockedByOther) {
+                $messages = $this->messageModel->getConversation($userId, $selectedUserId);
+                $this->messageModel->markConversationAsRead($userId, $selectedUserId);
+            }
+        }
+
+        $conversations = $this->messageModel->getConversations($userId);
 
         // Получаем уведомления (новые входящие сообщения)
         $notifications = $this->messageModel->getNewMessages($userId);
@@ -52,25 +69,6 @@ class MessagesController
         // Получаем уведомления от администраторов
         $adminNotifications = $this->messageModel->getAdminNotifications($userId);
         $unreadAdminCount = $this->messageModel->getUnreadAdminNotificationsCount($userId);
-
-        // Получаем конкретный диалог если выбран
-        $selectedUserId = $_GET['user_id'] ?? null;
-        $messages = [];
-        $isBlockedByMe = false;
-        $isBlockedByOther = false;
-
-        if ($selectedUserId) {
-            // Проверяем статус блокировки
-            $isBlockedByMe = $this->blockedModel->isBlocked($userId, $selectedUserId);
-            $isBlockedByOther = $this->blockedModel->isBlocked($selectedUserId, $userId);
-
-            // Проверяем не заблокирован ли пользователь
-            if (!$isBlockedByMe && !$isBlockedByOther) {
-                $messages = $this->messageModel->getConversation($userId, $selectedUserId);
-                // Помечаем все сообщения от выбранного пользователя как прочитанные
-                $this->messageModel->markConversationAsRead($userId, $selectedUserId);
-            }
-        }
 
         View::render('messages/index', [
             'conversations' => $conversations,
