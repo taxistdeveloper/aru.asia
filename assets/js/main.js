@@ -558,81 +558,35 @@ function validateForm(formId) {
     let deferredPrompt = null;
     const installButton = document.getElementById('pwa-install-button');
     const installBanner = document.getElementById('pwa-install-banner');
+    const DISMISS_KEY = 'pwa-install-dismissed';
+    const BANNER_KEY = 'pwa-banner-shown';
+    const INSTALLED_KEY = 'pwa-installed';
 
-    // Проверяем, является ли устройство мобильным
     function isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                (window.innerWidth <= 768);
     }
 
-    // Проверяем, установлено ли приложение
+    function isInstallDismissed() {
+        return localStorage.getItem(DISMISS_KEY) === 'true';
+    }
+
     function isPWAInstalled() {
-        // Проверяем, запущено ли приложение в standalone режиме (открыто с главного экрана)
+        if (localStorage.getItem(INSTALLED_KEY) === 'true') {
+            return true;
+        }
         if (window.matchMedia('(display-mode: standalone)').matches) {
             return true;
         }
         if (window.navigator.standalone) {
-            return true; // iOS Safari
+            return true;
         }
         if (document.referrer.includes('android-app://')) {
-            return true; // Android
+            return true;
         }
         return false;
     }
 
-    // Показываем баннер для установки (отключено)
-    function showInstallBanner() {
-        // Показываем только на мобильных устройствах
-        if (!isMobileDevice()) {
-            return;
-        }
-
-        // Не показываем, если уже установлено
-        if (isPWAInstalled()) {
-            return;
-        }
-
-        // Проверяем, не показывали ли уже баннер
-        const bannerShown = localStorage.getItem('pwa-banner-shown');
-        if (bannerShown === 'true') {
-            return;
-        }
-
-        // Показываем баннер для новых пользователей (проверяем, есть ли в localStorage отметка о том, что пользователь не новый)
-        const isNewUser = !localStorage.getItem('pwa-user-seen');
-        if (isNewUser && installBanner) {
-            installBanner.style.display = 'block';
-            localStorage.setItem('pwa-user-seen', 'true');
-        }
-    }
-
-    // Показываем баннер сразу для новых пользователей (отключено)
-    function showInstallBannerForNewUsers() {
-        // Показываем только на мобильных устройствах
-        if (!isMobileDevice()) {
-            return;
-        }
-
-        // Не показываем, если уже установлено
-        if (isPWAInstalled()) {
-            return;
-        }
-
-        // Проверяем, не показывали ли уже баннер
-        const bannerShown = localStorage.getItem('pwa-banner-shown');
-        if (bannerShown === 'true') {
-            return;
-        }
-
-        // Показываем баннер для новых пользователей сразу
-        const isNewUser = !localStorage.getItem('pwa-user-seen');
-        if (isNewUser && installBanner) {
-            installBanner.style.display = 'block';
-            localStorage.setItem('pwa-user-seen', 'true');
-        }
-    }
-
-    // Скрываем баннер
     function hideInstallBanner() {
         if (installBanner) {
             installBanner.style.display = 'none';
@@ -640,60 +594,68 @@ function validateForm(formId) {
     }
 
     function setInstallUIVisible(isVisible) {
-        const display = isVisible ? 'inline-flex' : 'none';
-        if (installButton) installButton.style.display = display;
+        if (installButton) {
+            installButton.style.display = isVisible ? 'inline-flex' : 'none';
+        }
         document.querySelectorAll('.pwa-install-trigger').forEach(function(el) {
+            el.style.display = isVisible ? '' : 'none';
+        });
+        // Плавающая кнопка на platform — скрываем весь блок
+        document.querySelectorAll('.pwa-fab').forEach(function(el) {
             el.style.display = isVisible ? '' : 'none';
         });
     }
 
-    // Обработка события beforeinstallprompt
-    window.addEventListener('beforeinstallprompt', function(e) {
-        console.log('🔔 Событие beforeinstallprompt получено!');
-        // Предотвращаем автоматическое отображение подсказки
-        e.preventDefault();
-        // Сохраняем событие для использования позже
-        deferredPrompt = e;
-        console.log('✅ deferredPrompt сохранен, готов к установке');
-
-        // Показываем UI установки (кнопка/триггеры) и ждем клик пользователя
-        if (!isPWAInstalled() && isMobileDevice()) {
-            setInstallUIVisible(true);
-        }
-
-        // Показываем баннер сразу, если приложение не установлено и баннер еще не показывался (отключено)
-        // Баннер отключен - не показываем
-        /*
-        if (!isPWAInstalled() && isMobileDevice()) {
-            const bannerShown = localStorage.getItem('pwa-banner-shown');
-            if (bannerShown !== 'true' && installBanner) {
-                installBanner.style.display = 'block';
-            }
-        }
-        */
-    });
-
-    // Определяем тип устройства
-    function getDeviceType() {
-        const ua = navigator.userAgent;
-        const isIOS = /iPad|iPhone|iPod/.test(ua);
-        const isAndroid = /Android/.test(ua);
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                           window.navigator.standalone ||
-                           document.referrer.includes('android-app://');
-
-        return { isIOS, isAndroid, isStandalone };
+    function dismissInstallPrompts() {
+        localStorage.setItem(DISMISS_KEY, 'true');
+        localStorage.setItem(BANNER_KEY, 'true');
+        hideInstallBanner();
+        setInstallUIVisible(false);
     }
 
-    // Функция установки PWA
+    function markInstalled() {
+        localStorage.setItem(INSTALLED_KEY, 'true');
+        localStorage.setItem(DISMISS_KEY, 'true');
+        localStorage.setItem(BANNER_KEY, 'true');
+        hideInstallBanner();
+        setInstallUIVisible(false);
+        deferredPrompt = null;
+    }
+
+    function getDeviceType() {
+        const ua = navigator.userAgent || '';
+        const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isAndroid = /Android/.test(ua);
+        const isChrome = /Chrome|CriOS|EdgA|EdgiOS/.test(ua) && !/OPR|Opera/.test(ua);
+        const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+        const isFirefox = /Firefox|FxiOS/.test(ua);
+        // Встроенные браузеры Instagram / Telegram / VK / Facebook — пункта «на экран» часто нет
+        const isInAppBrowser = /FBAN|FBAV|Instagram|Line\/|Twitter|TikTok|BytedanceWebview|MicroMessenger|VKAndroidApp|Viber|WhatsApp|Telegram|Snapchat|; wv\)/i.test(ua);
+        return { isIOS, isAndroid, isChrome, isSafari, isFirefox, isInAppBrowser };
+    }
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        if (!isPWAInstalled() && !isInstallDismissed() && isMobileDevice()) {
+            setInstallUIVisible(true);
+        }
+    });
+
     async function installPWA() {
+        if (isPWAInstalled()) {
+            markInstalled();
+            return;
+        }
+
         const device = getDeviceType();
         const bannerButton = document.getElementById('pwa-install-banner-button');
         const originalText = bannerButton ? bannerButton.innerHTML : '';
 
-        // Для iOS: нет системного install prompt как на Android.
-        // Можно только через "Поделиться" → "На экран Домой", поэтому сразу показываем инструкцию.
-        if (device.isIOS) {
+        // iOS и in-app: только ручная инструкция
+        if (device.isIOS || device.isInAppBrowser || !deferredPrompt) {
             if (bannerButton) {
                 bannerButton.disabled = false;
                 bannerButton.innerHTML = originalText;
@@ -702,67 +664,34 @@ function validateForm(formId) {
             return;
         }
 
-        // Для Android - создание ярлыка на главном экране
-        if (deferredPrompt) {
-            console.log('📱 Нажата кнопка "Установить", показываю диалог...');
-            try {
-                // При нажатии "Установить" СРАЗУ показываем диалог для создания ярлыка
-                await deferredPrompt.prompt();
-                console.log('✅ Диалог установки показан, жду подтверждения...');
+        try {
+            await deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
 
-                // Ждем подтверждения пользователя
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('📋 Результат:', outcome);
-
-                if (outcome === 'accepted') {
-                    // Пользователь подтвердил - ярлык СРАЗУ создается на главном экране!
-                    console.log('✅ Создание ярлыка на главном экране...');
-                    localStorage.setItem('pwa-installed', 'true');
-                    hideInstallBanner();
-                    if (installButton) {
-                        installButton.style.display = 'none';
-                    }
-                    if (bannerButton) {
-                        bannerButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Ярлык создается...';
-                        bannerButton.classList.add('btn-success');
-                        bannerButton.classList.remove('btn-light');
-                        bannerButton.disabled = true;
-                    }
-                    // Ярлык автоматически появится на главном экране телефона
-                } else {
-                    // Пользователь отклонил
-                    console.log('Пользователь отклонил создание ярлыка');
-                    if (bannerButton) {
-                        bannerButton.disabled = false;
-                        bannerButton.innerHTML = originalText;
-                    }
-                }
-            } catch (error) {
-                console.error('Ошибка при создании ярлыка:', error);
+            if (outcome === 'accepted') {
+                markInstalled();
                 if (bannerButton) {
-                    bannerButton.disabled = false;
-                    bannerButton.innerHTML = originalText;
+                    bannerButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Готово';
+                    bannerButton.classList.add('btn-success');
+                    bannerButton.classList.remove('btn-light');
+                    bannerButton.disabled = true;
                 }
+            } else if (bannerButton) {
+                bannerButton.disabled = false;
+                bannerButton.innerHTML = originalText;
             }
-
-            // Очищаем событие
-            deferredPrompt = null;
-        } else {
-            // Если диалог недоступен, показываем инструкции
-            console.warn('⚠️ deferredPrompt недоступен. Возможные причины:');
-            console.warn('   - Приложение уже установлено');
-            console.warn('   - Браузер не поддерживает PWA');
-            console.warn('   - Событие beforeinstallprompt еще не получено');
-
+        } catch (error) {
+            console.error('Ошибка при создании ярлыка:', error);
             if (bannerButton) {
                 bannerButton.disabled = false;
                 bannerButton.innerHTML = originalText;
             }
             showInstallInstructions();
         }
+
+        deferredPrompt = null;
     }
 
-    // Делегирование: кнопки могут быть в контенте страницы, подгружаются до/после скрипта
     document.addEventListener('click', function(e) {
         const target = e.target && e.target.closest &&
             e.target.closest('.pwa-install-trigger, #pwa-install-banner-button, #pwa-install-button');
@@ -773,282 +702,180 @@ function validateForm(formId) {
         installPWA();
     });
 
-    // Обработка закрытия баннера
     const closeBannerButton = document.getElementById('pwa-install-close');
     if (closeBannerButton) {
         closeBannerButton.addEventListener('click', function() {
-            hideInstallBanner();
-            localStorage.setItem('pwa-banner-shown', 'true');
+            dismissInstallPrompts();
         });
     }
 
-    // Обработка успешного создания ярлыка на главном экране
-    window.addEventListener('appinstalled', function(evt) {
-        console.log('✅ Ярлык успешно создан на главном экране телефона!');
-        localStorage.setItem('pwa-installed', 'true');
-        hideInstallBanner();
-        setInstallUIVisible(false);
-        deferredPrompt = null;
-
-        // Показываем сообщение об успешном создании ярлыка
-        const bannerButton = document.getElementById('pwa-install-banner-button');
-        if (bannerButton) {
-            bannerButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Ярлык создан на главном экране!';
-            bannerButton.classList.add('btn-success');
-            bannerButton.classList.remove('btn-light');
-            bannerButton.disabled = false;
-        }
-
-        // Скрываем сообщение через 3 секунды
-        setTimeout(() => {
-            if (bannerButton) {
-                bannerButton.style.display = 'none';
-            }
-        }, 3000);
+    window.addEventListener('appinstalled', function() {
+        markInstalled();
     });
 
-    // Показываем инструкции для ручной установки
-    function showInstallInstructions() {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const isChrome = /Chrome/.test(navigator.userAgent);
-        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-        const isFirefox = /Firefox/.test(navigator.userAgent);
+    function modalFooterHtml() {
+        return `
+            <div class="modal-footer flex-column align-items-stretch gap-2">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="pwa-modal-done">
+                    Уже на экране
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="pwa-modal-dismiss">
+                    Больше не показывать
+                </button>
+                <button type="button" class="btn btn-link text-muted btn-sm" data-bs-dismiss="modal">
+                    Закрыть
+                </button>
+            </div>
+        `;
+    }
 
-        // Создаем модальное окно с инструкциями
-        let modalHTML = '';
-
-        if (isIOS) {
-            modalHTML = `
-                <div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwa-install-modal-label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-primary text-white">
-                                <h5 class="modal-title" id="pwa-install-modal-label">
-                                    <i class="bi bi-phone"></i> Добавить на экран Домой
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="d-grid gap-2 mb-3">
-                                    <button id="ios-share-button" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-share"></i> Открыть меню "Поделиться"
-                                    </button>
-                                </div>
-                                <div class="alert alert-info">
-                                    <strong><i class="bi bi-info-circle"></i> Инструкция для iOS (iPhone/iPad):</strong>
-                                </div>
-                                <ol class="list-group list-group-numbered">
-                                    <li class="list-group-item d-flex align-items-start">
-                                        <span class="me-2"></span>
-                                        <div>
-                                            <strong>Нажмите "Поделиться" или  три точки : </strong>   <strong>и там "Поделиться"</strong>
-                                           
-                                        </div>
-                                    </li>
-                                    <li class="list-group-item d-flex align-items-start">
-                                        <span class="me-2"></span>
-                                        <div>
-                                            <strong>Прокрутите список вниз, нажмите "Добавить на экран ДОМОЙ"</strong> 
-                                        </div>
-                                    </li>
-                                   
-                                </ol>
-                              
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                            </div>
-                        </div>
-                    </div>
+    function buildInstructionBody(device) {
+        if (device.isInAppBrowser) {
+            return `
+                <div class="alert alert-warning mb-3">
+                    <strong>Сейчас сайт открыт внутри другого приложения</strong>
+                    (Telegram, Instagram и т.п.). В таком меню пункта «на экран» обычно нет.
                 </div>
-            `;
-        } else if (isAndroid) {
-            if (isChrome) {
-                modalHTML = `
-                    <div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwa-install-modal-label" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title" id="pwa-install-modal-label">
-                                        <i class="bi bi-phone"></i> Добавить на экран Домой
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="alert alert-info">
-                                        <strong><i class="bi bi-info-circle"></i> Для Android (Chrome):</strong>
-                                    </div>
-                                    <ol class="list-group list-group-numbered">
-                                        <li class="list-group-item">Нажмите на <strong>три точки</strong> <i class="bi bi-three-dots-vertical"></i> в правом верхнем углу браузера</li>
-                                        <li class="list-group-item">Выберите <strong>"Добавить на экран Домой"</strong> или <strong>"Установить приложение"</strong></li>
-                                        <li class="list-group-item">Подтвердите установку - приложение появится на главном экране!</li>
-                                    </ol>
-                                    
-                                  
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Понятно</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (isFirefox) {
-                modalHTML = `
-                    <div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwa-install-modal-label" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title" id="pwa-install-modal-label">
-                                        <i class="bi bi-phone"></i> Добавить на экран Домой
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="alert alert-info">
-                                        <strong><i class="bi bi-info-circle"></i> Для Android (Firefox):</strong>
-                                    </div>
-                                    <ol class="list-group list-group-numbered">
-                                        <li class="list-group-item">Нажмите на <strong>три точки</strong> <i class="bi bi-three-dots-vertical"></i> в правом верхнем углу браузера</li>
-                                        <li class="list-group-item">Выберите <strong>"Страница"</strong> → <strong>"Добавить на экран Домой"</strong></li>
-                                        <li class="list-group-item">Подтвердите установку - приложение появится на главном экране!</li>
-                                    </ol>
-                                  
-                                   
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Понятно</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                modalHTML = `
-                    <div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwa-install-modal-label" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title" id="pwa-install-modal-label">
-                                        <i class="bi bi-phone"></i> Добавить на экран Домой
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="alert alert-info">
-                                        <strong><i class="bi bi-info-circle"></i> Для Android:</strong>
-                                    </div>
-                                    <ol class="list-group list-group-numbered">
-                                        <li class="list-group-item">Откройте меню браузера (обычно три точки или три линии)</li>
-                                        <li class="list-group-item">Найдите опцию <strong>"Добавить на экран Домой"</strong> или <strong>"Установить приложение"</strong></li>
-                                        <li class="list-group-item">Подтвердите установку - приложение появится на главном экране!</li>
-                                    </ol>
-                                    
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Понятно</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            modalHTML = `
-                <div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwa-install-modal-label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-primary text-white">
-                                <h5 class="modal-title" id="pwa-install-modal-label">
-                                    <i class="bi bi-phone"></i> Добавить на экран Домой
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="alert alert-info">
-                                    <strong><i class="bi bi-info-circle"></i> Для компьютера:</strong>
-                                </div>
-                                <p>Используйте меню браузера для добавления на главный экран. Обычно это находится в настройках браузера или в меню установки приложений.</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Понятно</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <ol class="list-group list-group-numbered mb-0">
+                    <li class="list-group-item">Нажмите <strong>⋯</strong> или иконку меню вверху</li>
+                    <li class="list-group-item">Выберите <strong>«Открыть в браузере»</strong> / <strong>«Open in Chrome»</strong> / <strong>«В Safari»</strong></li>
+                    <li class="list-group-item">В обычном браузере снова нажмите кнопку «Добавить на экран» на сайте</li>
+                </ol>
             `;
         }
 
-        // Обновляем разметку модального окна при каждом открытии,
-        // чтобы изменения (например, блок "Совет" снизу) точно отображались.
+        if (device.isIOS) {
+            if (!device.isSafari) {
+                return `
+                    <div class="alert alert-warning mb-3">
+                        На iPhone ярлык можно добавить <strong>только через Safari</strong>.
+                        В Chrome / Telegram / Instagram этого пункта в меню нет.
+                    </div>
+                    <ol class="list-group list-group-numbered mb-0">
+                        <li class="list-group-item">Скопируйте адрес сайта из строки браузера</li>
+                        <li class="list-group-item">Откройте <strong>Safari</strong> и вставьте адрес</li>
+                        <li class="list-group-item">Внизу нажмите <strong>«Поделиться»</strong> <i class="bi bi-box-arrow-up"></i></li>
+                        <li class="list-group-item">Прокрутите вниз → <strong>«На экран „Домой“»</strong> → «Добавить»</li>
+                    </ol>
+                `;
+            }
+            return `
+                <div class="alert alert-info mb-3">
+                    <strong>Safari (iPhone / iPad)</strong>
+                </div>
+                <ol class="list-group list-group-numbered mb-0">
+                    <li class="list-group-item">Внизу экрана нажмите <strong>«Поделиться»</strong> <i class="bi bi-box-arrow-up"></i> (квадрат со стрелкой)</li>
+                    <li class="list-group-item">Прокрутите список вниз</li>
+                    <li class="list-group-item">Нажмите <strong>«На экран „Домой“»</strong> → «Добавить»</li>
+                </ol>
+                <p class="small text-muted mt-3 mb-0">Важно: ищите именно кнопку «Поделиться» внизу Safari, а не три точки в другом приложении.</p>
+            `;
+        }
+
+        if (device.isAndroid) {
+            if (device.isFirefox) {
+                return `
+                    <div class="alert alert-info mb-3"><strong>Firefox (Android)</strong></div>
+                    <ol class="list-group list-group-numbered mb-0">
+                        <li class="list-group-item">Нажмите <strong>три точки</strong> <i class="bi bi-three-dots-vertical"></i></li>
+                        <li class="list-group-item"><strong>«Страница»</strong> → <strong>«Добавить на экран Домой»</strong></li>
+                        <li class="list-group-item">Подтвердите добавление</li>
+                    </ol>
+                `;
+            }
+            return `
+                <div class="alert alert-info mb-3"><strong>Chrome / браузер Android</strong></div>
+                <ol class="list-group list-group-numbered mb-0">
+                    <li class="list-group-item">Нажмите <strong>три точки</strong> <i class="bi bi-three-dots-vertical"></i> справа вверху</li>
+                    <li class="list-group-item">Найдите <strong>«Установить приложение»</strong> или <strong>«Добавить на главный экран»</strong>.
+                        Иногда пункт спрятан в <strong>«Добавить на гл. экран»</strong> / <strong>«Сохранить и поделиться»</strong> — прокрутите меню вниз.</li>
+                    <li class="list-group-item">Подтвердите — ярлык появится на экране телефона</li>
+                </ol>
+                <p class="small text-muted mt-3 mb-0">Если пункта нет: откройте сайт в обычном Chrome (не из Telegram/Instagram) и обновите страницу.</p>
+            `;
+        }
+
+        return `
+            <div class="alert alert-info mb-3"><strong>Компьютер</strong></div>
+            <p class="mb-0">В Chrome: значок установки справа в адресной строке, либо меню ⋮ → «Установить приложение».</p>
+        `;
+    }
+
+    function showInstallInstructions() {
+        const device = getDeviceType();
+        const body = buildInstructionBody(device);
+        const modalHTML = `
+            <div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwa-install-modal-label" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="pwa-install-modal-label">
+                                <i class="bi bi-phone"></i> Добавить на экран Домой
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">${body}</div>
+                        ${modalFooterHtml()}
+                    </div>
+                </div>
+            </div>
+        `;
+
         const existingModal = document.getElementById('pwa-install-modal');
         if (existingModal) {
+            const instance = bootstrap.Modal.getInstance(existingModal);
+            if (instance) {
+                instance.dispose();
+            }
             existingModal.outerHTML = modalHTML;
         } else {
             document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
 
-        // Добавляем обработчик для кнопки iOS Share, если она есть
-        const iosShareButton = document.getElementById('ios-share-button');
-        if (iosShareButton && navigator.share) {
-            iosShareButton.onclick = async function() {
-                try {
-                    await navigator.share({
-                        title: 'Aru App',
-                        text: 'Установите приложение Aru на главный экран',
-                        url: window.location.href
-                    });
-                } catch (error) {
-                    console.log('Пользователь отменил или ошибка Web Share:', error);
-                }
-            };
+        const modalEl = document.getElementById('pwa-install-modal');
+        const doneBtn = document.getElementById('pwa-modal-done');
+        const dismissBtn = document.getElementById('pwa-modal-dismiss');
+        if (doneBtn) {
+            doneBtn.addEventListener('click', function() {
+                markInstalled();
+            });
+        }
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', function() {
+                dismissInstallPrompts();
+            });
         }
 
-        // Показываем модальное окно
-        const modal = new bootstrap.Modal(document.getElementById('pwa-install-modal'));
+        const modal = new bootstrap.Modal(modalEl);
         modal.show();
     }
 
-    // Инициализация при загрузке
     function initializePWAInstall() {
-        // Если приложение уже установлено, скрываем кнопку
-        if (isPWAInstalled()) {
+        if (isPWAInstalled() || isInstallDismissed()) {
             setInstallUIVisible(false);
             hideInstallBanner();
             return;
         }
 
-        // На iOS нет beforeinstallprompt, поэтому показываем кнопку/триггеры сразу (только на мобилках)
         if (isMobileDevice()) {
             setInstallUIVisible(true);
         } else {
             setInstallUIVisible(false);
         }
 
-        // Показываем баннер через 10 секунд, если приложение не установлено
         setTimeout(function() {
-            // Проверяем еще раз, не установлено ли приложение за это время
-            if (isPWAInstalled()) {
+            if (isPWAInstalled() || isInstallDismissed()) {
                 hideInstallBanner();
                 return;
             }
-
-            // Проверяем, не показывали ли уже баннер
-            const bannerShown = localStorage.getItem('pwa-banner-shown');
-            if (bannerShown === 'true') {
+            if (localStorage.getItem(BANNER_KEY) === 'true') {
                 return;
             }
-
-            // Показываем баннер только на мобильных устройствах
-            // Баннер показывается даже если deferredPrompt еще не получен,
-            // так как он может появиться позже, а при нажатии проверим его наличие
             if (isMobileDevice() && installBanner) {
                 installBanner.style.display = 'block';
             }
-        }, 10000); // 10 секунд = 10000 миллисекунд
+        }, 10000);
     }
 
-    // Экспортируем функцию
     window.initializePWAInstall = initializePWAInstall;
 })();

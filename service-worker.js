@@ -4,7 +4,7 @@
  * Обрабатывает push-уведомления в фоновом режиме
  */
 
-const CACHE_NAME = 'aru-app-v5'; // v5: BASE_URL от пути к service-worker.js (не хардкод /aru-app/)
+const CACHE_NAME = 'aru-app-v6'; // v6: PWA icons PNG 192/512 + install UX
 // Папка приложения = каталог, в котором лежит service-worker.js (например /aru-app/)
 const SW_SCRIPT = self.location.pathname || '/';
 const BASE_PATH = SW_SCRIPT.replace(/[^/]+$/, '');

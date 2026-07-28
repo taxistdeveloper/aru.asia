@@ -11,16 +11,19 @@ ob_start();
 
 <div class="mobile-page-container">
 
-    <!-- Мини-кнопка "Добавить на экран Домой" (только для телефонов) -->
+    <!-- Кнопка "Добавить на экран Домой" (только для телефонов) -->
     <div class="mobile-only pwa-fab">
         <button type="button"
-            class="btn btn-primary pwa-install-trigger pwa-fab-btn"
+            class="pwa-install-trigger pwa-fab-btn"
             id="pwa-install-trigger-platform"
             aria-label="Добавить на экран Домой"
             title="Добавить на экран Домой">
-            <i class="bi bi-plus-lg"></i>
+            <span class="pwa-fab-icon" aria-hidden="true">
+                <i class="bi bi-phone"></i>
+                <i class="bi bi-plus-lg pwa-fab-plus"></i>
+            </span>
+            <span class="pwa-fab-label">На экран</span>
         </button>
-        <div class="pwa-fab-hint">На экран Домой</div>
     </div>
 
     <!-- Рекламный баннер -->
@@ -1697,168 +1700,131 @@ ob_start();
             }
         }
 
-        /* Плавающая мини-кнопка PWA (мобилки) */
+        /* Плавающая кнопка PWA (мобилки) */
         .pwa-fab {
             position: fixed;
-            right: 14px;
+            right: 12px;
             bottom: calc(92px + env(safe-area-inset-bottom, 0px));
-            /* выше нижней навигации + safe area */
             z-index: 1200;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
         }
 
         .pwa-fab-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 999px;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 0;
-            border: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 45%, #f093fb 100%);
-            box-shadow:
-                0 14px 34px rgba(102, 126, 234, 0.35),
-                0 8px 18px rgba(0, 0, 0, 0.14);
+            gap: 8px;
+            height: 44px;
+            padding: 0 14px 0 8px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 14px;
+            background: linear-gradient(145deg, #5b6fe8 0%, #6b4f9e 100%);
+            box-shadow: 0 8px 22px rgba(91, 111, 232, 0.32);
+            color: #fff;
             position: relative;
-            isolation: isolate;
-            transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+            overflow: hidden;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
             -webkit-tap-highlight-color: transparent;
+            animation: pwa-fab-float 3.2s ease-in-out infinite;
         }
 
-        /* Глянцевый блик */
         .pwa-fab-btn::before {
             content: '';
             position: absolute;
-            inset: 1px;
-            border-radius: inherit;
-            background: radial-gradient(circle at 30% 25%,
-                    rgba(255, 255, 255, 0.55) 0%,
-                    rgba(255, 255, 255, 0.18) 22%,
-                    rgba(255, 255, 255, 0) 55%);
-            opacity: 0.9;
-            z-index: 0;
+            inset: 0;
+            background: linear-gradient(115deg,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.18) 42%,
+                    transparent 68%);
+            transform: translateX(-120%);
+            animation: pwa-fab-shine 4.5s ease-in-out infinite;
             pointer-events: none;
         }
 
-        /* Светящийся ободок */
-        .pwa-fab-btn::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: inherit;
-            background: radial-gradient(circle,
-                    rgba(240, 147, 251, 0.55) 0%,
-                    rgba(102, 126, 234, 0.35) 45%,
-                    rgba(102, 126, 234, 0) 70%);
-            filter: blur(6px);
-            opacity: 0.65;
-            z-index: -1;
-            pointer-events: none;
-            animation: pwa-fab-pulse 2.2s ease-in-out infinite;
-        }
-
-        .pwa-fab-btn i {
-            font-size: 20px;
-            line-height: 1;
+        .pwa-fab-icon {
             position: relative;
-            z-index: 1;
-            color: #ffffff;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.18);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .pwa-fab-btn:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow:
-                0 18px 44px rgba(102, 126, 234, 0.42),
-                0 10px 22px rgba(0, 0, 0, 0.16);
-            filter: saturate(1.08);
+        .pwa-fab-icon > .bi-phone {
+            font-size: 16px;
+            line-height: 1;
+            color: #fff;
         }
 
+        .pwa-fab-plus {
+            position: absolute;
+            right: -3px;
+            bottom: -3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            color: #5b6fe8 !important;
+            font-size: 9px !important;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+        }
+
+        .pwa-fab-label {
+            position: relative;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .pwa-fab-btn:hover,
         .pwa-fab-btn:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(91, 111, 232, 0.4);
             outline: none;
-            box-shadow:
-                0 0 0 4px rgba(102, 126, 234, 0.28),
-                0 18px 44px rgba(102, 126, 234, 0.42),
-                0 10px 22px rgba(0, 0, 0, 0.16);
         }
 
         .pwa-fab-btn:active {
-            transform: translateY(0px) scale(0.98);
+            transform: translateY(0) scale(0.97);
+            animation: none;
         }
 
-        .pwa-fab-hint {
-            position: absolute;
-            right: calc(100% + 10px);
-            bottom: 50%;
-            transform: translateY(50%) translateX(8px);
-            opacity: 0;
-            pointer-events: none;
-
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: -0.2px;
-            color: #0f172a;
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(102, 126, 234, 0.22);
-            border-radius: 999px;
-            padding: 8px 12px;
-            box-shadow:
-                0 12px 30px rgba(0, 0, 0, 0.12),
-                0 4px 12px rgba(102, 126, 234, 0.12);
-            white-space: nowrap;
-            transition: opacity 0.18s ease, transform 0.18s ease;
+        @keyframes pwa-fab-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
         }
 
-        .pwa-fab-hint::after {
-            content: '';
-            position: absolute;
-            right: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.94);
-            border-right: 1px solid rgba(102, 126, 234, 0.22);
-            border-top: 1px solid rgba(102, 126, 234, 0.22);
-            transform: translateY(-50%) rotate(45deg);
+        @keyframes pwa-fab-shine {
+            0%, 70% { transform: translateX(-120%); }
+            85% { transform: translateX(120%); }
+            100% { transform: translateX(120%); }
         }
 
-        .pwa-fab:hover .pwa-fab-hint,
-        .pwa-fab:focus-within .pwa-fab-hint,
-        .pwa-fab-btn:active+.pwa-fab-hint {
-            opacity: 1;
-            transform: translateY(50%) translateX(0);
-        }
-
-        @keyframes pwa-fab-pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.55;
-            }
-
-            50% {
-                transform: scale(1.08);
-                opacity: 0.75;
-            }
-        }
-
-        /* Очень маленькие телефоны */
         @media (max-width: 360px) {
             .pwa-fab {
-                right: 12px;
+                right: 10px;
                 bottom: calc(86px + env(safe-area-inset-bottom, 0px));
             }
 
             .pwa-fab-btn {
-                width: 48px;
-                height: 48px;
+                height: 40px;
+                padding: 0 12px 0 6px;
+                gap: 6px;
+            }
+
+            .pwa-fab-icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .pwa-fab-label {
+                font-size: 12px;
             }
         }
     </style>
