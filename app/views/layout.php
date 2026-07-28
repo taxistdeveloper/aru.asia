@@ -540,22 +540,9 @@
                 <div class="d-flex align-items-center gap-2">
                     <!-- Кнопка установки PWA — показывается после удаления приложения при повторном посещении -->
 
-                    <?php if (Helper::isLoggedIn()):
-                        // Получаем пол пользователя для отображения соответствующей иконки
-                        $userModel = new User();
-                        $currentUser = $userModel->findById(Helper::getUserId());
-                        $userGender = $currentUser['gender'] ?? null;
-
-                        // Выбираем иконку в зависимости от пола
-                        $profileIconClass = 'bi bi-person-circle'; // Значение по умолчанию
-                        if ($userGender === 'female') {
-                            $profileIconClass = 'bi bi-person-standing-dress'; // Иконка женщины
-                        } elseif ($userGender === 'male') {
-                            $profileIconClass = 'bi bi-person'; // Иконка мужчины
-                        }
-                    ?>
+                    <?php if (Helper::isLoggedIn()): ?>
                         <a href="<?= BASE_URL ?>profile" class="profile-icon-link" title="Профиль">
-                            <i class="<?= htmlspecialchars($profileIconClass) ?> profile-icon"></i>
+                            <i class="bi bi-person-circle profile-icon"></i>
                         </a>
                     <?php else: ?>
                         <a href="<?= BASE_URL ?>auth/login" class="text-white">
