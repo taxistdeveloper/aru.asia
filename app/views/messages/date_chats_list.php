@@ -20,35 +20,51 @@ $currentUserId = $currentUserId ?? null;
         --chat-hover: #f5f6f6;
     }
 
+    body.chats-list-page .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        max-width: 100% !important;
+    }
+
+    body.chats-list-page .desktop-layout {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
     .chats-page-container {
-        min-height: 100vh;
+        min-height: calc(100vh - 56px);
+        min-height: calc(100dvh - 56px);
         background: #fff;
+        display: flex;
+        flex-direction: column;
         padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+        box-sizing: border-box;
     }
 
     .chats-header {
-        background: var(--aru-grad);
-        padding: 10px 12px 10px 8px;
+        background: #fff;
+        padding: 8px 12px 8px 6px;
         position: sticky;
         top: 0;
         z-index: 100;
-        box-shadow: 0 1px 8px rgba(102, 126, 234, 0.22);
+        border-bottom: 1px solid var(--chat-border);
     }
 
     .chats-header-content {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         max-width: 720px;
         margin: 0 auto;
-        min-height: 40px;
+        min-height: 44px;
     }
 
     .btn-back-modern {
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        color: #fff;
+        color: #54656f;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -56,20 +72,20 @@ $currentUserId = $currentUserId ?? null;
         flex-shrink: 0;
         background: transparent;
         border: none;
-        transition: background 0.15s ease;
+        transition: background 0.15s ease, color 0.15s ease;
     }
 
     .btn-back-modern:hover {
-        background: rgba(255, 255, 255, 0.16);
-        color: #fff;
+        background: #f0f2f5;
+        color: var(--aru-primary);
     }
 
     .btn-back-modern:active {
-        background: rgba(255, 255, 255, 0.22);
+        background: #e9edef;
     }
 
     .btn-back-modern i {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
         line-height: 1;
         margin-left: -1px;
     }
@@ -81,70 +97,77 @@ $currentUserId = $currentUserId ?? null;
 
     .chats-header-title h1 {
         margin: 0;
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--chat-text);
         letter-spacing: 0.01em;
-        line-height: 1.2;
+        line-height: 1.25;
     }
 
     .chats-header-count {
-        margin: 2px 0 0;
+        margin: 1px 0 0;
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.78);
+        color: var(--chat-muted);
         line-height: 1.2;
+    }
+
+    .chats-empty-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 20px 40px;
     }
 
     .chats-empty-state {
         text-align: center;
-        padding: 72px 28px;
-        max-width: 380px;
+        max-width: 300px;
         margin: 0 auto;
         color: var(--chat-muted);
     }
 
     .empty-icon-wrapper {
-        width: 72px;
-        height: 72px;
-        margin: 0 auto 18px;
+        width: 88px;
+        height: 88px;
+        margin: 0 auto 20px;
         border-radius: 50%;
-        background: var(--aru-grad);
+        background: #f0f2f8;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.28);
+        border: 1px solid #e4e7f0;
     }
 
     .empty-icon-wrapper i {
-        font-size: 32px;
-        color: #fff;
+        font-size: 36px;
+        color: #667eea;
     }
 
     .chats-empty-state h2 {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         font-weight: 600;
         color: var(--chat-text);
-        margin: 0 0 6px;
+        margin: 0 0 8px;
     }
 
     .chats-empty-state p {
         font-size: 0.9rem;
-        margin: 0 0 22px;
-        line-height: 1.45;
+        margin: 0 0 24px;
+        line-height: 1.5;
     }
 
     .btn-empty-action {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 11px 22px;
+        padding: 12px 22px;
         background: var(--aru-grad);
         color: #fff;
         border-radius: 24px;
         text-decoration: none;
         font-weight: 500;
-        font-size: 0.95rem;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        font-size: 0.92rem;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.28);
     }
 
     .btn-empty-action:hover {
@@ -484,16 +507,18 @@ $chatsCountLabel = $chatsCount . ' ' . (
     </div>
 
     <?php if (empty($myDateChats)): ?>
-        <div class="chats-empty-state">
-            <div class="empty-icon-wrapper">
-                <i class="bi bi-chat-heart"></i>
+        <div class="chats-empty-wrap">
+            <div class="chats-empty-state">
+                <div class="empty-icon-wrapper">
+                    <i class="bi bi-chat-heart"></i>
+                </div>
+                <h2>Пока нет чатов</h2>
+                <p>Начните общение с кем-то интересным на странице свиданий</p>
+                <a href="<?= BASE_URL ?>dates" class="btn-empty-action">
+                    <i class="bi bi-calendar-plus"></i>
+                    Найти свидание
+                </a>
             </div>
-            <h2>Пока нет чатов</h2>
-            <p>Начните общение с кем-то интересным на странице свиданий</p>
-            <a href="<?= BASE_URL ?>dates" class="btn-empty-action">
-                <i class="bi bi-calendar-plus"></i>
-                Найти свидание
-            </a>
         </div>
     <?php else: ?>
         <div class="chats-list-modern">
@@ -777,5 +802,6 @@ $chatsCountLabel = $chatsCount . ' ' . (
 <?php
 $content = ob_get_clean();
 $title = 'Мои чаты свиданий';
+$bodyClass = 'chats-list-page';
 include __DIR__ . '/../layout.php';
 ?>
