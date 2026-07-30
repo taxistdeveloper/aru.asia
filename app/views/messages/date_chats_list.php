@@ -13,6 +13,11 @@ $currentUserId = $currentUserId ?? null;
 <style>
     :root {
         --aru-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --aru-primary: #667eea;
+        --chat-text: #111b21;
+        --chat-muted: #667781;
+        --chat-border: #e9edef;
+        --chat-hover: #f5f6f6;
     }
 
     .chats-page-container {
@@ -23,24 +28,25 @@ $currentUserId = $currentUserId ?? null;
 
     .chats-header {
         background: var(--aru-grad);
-        padding: 12px 16px;
+        padding: 10px 12px 10px 8px;
         position: sticky;
         top: 0;
         z-index: 100;
-        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.25);
+        box-shadow: 0 1px 8px rgba(102, 126, 234, 0.22);
     }
 
     .chats-header-content {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         max-width: 720px;
         margin: 0 auto;
+        min-height: 40px;
     }
 
     .btn-back-modern {
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         color: #fff;
         display: inline-flex;
@@ -48,90 +54,97 @@ $currentUserId = $currentUserId ?? null;
         justify-content: center;
         text-decoration: none;
         flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.28);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        background: transparent;
+        border: none;
+        transition: background 0.15s ease;
     }
 
     .btn-back-modern:hover {
-        background: rgba(255, 255, 255, 0.28);
-        border-color: rgba(255, 255, 255, 0.45);
+        background: rgba(255, 255, 255, 0.16);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     .btn-back-modern:active {
-        transform: scale(0.94);
         background: rgba(255, 255, 255, 0.22);
     }
 
     .btn-back-modern i {
-        font-size: 1.05rem;
-        font-weight: 600;
+        font-size: 1.25rem;
         line-height: 1;
         margin-left: -1px;
     }
 
+    .chats-header-title {
+        flex: 1;
+        min-width: 0;
+    }
+
     .chats-header-title h1 {
         margin: 0;
-        font-size: 1.15rem;
-        font-weight: 500;
+        font-size: 1.2rem;
+        font-weight: 600;
         color: #fff;
         letter-spacing: 0.01em;
+        line-height: 1.2;
+    }
+
+    .chats-header-count {
+        margin: 2px 0 0;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.78);
+        line-height: 1.2;
     }
 
     .chats-empty-state {
         text-align: center;
-        padding: 64px 24px;
-        max-width: 420px;
+        padding: 72px 28px;
+        max-width: 380px;
         margin: 0 auto;
-        color: #6b7280;
+        color: var(--chat-muted);
     }
 
     .empty-icon-wrapper {
-        width: 88px;
-        height: 88px;
-        margin: 0 auto 20px;
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px;
         border-radius: 50%;
         background: var(--aru-grad);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.28);
     }
 
     .empty-icon-wrapper i {
-        font-size: 40px;
+        font-size: 32px;
         color: #fff;
     }
 
     .chats-empty-state h2 {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         font-weight: 600;
-        color: #1f2937;
-        margin: 0 0 8px;
+        color: var(--chat-text);
+        margin: 0 0 6px;
     }
 
     .chats-empty-state p {
-        font-size: 0.95rem;
-        margin: 0 0 24px;
-        line-height: 1.5;
+        font-size: 0.9rem;
+        margin: 0 0 22px;
+        line-height: 1.45;
     }
 
     .btn-empty-action {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 24px;
+        padding: 11px 22px;
         background: var(--aru-grad);
         color: #fff;
         border-radius: 24px;
         text-decoration: none;
         font-weight: 500;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
+        font-size: 0.95rem;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
     .btn-empty-action:hover {
@@ -148,14 +161,28 @@ $currentUserId = $currentUserId ?? null;
     .chat-card-modern {
         position: relative;
         display: flex;
-        align-items: stretch;
-        border-bottom: 1px solid #eef0f6;
+        align-items: center;
         background: #fff;
         transition: background 0.12s;
     }
 
-    .chat-card-modern:hover {
-        background: #f5f6fb;
+    .chat-card-modern::after {
+        content: '';
+        position: absolute;
+        left: 78px;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--chat-border);
+    }
+
+    .chat-card-modern:last-child::after {
+        display: none;
+    }
+
+    .chat-card-modern:hover,
+    .chat-card-modern.is-menu-open {
+        background: var(--chat-hover);
     }
 
     .chat-card-link {
@@ -163,7 +190,7 @@ $currentUserId = $currentUserId ?? null;
         align-items: center;
         flex: 1;
         min-width: 0;
-        padding: 12px 12px 12px 16px;
+        padding: 11px 4px 11px 16px;
         text-decoration: none;
         color: inherit;
     }
@@ -195,50 +222,53 @@ $currentUserId = $currentUserId ?? null;
     }
 
     .chat-avatar-placeholder-modern i {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         color: #fff;
     }
 
     .chat-info-modern {
         flex: 1;
         min-width: 0;
+        padding-right: 4px;
     }
 
     .chat-header-modern {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 3px;
+        gap: 12px;
+        margin-bottom: 2px;
     }
 
     .chat-title-modern {
         font-size: 16px;
         font-weight: 500;
-        color: #1f2937;
+        color: var(--chat-text);
         margin: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         flex: 1;
         min-width: 0;
+        line-height: 1.3;
     }
 
     .chat-title-placeholder {
-        color: #9ca3af;
+        color: #8696a0;
         font-style: italic;
         font-weight: 400;
     }
 
     .chat-time-modern {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--chat-muted);
         flex-shrink: 0;
         white-space: nowrap;
+        line-height: 1.3;
     }
 
     .chat-time-modern.has-unread {
-        color: #667eea;
+        color: var(--aru-primary);
         font-weight: 600;
     }
 
@@ -246,24 +276,25 @@ $currentUserId = $currentUserId ?? null;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 10px;
     }
 
     .chat-preview {
-        font-size: 14px;
-        color: #6b7280;
+        font-size: 13.5px;
+        color: var(--chat-muted);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         flex: 1;
         min-width: 0;
         margin: 0;
+        line-height: 1.35;
     }
 
     .chat-unread-badge-modern {
         background: var(--aru-grad);
         color: #fff;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         min-width: 20px;
         height: 20px;
@@ -277,47 +308,96 @@ $currentUserId = $currentUserId ?? null;
     }
 
     .chat-actions-modern {
+        position: relative;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 12px 8px 0;
+        align-items: center;
+        padding: 0 10px 0 2px;
         flex-shrink: 0;
     }
 
-    .chat-block-btn-modern,
-    .chat-delete-btn-modern {
-        width: 34px;
-        height: 34px;
+    .chat-menu-btn {
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         border: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.12s, background 0.12s;
-        background: #f3f4f6;
-        color: #6b7280;
+        background: transparent;
+        color: #8696a0;
+        transition: background 0.12s, color 0.12s;
     }
 
-    .chat-block-btn-modern:hover {
-        background: #fef3c7;
-        color: #92400e;
+    .chat-menu-btn:hover,
+    .chat-card-modern.is-menu-open .chat-menu-btn {
+        background: rgba(102, 126, 234, 0.1);
+        color: var(--aru-primary);
     }
 
-    .chat-delete-btn-modern:hover {
-        background: #fee2e2;
+    .chat-menu-btn i {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .chat-menu-dropdown {
+        position: absolute;
+        top: calc(100% - 4px);
+        right: 8px;
+        min-width: 180px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(11, 20, 26, 0.16);
+        padding: 6px 0;
+        z-index: 50;
+        display: none;
+        overflow: hidden;
+    }
+
+    .chat-menu-dropdown.show {
+        display: block;
+    }
+
+    .chat-menu-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 16px;
+        border: none;
+        background: transparent;
+        color: var(--chat-text);
+        font-size: 14px;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+
+    .chat-menu-item:hover {
+        background: #f0f2f5;
+    }
+
+    .chat-menu-item i {
+        font-size: 15px;
+        width: 18px;
+        text-align: center;
+        color: #667781;
+    }
+
+    .chat-menu-item.is-danger {
         color: #dc2626;
     }
 
-    .chat-block-btn-modern:active,
-    .chat-delete-btn-modern:active {
-        transform: scale(0.94);
+    .chat-menu-item.is-danger i {
+        color: #dc2626;
     }
 
-    .chat-block-btn-modern i,
-    .chat-delete-btn-modern i {
-        font-size: 14px;
+    .chat-menu-item.is-warn {
+        color: #b45309;
+    }
+
+    .chat-menu-item.is-warn i {
+        color: #b45309;
     }
 
     .success-notification {
@@ -359,24 +439,34 @@ $currentUserId = $currentUserId ?? null;
         }
 
         .chat-card-link {
-            padding: 12px 8px 12px 14px;
+            padding: 11px 2px 11px 14px;
         }
 
         .chat-avatar-modern {
-            width: 49px;
-            height: 49px;
+            width: 50px;
+            height: 50px;
             margin-right: 12px;
         }
 
-        .chat-title-modern {
-            font-size: 16px;
+        .chat-card-modern::after {
+            left: 74px;
         }
 
         .chat-actions-modern {
-            padding-right: 10px;
+            padding-right: 6px;
         }
     }
 </style>
+
+<?php
+$chatsCount = count($myDateChats);
+$chatsCountLabel = $chatsCount . ' ' . (
+    $chatsCount % 10 === 1 && $chatsCount % 100 !== 11 ? 'чат' : (
+        $chatsCount % 10 >= 2 && $chatsCount % 10 <= 4 && ($chatsCount % 100 < 10 || $chatsCount % 100 >= 20)
+            ? 'чата' : 'чатов'
+    )
+);
+?>
 
 <div class="chats-page-container">
     <div class="chats-header">
@@ -386,6 +476,9 @@ $currentUserId = $currentUserId ?? null;
             </a>
             <div class="chats-header-title">
                 <h1>Мои чаты</h1>
+                <?php if ($chatsCount > 0): ?>
+                    <p class="chats-header-count"><?= $chatsCountLabel ?></p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -464,19 +557,27 @@ $currentUserId = $currentUserId ?? null;
                         </div>
                     </a>
                     <div class="chat-actions-modern">
-                        <button type="button" class="chat-block-btn-modern"
-                            data-date-id="<?= $date['id'] ?>"
-                            data-user-id="<?= $chatUserId ?>"
-                            onclick="blockAndDeleteDateChat(<?= $date['id'] ?>, <?= $chatUserId ?>, event)"
-                            title="Заблокировать и удалить">
-                            <i class="bi bi-lock-fill"></i>
+                        <button type="button"
+                            class="chat-menu-btn"
+                            aria-label="Действия"
+                            aria-expanded="false"
+                            onclick="toggleChatMenu(<?= (int)$date['id'] ?>, event)">
+                            <i class="bi bi-three-dots-vertical"></i>
                         </button>
-                        <button type="button" class="chat-delete-btn-modern"
-                            data-date-id="<?= $date['id'] ?>"
-                            onclick="deleteDateChat(<?= $date['id'] ?>, event)"
-                            title="Удалить чат">
-                            <i class="bi bi-trash3"></i>
-                        </button>
+                        <div class="chat-menu-dropdown" id="chat-menu-<?= $date['id'] ?>">
+                            <button type="button"
+                                class="chat-menu-item is-warn"
+                                onclick="blockAndDeleteDateChat(<?= (int)$date['id'] ?>, <?= (int)$chatUserId ?>, event)">
+                                <i class="bi bi-lock-fill"></i>
+                                <span>Заблокировать</span>
+                            </button>
+                            <button type="button"
+                                class="chat-menu-item is-danger"
+                                onclick="deleteDateChat(<?= (int)$date['id'] ?>, event)">
+                                <i class="bi bi-trash3"></i>
+                                <span>Удалить чат</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -487,6 +588,47 @@ $currentUserId = $currentUserId ?? null;
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const BASE_URL = '<?= BASE_URL ?>';
+
+        function closeAllChatMenus() {
+            document.querySelectorAll('.chat-menu-dropdown.show').forEach(function(menu) {
+                menu.classList.remove('show');
+            });
+            document.querySelectorAll('.chat-card-modern.is-menu-open').forEach(function(card) {
+                card.classList.remove('is-menu-open');
+            });
+            document.querySelectorAll('.chat-menu-btn[aria-expanded="true"]').forEach(function(btn) {
+                btn.setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        window.toggleChatMenu = function(dateId, e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            const menu = document.getElementById('chat-menu-' + dateId);
+            const wrapper = document.getElementById('chat-wrapper-' + dateId);
+            const btn = wrapper ? wrapper.querySelector('.chat-menu-btn') : null;
+            if (!menu || !wrapper) return;
+
+            const willOpen = !menu.classList.contains('show');
+            closeAllChatMenus();
+
+            if (willOpen) {
+                menu.classList.add('show');
+                wrapper.classList.add('is-menu-open');
+                if (btn) btn.setAttribute('aria-expanded', 'true');
+            }
+        };
+
+        document.addEventListener('click', function() {
+            closeAllChatMenus();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeAllChatMenus();
+        });
 
         function showSuccessNotification(message) {
             const notification = document.createElement('div');
@@ -510,6 +652,7 @@ $currentUserId = $currentUserId ?? null;
                 e.preventDefault();
                 e.stopPropagation();
             }
+            closeAllChatMenus();
 
             const wrapper = document.getElementById('chat-wrapper-' + dateId);
             if (!wrapper) {
@@ -571,6 +714,7 @@ $currentUserId = $currentUserId ?? null;
                 e.preventDefault();
                 e.stopPropagation();
             }
+            closeAllChatMenus();
 
             const wrapper = document.getElementById('chat-wrapper-' + dateId);
             if (!wrapper) {
