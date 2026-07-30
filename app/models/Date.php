@@ -56,18 +56,23 @@ class Date
         // Мужчины видят женские объявления, женщины - мужские
         $oppositeGender = $userGender === 'male' ? 'female' : 'male';
 
-        // Используем формулу гаверсинуса для расчета расстояния
-        // Исправленная формула с защитой от ошибок округления
-        $sql = "SELECT d.id, d.user_id, d.title, d.category_id, d.date_time, d.location, d.latitude, d.longitude, d.created_at,
+        // Используем формулу гаверсинуса для расчета расстояния.
+        // Если у свидания нет координат (старые записи / форма без карты) —
+        // берём координаты из профиля создателя.
+        $sql = "SELECT d.id, d.user_id, d.title, d.category_id, d.date_time,
+                COALESCE(NULLIF(TRIM(d.location), ''), u.city, '') as location,
+                COALESCE(d.latitude, u.latitude) as latitude,
+                COALESCE(d.longitude, u.longitude) as longitude,
+                d.created_at,
                 u.email, u.age, u.gender,
                 dc.name as category_name, dc.description as category_description,
                 (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as photo,
                 ROUND(
                     6371 * acos(
                         GREATEST(-1.0, LEAST(1.0,
-                            cos(radians(:lat1)) * cos(radians(d.latitude)) *
-                            cos(radians(d.longitude) - radians(:lon1)) +
-                            sin(radians(:lat2)) * sin(radians(d.latitude))
+                            cos(radians(:lat1)) * cos(radians(COALESCE(d.latitude, u.latitude))) *
+                            cos(radians(COALESCE(d.longitude, u.longitude)) - radians(:lon1)) +
+                            sin(radians(:lat2)) * sin(radians(COALESCE(d.latitude, u.latitude)))
                         ))
                     ),
                     2
@@ -77,10 +82,10 @@ class Date
                 LEFT JOIN date_categories dc ON d.category_id = dc.id
                 WHERE u.gender = :gender
                 AND d.date_time >= NOW()
-                AND d.latitude IS NOT NULL
-                AND d.longitude IS NOT NULL
-                AND CAST(d.latitude AS DECIMAL(10,8)) BETWEEN -90 AND 90
-                AND CAST(d.longitude AS DECIMAL(11,8)) BETWEEN -180 AND 180
+                AND COALESCE(d.latitude, u.latitude) IS NOT NULL
+                AND COALESCE(d.longitude, u.longitude) IS NOT NULL
+                AND CAST(COALESCE(d.latitude, u.latitude) AS DECIMAL(10,8)) BETWEEN -90 AND 90
+                AND CAST(COALESCE(d.longitude, u.longitude) AS DECIMAL(11,8)) BETWEEN -180 AND 180
                 HAVING distance <= :radius
                 ORDER BY distance, d.date_time";
 

@@ -245,14 +245,27 @@ class DatesController
                 return;
             }
 
+            // Координаты из формы (если есть) или из профиля — иначе свидание
+            // не попадёт в ленту getInRadius (требует latitude/longitude NOT NULL)
+            $latitude = $_POST['latitude'] ?? null;
+            $longitude = $_POST['longitude'] ?? null;
+            $location = trim($_POST['location'] ?? '');
+            if ($latitude === null || $latitude === '' || $longitude === null || $longitude === '') {
+                $latitude = $user['latitude'] ?? null;
+                $longitude = $user['longitude'] ?? null;
+            }
+            if ($location === '') {
+                $location = $user['city'] ?? '';
+            }
+
             $data = [
                 'user_id' => $userId,
                 'title' => $_POST['title'] ?? '',
                 'category_id' => $_POST['category_id'] ?? null,
                 'date_time' => $dateTime,
-                'location' => $_POST['location'] ?? '',
-                'latitude' => $_POST['latitude'] ?? null,
-                'longitude' => $_POST['longitude'] ?? null
+                'location' => $location,
+                'latitude' => $latitude,
+                'longitude' => $longitude
             ];
 
             if ($this->dateModel->create($data)) {
@@ -366,13 +379,30 @@ class DatesController
                 return;
             }
 
+            $user = $this->userModel->findById($userId);
+
+            // Координаты из формы или из профиля (форма создания/редактирования
+            // сейчас не отправляет lat/lon — без этого свидание пропадает из ленты)
+            $latitude = $_POST['latitude'] ?? null;
+            $longitude = $_POST['longitude'] ?? null;
+            $location = trim($_POST['location'] ?? '');
+            if ($latitude === null || $latitude === '' || $longitude === null || $longitude === '') {
+                $latitude = $date['latitude'] ?? ($user['latitude'] ?? null);
+                $longitude = $date['longitude'] ?? ($user['longitude'] ?? null);
+            }
+            if ($location === '') {
+                $location = !empty($date['location'])
+                    ? $date['location']
+                    : ($user['city'] ?? '');
+            }
+
             $data = [
                 'title' => $_POST['title'] ?? '',
                 'category_id' => $_POST['category_id'] ?? null,
                 'date_time' => $dateTime,
-                'location' => $_POST['location'] ?? '',
-                'latitude' => $_POST['latitude'] ?? null,
-                'longitude' => $_POST['longitude'] ?? null
+                'location' => $location,
+                'latitude' => $latitude,
+                'longitude' => $longitude
             ];
 
             if ($this->dateModel->update($dateId, $userId, $data)) {
