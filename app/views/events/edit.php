@@ -510,28 +510,25 @@ ob_start();
 
                 <div class="mb-3" style="position: relative;">
                     <label for="city" class="form-label">Город *</label>
-                    <!-- Скрытое поле для отправки формы -->
-                    <input type="text"
-                        class="form-control"
-                        id="city"
-                        name="city"
-                        required
-                        value="<?= Helper::escape($parsedAddress['city']) ?>"
-                        autocomplete="off"
-                        style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; width: 0; height: 0; padding: 0; border: none; overflow: hidden;">
-                    
                     <div class="city-location-container">
+                        <input type="text"
+                            class="form-control"
+                            id="city"
+                            name="city"
+                            required
+                            value="<?= Helper::escape($parsedAddress['city']) ?>"
+                            autocomplete="off"
+                            placeholder="Начните вводить название города...">
                         <button type="button" 
                                 class="btn btn-outline-primary city-location-btn" 
                                 id="detectLocationBtn"
                                 onclick="detectLocation()"
-                                style="width: 100%; padding: 16px 20px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); transition: all 0.3s ease; font-weight: 600;">
+                                style="width: 100%; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); transition: all 0.3s ease; font-weight: 600; cursor: pointer;">
                             <i class="bi bi-geo-alt-fill" style="font-size: 18px;"></i>
-                            <span>Геолокация</span>
+                            <span>Определить по геолокации</span>
                         </button>
-                        <small class="city-location-hint" style="display: block; margin-top: 10px; padding: 12px 16px; background: #f7fafc; border-radius: 10px; color: #4a5568; font-size: 13px; line-height: 1.5; border-left: 3px solid #667eea;">
-                            <i class="bi bi-info-circle" style="color: #667eea; margin-right: 8px;"></i>
-                            <strong>Зачем нужна геолокация?</strong> Мы автоматически определим ваш город, чтобы другие пользователи могли найти ваше мероприятие. Это поможет участникам быстрее найти события в их регионе.
+                        <small class="form-text text-muted d-block mt-2">
+                            Введите город вручную или нажмите кнопку, чтобы определить его автоматически.
                         </small>
                     </div>
                     
@@ -718,6 +715,9 @@ ob_start();
         color: #667eea !important;
         position: relative;
         overflow: hidden;
+        cursor: pointer !important;
+        z-index: 1;
+        pointer-events: auto !important;
     }
 
     .city-location-btn::before {
@@ -730,6 +730,7 @@ ob_start();
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         transition: left 0.3s ease;
         z-index: 0;
+        pointer-events: none;
     }
 
     .city-location-btn:hover::before {
@@ -773,6 +774,16 @@ ob_start();
     /* Контейнер для геолокации */
     .city-location-container {
         position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 2;
+    }
+
+    .city-location-container #city {
+        position: relative;
+        z-index: 2;
+        pointer-events: auto !important;
     }
 
     /* Стили для информационной подсказки */
@@ -1125,30 +1136,29 @@ ob_start();
                 } finally {
                     if (detectBtn) {
                         detectBtn.disabled = false;
-                        detectBtn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+                        detectBtn.innerHTML = '<i class="bi bi-geo-alt-fill" style="font-size: 18px;"></i><span>Определить по геолокации</span>';
                     }
                 }
             },
             function(error) {
                 console.error('Ошибка геолокации:', error);
-                // Не показываем ошибку, если город уже заполнен
-                if (cityInput && !cityInput.value.trim() && locationStatus && !locationStatus.innerHTML.trim()) {
-                    let errorMessage = 'Не удалось определить местоположение. ';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage += 'Разрешите доступ к геолокации в настройках браузера.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage += 'Информация о местоположении недоступна.';
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage += 'Превышено время ожидания.';
-                            break;
-                        default:
-                            errorMessage += 'Введите город вручную.';
-                            break;
-                    }
-                    
+                let errorMessage = 'Не удалось определить местоположение. ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage += 'Разрешите доступ к геолокации в настройках браузера.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage += 'Информация о местоположении недоступна.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage += 'Превышено время ожидания.';
+                        break;
+                    default:
+                        errorMessage += 'Введите город вручную.';
+                        break;
+                }
+
+                if (locationStatus) {
                     locationStatus.innerHTML =
                         '<div class="alert alert-warning">' +
                         '<i class="bi bi-exclamation-triangle"></i> ' + errorMessage +
@@ -1157,7 +1167,7 @@ ob_start();
                 
                 if (detectBtn) {
                     detectBtn.disabled = false;
-                    detectBtn.innerHTML = '<i class="bi bi-geo-alt"></i>';
+                    detectBtn.innerHTML = '<i class="bi bi-geo-alt-fill" style="font-size: 18px;"></i><span>Определить по геолокации</span>';
                 }
             },
             {
