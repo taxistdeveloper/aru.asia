@@ -988,6 +988,55 @@ class Message
     }
 
     /**
+     * Превью диалога в списке чатов свиданий: имя, фото, последнее сообщение
+     */
+    public function getDateChatListPreview($dateId, $userId, $otherUserId)
+    {
+        $otherUserId = (int)$otherUserId;
+        if ($otherUserId <= 0) {
+            return null;
+        }
+
+        $userSql = "SELECT id, email, full_name,
+                    (SELECT photo FROM user_photos WHERE user_id = users.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as photo
+                    FROM users WHERE id = :id";
+        $userStmt = $this->db->prepare($userSql);
+        $userStmt->execute([':id' => $otherUserId]);
+        $otherUser = $userStmt->fetch();
+        if (!$otherUser) {
+            return null;
+        }
+
+        $lastMsgSql = "SELECT message, created_at FROM messages
+                      WHERE date_id = :date_id
+                      AND ((from_user_id = :user_id1 AND to_user_id = :other_id1)
+                       OR (from_user_id = :other_id2 AND to_user_id = :user_id2))
+                      ORDER BY created_at DESC LIMIT 1";
+        $lastMsgStmt = $this->db->prepare($lastMsgSql);
+        $lastMsgStmt->execute([
+            ':date_id' => $dateId,
+            ':user_id1' => $userId,
+            ':other_id1' => $otherUserId,
+            ':other_id2' => $otherUserId,
+            ':user_id2' => $userId
+        ]);
+        $lastMessage = $lastMsgStmt->fetch();
+
+        $name = trim((string)($otherUser['full_name'] ?? ''));
+        if ($name === '') {
+            $email = (string)($otherUser['email'] ?? '');
+            $name = $email !== '' ? explode('@', $email)[0] : 'Пользователь';
+        }
+
+        return [
+            'partner_name' => $name,
+            'partner_photo' => $otherUser['photo'] ?? null,
+            'last_message' => $lastMessage['message'] ?? null,
+            'last_message_time' => $lastMessage['created_at'] ?? null,
+        ];
+    }
+
+    /**
      * Помечает все сообщения в чате свидания как прочитанные
      */
     public function markDateChatAsRead($dateId, $userId)

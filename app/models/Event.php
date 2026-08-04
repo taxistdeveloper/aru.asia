@@ -85,13 +85,15 @@ class Event {
     }
 
     /**
-     * Получает мероприятие пользователя (только одно активное и одобренное)
+     * Получает текущее мероприятие пользователя (ожидает модерации или одобрено)
      */
     public function getByUserId($userId) {
         $sql = "SELECT * FROM events
                 WHERE user_id = :user_id
                 AND event_date >= NOW()
-                AND status = 'approved'
+                AND status IN ('pending', 'approved')
+                ORDER BY CASE status WHEN 'approved' THEN 0 WHEN 'pending' THEN 1 END,
+                         created_at DESC
                 LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':user_id' => $userId]);

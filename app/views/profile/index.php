@@ -363,7 +363,11 @@ ob_start();
                                 <i class="bi bi-calendar-event"></i>
                                 <span>Создать мероприятие</span>
                                 <?php if ($hasActiveEvent): ?>
-                                    <span class="badge bg-info ms-auto me-2">Активно</span>
+                                    <?php if (($userEvent['status'] ?? '') === 'pending'): ?>
+                                        <span class="badge bg-warning text-dark ms-auto me-2">На модерации</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-info ms-auto me-2">Активно</span>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </span>
                         </button>
@@ -377,11 +381,20 @@ ob_start();
                             </div>
 
                             <?php if ($hasActiveEvent): ?>
-                                <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-0">
+                                <?php
+                                $eventStatus = $userEvent['status'] ?? 'pending';
+                                $eventAlertClass = $eventStatus === 'pending' ? 'alert-warning' : 'alert-info';
+                                $eventStatusLabel = $eventStatus === 'pending' ? 'На модерации' : 'Активное мероприятие';
+                                ?>
+                                <div class="alert <?= $eventAlertClass ?> d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-0">
                                     <div class="mb-2 mb-md-0">
-                                        <strong><i class="bi bi-calendar-event"></i> Активное мероприятие:</strong><br>
+                                        <strong><i class="bi bi-calendar-event"></i> <?= $eventStatusLabel ?>:</strong><br>
                                         <span class="ms-3"><?= Helper::escape($userEvent['title'] ?? '') ?></span>
-                                        <?php if (!empty($userEvent['event_date']) && strtotime($userEvent['event_date']) >= time() && ($userEvent['status'] ?? 'pending') === 'approved'): ?>
+                                        <?php if ($eventStatus === 'pending'): ?>
+                                            <div class="mt-2 ms-3">
+                                                <small class="text-muted"><i class="bi bi-hourglass-split"></i> Ожидает проверки модератором</small>
+                                            </div>
+                                        <?php elseif (!empty($userEvent['event_date']) && strtotime($userEvent['event_date']) >= time()): ?>
                                             <div class="mt-2 ms-3">
                                                 <small class="text-muted d-block mb-1"><i class="bi bi-clock"></i> До дедлайна:</small>
                                                 <div class="countdown-timer" data-deadline="<?= date('Y-m-d H:i:s', strtotime($userEvent['event_date'])) ?>" data-event-id="<?= $userEvent['id'] ?>">
@@ -872,8 +885,12 @@ ob_start();
                     <?php if ($userEvent): ?>
                         <div class="alert alert-warning mb-0">
                             <i class="bi bi-exclamation-triangle"></i>
-                            <!-- <strong>У вас уже есть активное объявление о мероприятии</strong> -->
-                            <p class="mb-0 mt-2">Название: <?= Helper::escape($userEvent['title']) ?></p>
+                            <p class="mb-0 mt-2">
+                                Название: <?= Helper::escape($userEvent['title']) ?>
+                                <?php if (($userEvent['status'] ?? '') === 'pending'): ?>
+                                    <br><small class="text-muted">Статус: на модерации</small>
+                                <?php endif; ?>
+                            </p>
                         </div>
                     <?php else: ?>
                         <p>Вы будете перенаправлены на страницу создания мероприятия.</p>

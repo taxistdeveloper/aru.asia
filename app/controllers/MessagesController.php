@@ -1000,7 +1000,32 @@ class MessagesController
                         }
                     }
                 }
+
+                $date['partner_name'] = null;
+                $date['partner_photo'] = null;
+                $date['last_message'] = null;
+                $date['last_message_time'] = null;
+                if (!empty($date['chat_participant_id'])) {
+                    $preview = $this->messageModel->getDateChatListPreview(
+                        $date['id'],
+                        $userId,
+                        $date['chat_participant_id']
+                    );
+                    if ($preview) {
+                        $date['partner_name'] = $preview['partner_name'];
+                        $date['partner_photo'] = $preview['partner_photo'];
+                        $date['last_message'] = $preview['last_message'];
+                        $date['last_message_time'] = $preview['last_message_time'];
+                    }
+                }
             }
+            unset($date);
+
+            usort($myDateChats, function ($a, $b) {
+                $ta = !empty($a['last_message_time']) ? strtotime($a['last_message_time']) : (!empty($a['date_time']) ? strtotime($a['date_time']) : 0);
+                $tb = !empty($b['last_message_time']) ? strtotime($b['last_message_time']) : (!empty($b['date_time']) ? strtotime($b['date_time']) : 0);
+                return $tb <=> $ta;
+            });
             
             // Убеждаемся, что это массив
             $myDateChats = is_array($myDateChats) ? $myDateChats : [];

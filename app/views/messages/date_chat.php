@@ -20,34 +20,50 @@ ob_start();
             --aru-footer: #f5f6fb;
         }
 
+        html.chat-html,
+        html.chat-html body.chat-page {
+            height: 100%;
+            overscroll-behavior: none;
+        }
+
         body.chat-page {
             padding: 0 !important;
             margin: 0 !important;
             background: #f0f2f8;
-            overflow: hidden;
+            overflow: hidden !important;
+            height: 100%;
+            height: 100dvh;
+            height: var(--app-height, 100dvh);
+            max-height: 100%;
+            max-height: var(--app-height, 100dvh);
+            position: fixed;
+            inset: 0;
+            width: 100%;
         }
 
         body.chat-page .mobile-bottom-nav {
             display: none !important;
         }
 
-        body.chat-page .container-fluid {
+        body.chat-page .container-fluid,
+        body.chat-page .desktop-layout {
             padding: 0 !important;
             margin: 0 !important;
             max-width: 100% !important;
+            height: 100%;
         }
 
         body.chat-page .mobile-page-container {
             margin: 0 !important;
             padding: 0 !important;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-            min-height: 100vh;
-            min-height: 100dvh;
+            height: 100%;
+            max-height: 100%;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
             width: 100%;
             background: var(--aru-chat-bg);
+            overflow: hidden;
         }
 
         /* Header — Aru gradient */
@@ -190,25 +206,32 @@ ob_start();
         }
 
         /* Chat card */
-        .chat-card {
+        body.chat-page .mobile-page-container .chat-card {
             border: none;
-            box-shadow: none;
-            flex: 1;
+            box-shadow: none !important;
+            flex: 1 1 auto;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 60px);
+            height: auto;
             min-height: 0;
-            overflow: visible;
+            max-height: 100%;
+            overflow: hidden !important;
             border-radius: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
             width: 100%;
             background: transparent;
+            transform: none !important;
         }
 
-        .chat-card .card-body {
-            padding: 0;
-            flex: 1;
+        body.chat-page .mobile-page-container .chat-card:active {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        body.chat-page .mobile-page-container .chat-card .card-body {
+            padding: 0 !important;
+            flex: 1 1 auto;
             overflow-y: auto;
             overflow-x: hidden;
             display: flex;
@@ -405,18 +428,20 @@ ob_start();
             font-size: 14px;
         }
 
-        /* Input footer */
-        .chat-card .card-footer {
+        /* Input footer — всегда внизу видимой области */
+        body.chat-page .mobile-page-container .chat-card .card-footer {
             background: var(--aru-footer);
             border-top: 1px solid rgba(102, 126, 234, 0.1);
             padding: 6px 8px;
             padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-            flex-shrink: 0;
+            flex: 0 0 auto;
             position: relative;
             z-index: 100;
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .chat-input-form .input-row {
@@ -453,7 +478,7 @@ ob_start();
             color: #374151;
         }
 
-        .chat-input-form textarea.form-control {
+        body.chat-page .mobile-page-container .chat-input-form textarea.form-control {
             white-space: pre-wrap !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
@@ -461,6 +486,8 @@ ob_start();
             overflow-x: hidden !important;
             resize: none !important;
             line-height: 1.4;
+            min-height: 42px !important;
+            max-height: 120px !important;
         }
 
         .chat-input-form .form-control:focus {
@@ -522,31 +549,33 @@ ob_start();
         @media (max-width: 767px) {
             body.chat-page {
                 background: var(--aru-chat-bg);
-                height: 100vh;
+                height: 100%;
                 height: 100dvh;
-                overflow: hidden;
+                height: var(--app-height, 100dvh);
+                overflow: hidden !important;
+                padding-bottom: 0 !important;
             }
 
             body.chat-page .mobile-top-nav {
                 display: none !important;
             }
 
-            .mobile-page-container {
-                height: 100vh;
-                height: 100dvh;
+            body.chat-page .mobile-page-container {
+                height: 100%;
+                max-height: 100%;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                padding-bottom: env(safe-area-inset-bottom, 0px);
+                padding: 0 !important;
                 box-sizing: border-box;
             }
 
             .chat-page-header {
                 padding: 8px 10px;
-                position: sticky;
+                position: relative;
                 top: 0;
                 z-index: 100;
-                flex-shrink: 0;
+                flex: 0 0 auto;
                 overflow: visible;
             }
 
@@ -554,41 +583,39 @@ ob_start();
                 font-size: 16px;
             }
 
-            .chat-card {
-                flex: 1;
+            body.chat-page .mobile-page-container .chat-card {
+                flex: 1 1 auto;
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
-                height: 0;
-                overflow: visible;
+                height: auto;
+                overflow: hidden !important;
             }
 
             #messages-container {
-                flex: 1;
+                flex: 1 1 auto;
                 min-height: 0;
                 padding: 8px 4% 6px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
 
-            .chat-card .card-footer {
+            body.chat-page .mobile-page-container .chat-card .card-footer {
                 padding: 5px 6px;
-                padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px));
-                flex-shrink: 0;
+                padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+                flex: 0 0 auto;
                 z-index: 100;
                 position: relative;
                 display: block !important;
                 width: 100%;
                 box-sizing: border-box;
-                margin-bottom: 0;
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
+                margin: 0;
             }
 
             .chat-input-form .form-control {
                 font-size: 16px;
                 padding: 9px 14px;
-                min-height: 42px;
+                min-height: 42px !important;
             }
 
             .wa-send-btn {
@@ -1059,6 +1086,26 @@ ob_start();
 
 <?php if ($selectedUserId): ?>
     <script>
+        (function() {
+            document.documentElement.classList.add('chat-html');
+
+            function setAppHeight() {
+                var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                if (!h || h < 100) h = window.innerHeight;
+                document.documentElement.style.setProperty('--app-height', h + 'px');
+            }
+
+            setAppHeight();
+            window.addEventListener('resize', setAppHeight);
+            window.addEventListener('orientationchange', function() {
+                setTimeout(setAppHeight, 100);
+            });
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setAppHeight);
+                window.visualViewport.addEventListener('scroll', setAppHeight);
+            }
+        })();
+
         window.currentUserId = <?= $currentUserId ?>;
         window.dateId = <?= $date['id'] ?>;
         window.selectedUserId = <?= (int)$selectedUserId ?>;

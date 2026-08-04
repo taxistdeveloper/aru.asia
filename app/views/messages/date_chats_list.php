@@ -179,14 +179,32 @@ $currentUserId = $currentUserId ?? null;
         max-width: 720px;
         margin: 0 auto;
         background: #fff;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    body.chats-list-page .mobile-page-container .chats-list-modern,
+    body.chats-list-page .chats-list-modern {
+        box-shadow: none;
     }
 
     .chat-card-modern {
         position: relative;
         display: flex;
-        align-items: center;
+        align-items: stretch;
         background: #fff;
         transition: background 0.12s;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: visible;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        transform: none !important;
+    }
+
+    .chat-card-modern:active {
+        transform: none !important;
+        box-shadow: none !important;
     }
 
     .chat-card-modern::after {
@@ -197,6 +215,7 @@ $currentUserId = $currentUserId ?? null;
         bottom: 0;
         height: 1px;
         background: var(--chat-border);
+        pointer-events: none;
     }
 
     .chat-card-modern:last-child::after {
@@ -213,9 +232,10 @@ $currentUserId = $currentUserId ?? null;
         align-items: center;
         flex: 1;
         min-width: 0;
-        padding: 11px 4px 11px 16px;
+        padding: 12px 8px 12px 16px;
         text-decoration: none;
         color: inherit;
+        overflow: hidden;
     }
 
     .chat-avatar-modern {
@@ -233,6 +253,7 @@ $currentUserId = $currentUserId ?? null;
         width: 100%;
         height: 100%;
         object-fit: cover;
+        display: block;
     }
 
     .chat-avatar-placeholder-modern {
@@ -245,26 +266,28 @@ $currentUserId = $currentUserId ?? null;
     }
 
     .chat-avatar-placeholder-modern i {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
         color: #fff;
     }
 
     .chat-info-modern {
         flex: 1;
         min-width: 0;
-        padding-right: 4px;
+        padding-right: 6px;
+        overflow: hidden;
     }
 
     .chat-header-modern {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 2px;
+        gap: 10px;
+        margin-bottom: 3px;
+        min-width: 0;
     }
 
     .chat-title-modern {
-        font-size: 16px;
+        font-size: 16.5px;
         font-weight: 500;
         color: var(--chat-text);
         margin: 0;
@@ -288,6 +311,7 @@ $currentUserId = $currentUserId ?? null;
         flex-shrink: 0;
         white-space: nowrap;
         line-height: 1.3;
+        padding-top: 1px;
     }
 
     .chat-time-modern.has-unread {
@@ -300,6 +324,7 @@ $currentUserId = $currentUserId ?? null;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
+        min-width: 0;
     }
 
     .chat-preview {
@@ -312,6 +337,10 @@ $currentUserId = $currentUserId ?? null;
         min-width: 0;
         margin: 0;
         line-height: 1.35;
+    }
+
+    .chat-preview-context {
+        color: #8696a0;
     }
 
     .chat-unread-badge-modern {
@@ -334,8 +363,9 @@ $currentUserId = $currentUserId ?? null;
         position: relative;
         display: flex;
         align-items: center;
-        padding: 0 10px 0 2px;
+        padding: 0 8px 0 0;
         flex-shrink: 0;
+        align-self: center;
     }
 
     .chat-menu-btn {
@@ -526,10 +556,27 @@ $chatsCountLabel = $chatsCount . ' ' . (
                 <?php
                 $chatUserId = $date['chat_participant_id'] ?? $date['user_id'];
                 $unread = isset($date['unread_count']) ? (int)$date['unread_count'] : 0;
-                $title = !empty($date['title']) ? $date['title'] : 'Без названия';
+
+                $cleanLabel = static function ($text) {
+                    $text = trim((string)$text);
+                    if ($text === '') {
+                        return '';
+                    }
+                    $text = preg_replace('/^(ИНТЕРЕСНО|ПРИГЛАШАЮ)\s*:\s*/iu', '', $text);
+                    return trim($text);
+                };
+
+                $partnerName = trim((string)($date['partner_name'] ?? ''));
+                $title = $partnerName !== ''
+                    ? $partnerName
+                    : ($cleanLabel($date['title'] ?? '') ?: 'Без названия');
+
+                $avatarPhoto = $date['partner_photo'] ?? ($date['photo'] ?? null);
+
+                $timeSource = $date['last_message_time'] ?? ($date['date_time'] ?? null);
                 $timeLabel = '';
-                if (!empty($date['date_time'])) {
-                    $ts = strtotime($date['date_time']);
+                if (!empty($timeSource)) {
+                    $ts = strtotime($timeSource);
                     $today = strtotime('today');
                     $yesterday = strtotime('yesterday');
                     if ($ts >= $today) {
@@ -540,29 +587,39 @@ $chatsCountLabel = $chatsCount . ' ' . (
                         $timeLabel = date('d.m.Y', $ts);
                     }
                 }
-                $previewParts = [];
-                if (!empty($date['category_name'])) {
-                    $previewParts[] = $date['category_name'];
+
+                $lastMessage = trim((string)($date['last_message'] ?? ''));
+                if ($lastMessage !== '') {
+                    $preview = $lastMessage;
+                    $previewIsContext = false;
+                } else {
+                    $previewParts = [];
+                    $dateLabel = $cleanLabel($date['title'] ?? '');
+                    $categoryLabel = $cleanLabel($date['category_name'] ?? '');
+                    if ($dateLabel !== '') {
+                        $previewParts[] = $dateLabel;
+                    }
+                    if ($categoryLabel !== '' && mb_strtolower($categoryLabel) !== mb_strtolower($dateLabel)) {
+                        $previewParts[] = $categoryLabel;
+                    }
+                    $preview = !empty($previewParts) ? implode(' · ', $previewParts) : 'Нет сообщений';
+                    $previewIsContext = true;
                 }
-                if (!empty($date['date_time'])) {
-                    $previewParts[] = date('d.m.Y H:i', strtotime($date['date_time']));
-                }
-                $preview = !empty($previewParts) ? implode(' · ', $previewParts) : 'Чат свидания';
                 ?>
                 <div class="chat-card-modern" id="chat-wrapper-<?= $date['id'] ?>">
                     <a href="<?= BASE_URL ?>messages/date?date_id=<?= $date['id'] ?>&user_id=<?= $chatUserId ?>" class="chat-card-link">
                         <div class="chat-avatar-modern">
-                            <?php if (!empty($date['photo'])): ?>
-                                <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $date['photo'] ?>" alt="">
+                            <?php if (!empty($avatarPhoto)): ?>
+                                <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $avatarPhoto ?>" alt="">
                             <?php else: ?>
                                 <div class="chat-avatar-placeholder-modern">
-                                    <i class="bi bi-heart-fill"></i>
+                                    <i class="bi bi-person-fill"></i>
                                 </div>
                             <?php endif; ?>
                         </div>
                         <div class="chat-info-modern">
                             <div class="chat-header-modern">
-                                <h3 class="chat-title-modern <?= empty($date['title']) ? 'chat-title-placeholder' : '' ?>">
+                                <h3 class="chat-title-modern <?= $partnerName === '' ? 'chat-title-placeholder' : '' ?>">
                                     <?= Helper::escape($title) ?>
                                 </h3>
                                 <?php if ($timeLabel !== ''): ?>
@@ -572,7 +629,7 @@ $chatsCountLabel = $chatsCount . ' ' . (
                                 <?php endif; ?>
                             </div>
                             <div class="chat-meta-modern">
-                                <p class="chat-preview"><?= Helper::escape($preview) ?></p>
+                                <p class="chat-preview<?= $previewIsContext ? ' chat-preview-context' : '' ?>"><?= Helper::escape($preview) ?></p>
                                 <?php if ($unread > 0): ?>
                                     <span class="chat-unread-badge-modern">
                                         <?= $unread > 99 ? '99+' : $unread ?>
