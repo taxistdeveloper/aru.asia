@@ -108,10 +108,10 @@ class MessagesController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fromUserId = Helper::getUserId();
-            $toUserId = $_POST['to_user_id'] ?? 0;
-            $message = $_POST['message'] ?? '';
-            $dateId = $_POST['date_id'] ?? null;
-            $eventId = $_POST['event_id'] ?? null;
+            $toUserId = (int)($_POST['to_user_id'] ?? 0);
+            $message = trim($_POST['message'] ?? '');
+            $dateId = !empty($_POST['date_id']) ? (int)$_POST['date_id'] : null;
+            $eventId = !empty($_POST['event_id']) ? (int)$_POST['event_id'] : null;
 
             // Если это чат свидания или мероприятия, определяем получателя
             if ($dateId) {
@@ -669,9 +669,16 @@ class MessagesController
 
         $userId = Helper::getUserId();
         $count = $this->messageModel->getTotalUnreadEventsCount($userId);
+        $latest = null;
+        if ($count > 0) {
+            $latest = $this->messageModel->getLatestUnreadEventMessage($userId);
+        }
 
         header('Content-Type: application/json');
-        echo json_encode(['count' => $count]);
+        echo json_encode([
+            'count' => $count,
+            'latest' => $latest
+        ]);
     }
 
     /**

@@ -125,6 +125,61 @@ function validateForm(formId) {
     let lastCheckTime = new Date().toISOString();
     let checkInterval = null;
     let lastKnownUnreadCount = 0;
+    let lastKnownUnreadEventsCount = null; // null = ещё не инициализировано (не пушим при первой загрузке)
+    let lastNotifiedEventMessageId = null;
+
+    function isOpenEventChat(eventId) {
+        if (!eventId) return false;
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const openId = params.get('event_id');
+            const path = window.location.pathname || '';
+            return path.indexOf('/messages/event') !== -1 && String(openId) === String(eventId);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function showEventMessagePush(latest) {
+        if (!latest || !latest.event_id) return;
+        if (isOpenEventChat(latest.event_id)) return;
+        if (latest.id && String(latest.id) === String(lastNotifiedEventMessageId)) return;
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        lastNotifiedEventMessageId = latest.id || null;
+
+        const eventTitle = latest.event_title || 'мероприятии';
+        const fromName = latest.from_name || 'Пользователь';
+        const messageText = (latest.message || '').toString();
+        const body = fromName + ': ' + (messageText.length > 100 ? messageText.slice(0, 100) + '…' : messageText);
+        const tag = 'event_message_' + latest.event_id + '_' + (latest.from_user_id || '0');
+        const url = (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'messages/event?event_id=' + latest.event_id;
+        const notificationData = {
+            type: 'event_message',
+            event_id: latest.event_id,
+            from_user_id: latest.from_user_id,
+            notification_tag: tag,
+            url: url
+        };
+
+        const options = {
+            body: body,
+            tag: tag,
+            renotify: true,
+            data: notificationData,
+            icon: (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'assets/images/icon-192x192.png'
+        };
+
+        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then(function(registration) {
+                return registration.showNotification('Сообщение: ' + eventTitle, options);
+            }).catch(function() {
+                try { new Notification('Сообщение: ' + eventTitle, options); } catch (e) { /* ignore */ }
+            });
+        } else {
+            try { new Notification('Сообщение: ' + eventTitle, options); } catch (e) { /* ignore */ }
+        }
+    }
 
     // Проверка новых сообщений
     function checkNewMessages() {
@@ -171,12 +226,18 @@ function validateForm(formId) {
                 console.error('Ошибка при проверке непрочитанных сообщений из свиданий:', error);
             });
 
-        // Обновляем badge для мероприятий в нижней навигации
+        // Обновляем badge для мероприятий + push создателю при новом сообщении
         fetch(BASE_URL + 'messages/unread-events-total')
             .then(response => response.json())
             .then(data => {
                 const count = data.count || 0;
+                const hadNewEvents = lastKnownUnreadEventsCount !== null && count > lastKnownUnreadEventsCount;
+                lastKnownUnreadEventsCount = count;
                 updateEventsBadge(count);
+
+                if (hadNewEvents && count > 0 && data.latest) {
+                    showEventMessagePush(data.latest);
+                }
             })
             .catch(error => {
                 console.error('Ошибка при проверке непрочитанных сообщений из мероприятий:', error);
@@ -367,6 +428,23 @@ function validateForm(formId) {
                     });
                 });
             }
+        }).catch(function() { /* ignore */ });
+    }
+
+    // Закрыть push по чату мероприятия, когда пользователь открыл этот чат
+    function closeEventPushNotifications(eventId) {
+        if (!eventId) return;
+        if (!('serviceWorker' in navigator) || !navigator.serviceWorker.ready) return;
+
+        navigator.serviceWorker.ready.then(function(registration) {
+            registration.getNotifications().then(function(notifications) {
+                notifications.forEach(function(notification) {
+                    const data = notification.data || {};
+                    if (data.type === 'event_message' && String(data.event_id) === String(eventId)) {
+                        notification.close();
+                    }
+                });
+            });
         }).catch(function() { /* ignore */ });
     }
 
@@ -593,7 +671,9 @@ function validateForm(formId) {
         restoreBadgeState();
 
         // Открыт конкретный диалог — сообщения уже помечены прочитанными на сервере
-        const openDialogUserId = new URLSearchParams(window.location.search).get('user_id');
+        const pageParams = new URLSearchParams(window.location.search);
+        const openDialogUserId = pageParams.get('user_id');
+        const openEventId = pageParams.get('event_id');
         const isMessagesPage = window.location.pathname.includes('messages');
         if (isMessagesPage && openDialogUserId) {
             // Клик по ссылке диалога мог выставить manuallyHidden — сбрасываем,
@@ -603,6 +683,9 @@ function validateForm(formId) {
             if (typeof window.refreshMessagesBadge === 'function') {
                 window.refreshMessagesBadge();
             }
+        }
+        if (isMessagesPage && openEventId && window.location.pathname.indexOf('/messages/event') !== -1) {
+            closeEventPushNotifications(openEventId);
         }
 
         // Добавляем обработчики клика на ссылки уведомлений для скрытия бейджа

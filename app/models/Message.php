@@ -869,6 +869,32 @@ class Message
     }
 
     /**
+     * Последнее непрочитанное сообщение в чатах мероприятий (для push-уведомления)
+     */
+    public function getLatestUnreadEventMessage($userId)
+    {
+        $sql = "SELECT m.id, m.message, m.event_id, m.from_user_id, m.created_at,
+                       e.title as event_title,
+                       COALESCE(NULLIF(u.full_name, ''), u.email, 'Пользователь') as from_name
+                FROM messages m
+                JOIN events e ON e.id = m.event_id
+                LEFT JOIN users u ON u.id = m.from_user_id
+                WHERE m.event_id IS NOT NULL
+                AND m.to_user_id = :user_id
+                AND m.from_user_id != :user_id2
+                AND (m.is_read = 0 OR m.is_read IS NULL)
+                ORDER BY m.created_at DESC
+                LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':user_id2' => $userId
+        ]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    /**
      * Получает список ID мероприятий, в которых пользователь участвует в чате
      */
     public function getEventIdsWithChat($userId)

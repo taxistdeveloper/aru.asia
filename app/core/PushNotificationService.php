@@ -159,10 +159,17 @@ class PushNotificationService
             // Используем одинаковый tag для всех сообщений от одного отправителя в одном свидании
             $data['notification_tag'] = 'date_message_' . $dateId . '_' . $fromUserId;
         } elseif ($eventId) {
-            $title = 'Новое сообщение в мероприятии';
+            $eventModel = new Event();
+            $event = $eventModel->getById($eventId);
+            $eventTitle = !empty($event['title']) ? $event['title'] : 'мероприятии';
+            $title = 'Сообщение: ' . mb_substr($eventTitle, 0, 60);
             $body = $fromName . ': ' . mb_substr($message, 0, 100);
             $type = 'event_message';
-            $data = ['event_id' => $eventId, 'from_user_id' => $fromUserId];
+            $data = [
+                'event_id' => (int)$eventId,
+                'from_user_id' => $fromUserId,
+                'event_title' => $eventTitle
+            ];
             // Используем одинаковый tag для всех сообщений от одного отправителя в одном мероприятии
             $data['notification_tag'] = 'event_message_' . $eventId . '_' . $fromUserId;
         } else {
