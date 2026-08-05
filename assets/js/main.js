@@ -200,8 +200,9 @@ function validateForm(formId) {
                     updateMessagesList();
                 }
 
-                // Если мы на странице свиданий или мероприятий, обновляем badge для каждого свидания/мероприятия
-                if (window.location.pathname.includes('dates') || window.location.pathname.includes('events')) {
+                // Если мы на странице свиданий/мероприятий или в списке «Мои чаты» — обновляем badge чатов
+                const path = window.location.pathname || '';
+                if (path.includes('dates') || path.includes('events') || path.includes('dates-list') || path.includes('events-list')) {
                     updateDatesEventsBadges();
                 }
 
@@ -226,7 +227,7 @@ function validateForm(formId) {
                 console.error('Ошибка при проверке непрочитанных сообщений из свиданий:', error);
             });
 
-        // Обновляем badge для мероприятий + push создателю при новом сообщении
+        // Обновляем badge для мероприятий + push + «Мои чаты»
         fetch(BASE_URL + 'messages/unread-events-total')
             .then(response => response.json())
             .then(data => {
@@ -235,8 +236,15 @@ function validateForm(formId) {
                 lastKnownUnreadEventsCount = count;
                 updateEventsBadge(count);
 
-                if (hadNewEvents && count > 0 && data.latest) {
-                    showEventMessagePush(data.latest);
+                if (hadNewEvents && count > 0) {
+                    if (data.latest) {
+                        showEventMessagePush(data.latest);
+                    }
+                    // Сразу обновить бейджи в списке «Мои чаты» / на карточках
+                    const path = window.location.pathname || '';
+                    if (path.includes('events') || path.includes('events-list')) {
+                        updateDatesEventsBadges();
+                    }
                 }
             })
             .catch(error => {
@@ -285,21 +293,44 @@ function validateForm(formId) {
 
     // Обновление badge на ссылке чата
     function updateChatLinkBadge(link, count) {
-        let badge = link.querySelector('.badge');
+        if (!link) return;
+
+        const isModernChatCard = !!link.closest('.chat-card-modern');
+        let badge = link.querySelector('.chat-unread-badge-modern') || link.querySelector('.badge');
+
         if (count > 0) {
             if (!badge) {
                 badge = document.createElement('span');
-                badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
-                badge.style.cssText = 'font-size: 0.7rem; min-width: 18px; padding: 2px 5px;';
-                link.classList.add('position-relative');
-                link.appendChild(badge);
+                if (isModernChatCard) {
+                    badge.className = 'chat-unread-badge-modern';
+                    const meta = link.querySelector('.chat-meta-modern');
+                    if (meta) {
+                        meta.appendChild(badge);
+                    } else {
+                        link.appendChild(badge);
+                    }
+                } else {
+                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    badge.style.cssText = 'font-size: 0.7rem; min-width: 18px; padding: 2px 5px;';
+                    link.classList.add('position-relative');
+                    link.appendChild(badge);
+                }
             }
-            badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = 'block';
+            badge.textContent = count > 99 ? '99+' : String(count);
+            badge.style.display = '';
+
+            const timeEl = link.querySelector('.chat-time-modern');
+            if (timeEl) timeEl.classList.add('has-unread');
         } else {
             if (badge) {
-                badge.style.display = 'none';
+                if (badge.classList.contains('chat-unread-badge-modern')) {
+                    badge.remove();
+                } else {
+                    badge.style.display = 'none';
+                }
             }
+            const timeEl = link.querySelector('.chat-time-modern');
+            if (timeEl) timeEl.classList.remove('has-unread');
         }
     }
 
@@ -487,7 +518,7 @@ function validateForm(formId) {
         }
     }
 
-    // Обновление badge для мероприятий в нижней навигации
+    // Обновление badge для мероприятий в нижней навигации + «Мои чаты»
     function updateEventsBadge(count) {
         const badgeEvents = document.getElementById('events-badge');
 
@@ -498,6 +529,28 @@ function validateForm(formId) {
             }
         } else {
             if (badgeEvents) badgeEvents.style.display = 'none';
+        }
+
+        // Кнопка «Мои чаты» на странице мероприятий
+        updateMyEventChatsButtonBadge(count);
+    }
+
+    // Бейдж на кнопке «Мои чаты» (events → messages/events-list)
+    function updateMyEventChatsButtonBadge(count) {
+        const btn = document.querySelector('a.btn-my-chats[href*="messages/events-list"]');
+        if (!btn) return;
+
+        let badge = btn.querySelector('.chats-badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'chats-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = count > 99 ? '99+' : String(count);
+            badge.style.display = '';
+        } else if (badge) {
+            badge.remove();
         }
     }
 
@@ -711,8 +764,8 @@ function validateForm(formId) {
         // Первая проверка сразу
         checkNewMessages();
 
-        // Проверяем каждые 5 секунд
-        checkInterval = setInterval(checkNewMessages, 5000);
+        // Проверяем каждые 2 секунды — чтобы бейдж на «Мероприятия» и «Мои чаты» появлялся сразу
+        checkInterval = setInterval(checkNewMessages, 2000);
 
         // Останавливаем проверку когда страница неактивна
         document.addEventListener('visibilitychange', function() {
@@ -724,7 +777,7 @@ function validateForm(formId) {
             } else {
                 if (!checkInterval) {
                     checkNewMessages();
-                    checkInterval = setInterval(checkNewMessages, 5000);
+                    checkInterval = setInterval(checkNewMessages, 2000);
                 }
             }
         });
