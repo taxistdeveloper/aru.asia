@@ -49,7 +49,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Aru">
-    <link rel="apple-touch-icon" href="<?= BASE_URL ?>assets/images/icon-192.png">
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= BASE_URL ?>assets/images/icon-192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= BASE_URL ?>assets/images/icon-192.png">
 
     <!-- Android Chrome -->
     <meta name="mobile-web-app-capable" content="yes">
