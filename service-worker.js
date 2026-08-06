@@ -4,12 +4,32 @@
  * Обрабатывает push-уведомления в фоновом режиме
  */
 
-const CACHE_NAME = 'aru-app-v8'; // v8: fix duplicate chat/modal unread badges
+const CACHE_NAME = 'aru-app-v9'; // v9: не кэшировать API unread/messages — иначе пуши/бейджи на проде «замирают»
 // Папка приложения = каталог, в котором лежит service-worker.js (например /aru-app/)
 const SW_SCRIPT = self.location.pathname || '/';
 const BASE_PATH = SW_SCRIPT.replace(/[^/]+$/, '');
 const BASE_URL = self.location.origin + (BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/');
 const MAINTENANCE_URL = BASE_URL + 'maintenance.html';
+
+function isApiRequest(url, request) {
+    // Навигация по HTML-страницам — не API
+    if (request && request.mode === 'navigate') return false;
+    const accept = (request && request.headers.get('accept')) || '';
+    if (accept.indexOf('text/html') !== -1) return false;
+
+    const path = (url.pathname || '').replace(/\/+$/, '');
+    // Polling / JSON endpoints — без кэша, иначе бейджи/пуши на проде «замирают»
+    if (/\/messages\/(unread|unread-event|unread-events-total|unread-date|unread-dates-total|new|event-updates|date-updates|mark-read|read-receipts|clearNotifications|deleteAdminNotification)/.test(path)) {
+        return true;
+    }
+    if (path.indexOf('/push-notifications') !== -1) return true;
+    if (url.searchParams && url.searchParams.has('last_check')) return true;
+    return false;
+}
+
+function isAssetScriptOrStyle(url) {
+    return /\.(js|css)(\?|$)/i.test(url.pathname || '');
+}
 
 // Установка Service Worker
 self.addEventListener('install', function(event) {
@@ -21,7 +41,9 @@ self.addEventListener('install', function(event) {
                 BASE_URL + 'maintenance.html',
                 BASE_URL + 'assets/css/style.css',
                 BASE_URL + 'assets/js/main.js'
-            ]);
+            ]).catch(function(err) {
+                console.warn('Service Worker: частичный сбой precache', err);
+            });
         })
     );
     self.skipWaiting();
@@ -40,9 +62,10 @@ self.addEventListener('activate', function(event) {
                     }
                 })
             );
+        }).then(function() {
+            return self.clients.claim();
         })
     );
-    return self.clients.claim();
 });
 
 // Обработка fetch (нужно для installability в Chrome + базовый оффлайн)
@@ -55,7 +78,19 @@ self.addEventListener('fetch', function(event) {
     // Не трогаем чужие домены
     if (requestUrl.origin !== self.location.origin) return;
 
-    // Network-first для HTML (чтобы контент обновлялся), cache-first для остального
+    // API / polling unread — ТОЛЬКО сеть, без записи в cache
+    if (isApiRequest(requestUrl, event.request)) {
+        event.respondWith(
+            fetch(event.request).catch(function() {
+                return new Response(JSON.stringify({ count: 0, success: false, offline: true }), {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            })
+        );
+        return;
+    }
+
+    // Network-first для HTML
     const isHtmlRequest =
         event.request.mode === 'navigate' ||
         (event.request.headers.get('accept') || '').includes('text/html');
@@ -83,14 +118,37 @@ self.addEventListener('fetch', function(event) {
         return;
     }
 
+    // Network-first для JS/CSS — чтобы обновления main.js доходили до пользователей
+    if (isAssetScriptOrStyle(requestUrl)) {
+        event.respondWith(
+            fetch(event.request)
+                .then(function(response) {
+                    if (response && response.ok) {
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then(function(cache) {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(function() {
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // Cache-first только для статики (картинки, шрифты и т.п.)
     event.respondWith(
         caches.match(event.request).then(function(cached) {
             if (cached) return cached;
             return fetch(event.request).then(function(response) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(function(cache) {
-                    cache.put(event.request, responseClone);
-                });
+                if (response && response.ok) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(function(cache) {
+                        cache.put(event.request, responseClone);
+                    });
+                }
                 return response;
             });
         })
