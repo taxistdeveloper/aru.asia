@@ -534,9 +534,9 @@ $chatsCountLabel = $chatsCount . ' ' . (
                 $previewParts = [];
                 if (!empty($event['location'])) {
                     $previewParts[] = $event['location'];
-                }
-                if (!empty($event['event_date'])) {
-                    $previewParts[] = date('d.m.Y H:i', strtotime($event['event_date']));
+                } elseif (!empty($event['event_date'])) {
+                    // Время уже справа — в превью только дата, без дубля HH:mm
+                    $previewParts[] = date('d.m.Y', strtotime($event['event_date']));
                 }
                 $preview = !empty($previewParts) ? implode(' · ', $previewParts) : 'Чат мероприятия';
                 ?>

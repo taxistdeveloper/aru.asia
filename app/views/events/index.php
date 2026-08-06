@@ -885,13 +885,12 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
 
         .event-modal-actions {
             padding: 16px 20px;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .event-modal-btn {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -905,11 +904,15 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
-            min-width: 120px;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
         }
 
-        .event-modal-btn-full {
-            width: 100%;
+        .event-modal-btn-full,
+        .event-modal-btn-delete {
+            grid-column: 1 / -1;
         }
 
         .event-modal-btn-chat {
@@ -948,8 +951,8 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
 
         .event-modal-badge {
             position: absolute;
-            top: -4px;
-            right: -4px;
+            top: -6px;
+            right: -6px;
             background: #dc2626;
             color: white;
             font-size: 11px;
@@ -959,6 +962,9 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
             min-width: 18px;
             text-align: center;
             line-height: 1.4;
+            z-index: 2;
+            pointer-events: none;
+            box-shadow: 0 1px 4px rgba(220, 38, 38, 0.35);
         }
 
         /* Пустое состояние */
@@ -1861,14 +1867,13 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
 
         .event-modal-actions {
             padding: 24px 32px;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            flex-wrap: wrap;
             background: #fafbfc;
         }
 
         .event-modal-btn {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1882,11 +1887,15 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
-            min-width: 140px;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
         }
 
-        .event-modal-btn-full {
-            width: 100%;
+        .event-modal-btn-full,
+        .event-modal-btn-delete {
+            grid-column: 1 / -1;
         }
 
         .event-modal-btn-chat {
@@ -1928,8 +1937,8 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
 
         .event-modal-badge {
             position: absolute;
-            top: -6px;
-            right: -6px;
+            top: -8px;
+            right: -8px;
             background: #dc2626;
             color: white;
             font-size: 12px;
@@ -1939,6 +1948,8 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
             min-width: 22px;
             text-align: center;
             line-height: 1.4;
+            z-index: 2;
+            pointer-events: none;
             box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
         }
 

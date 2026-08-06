@@ -1611,12 +1611,12 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
 
         .date-modal-actions {
             padding: 16px 20px;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
         .date-modal-btn {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1630,10 +1630,14 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
         }
 
         .date-modal-btn-full {
-            width: 100%;
+            grid-column: 1 / -1;
         }
 
         .date-modal-btn-chat {
@@ -1662,8 +1666,8 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
 
         .date-modal-badge {
             position: absolute;
-            top: -4px;
-            right: -4px;
+            top: -6px;
+            right: -6px;
             background: #dc2626;
             color: white;
             font-size: 11px;
@@ -1673,6 +1677,9 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             min-width: 18px;
             text-align: center;
             line-height: 1.4;
+            z-index: 2;
+            pointer-events: none;
+            box-shadow: 0 1px 4px rgba(220, 38, 38, 0.35);
         }
 
         .date-modal-register-prompt {
@@ -2776,13 +2783,13 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
 
         .date-modal-actions {
             padding: 24px 32px;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
             background: #fafbfc;
         }
 
         .date-modal-btn {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2796,10 +2803,14 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
         }
 
         .date-modal-btn-full {
-            width: 100%;
+            grid-column: 1 / -1;
         }
 
         .date-modal-btn-chat {
@@ -2830,8 +2841,8 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
 
         .date-modal-badge {
             position: absolute;
-            top: -6px;
-            right: -6px;
+            top: -8px;
+            right: -8px;
             background: #dc2626;
             color: white;
             font-size: 12px;
@@ -2841,6 +2852,8 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             min-width: 22px;
             text-align: center;
             line-height: 1.4;
+            z-index: 2;
+            pointer-events: none;
             box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
         }
 

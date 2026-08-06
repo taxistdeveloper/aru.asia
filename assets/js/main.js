@@ -296,7 +296,31 @@ function validateForm(formId) {
         if (!link) return;
 
         const isModernChatCard = !!link.closest('.chat-card-modern');
-        let badge = link.querySelector('.chat-unread-badge-modern') || link.querySelector('.badge');
+        const isEventModalBtn = link.classList.contains('event-modal-btn-chat');
+        const isDateModalBtn = link.classList.contains('date-modal-btn-chat');
+        const isDialogItem = !!link.closest('.chat-dialog-item-wrapper') || link.classList.contains('chat-dialog-item');
+        const isDropdownItem = !!link.closest('.chats-dropdown') || link.classList.contains('chats-dropdown-item');
+
+        // Убираем чужие Bootstrap-бейджи (дубли от старого JS / кеша SW)
+        link.querySelectorAll('span.position-absolute.badge, span.badge.rounded-pill.bg-danger').forEach(function(el) {
+            if (
+                el.classList.contains('chat-unread-badge-modern') ||
+                el.classList.contains('event-modal-badge') ||
+                el.classList.contains('date-modal-badge') ||
+                el.classList.contains('chat-dialog-unread-badge') ||
+                el.classList.contains('chats-dropdown-unread-badge')
+            ) {
+                return;
+            }
+            el.remove();
+        });
+
+        let badge =
+            link.querySelector('.chat-unread-badge-modern') ||
+            link.querySelector('.event-modal-badge') ||
+            link.querySelector('.date-modal-badge') ||
+            link.querySelector('.chat-dialog-unread-badge') ||
+            link.querySelector('.chats-dropdown-unread-badge');
 
         if (count > 0) {
             if (!badge) {
@@ -304,16 +328,27 @@ function validateForm(formId) {
                 if (isModernChatCard) {
                     badge.className = 'chat-unread-badge-modern';
                     const meta = link.querySelector('.chat-meta-modern');
-                    if (meta) {
-                        meta.appendChild(badge);
+                    (meta || link).appendChild(badge);
+                } else if (isEventModalBtn) {
+                    badge.className = 'event-modal-badge';
+                    link.appendChild(badge);
+                } else if (isDateModalBtn) {
+                    badge.className = 'date-modal-badge';
+                    link.appendChild(badge);
+                } else if (isDialogItem) {
+                    badge.className = 'chat-dialog-unread-badge';
+                    const avatar = link.querySelector('.chat-dialog-avatar');
+                    if (avatar) {
+                        avatar.appendChild(badge);
                     } else {
                         link.appendChild(badge);
                     }
-                } else {
-                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
-                    badge.style.cssText = 'font-size: 0.7rem; min-width: 18px; padding: 2px 5px;';
-                    link.classList.add('position-relative');
+                } else if (isDropdownItem) {
+                    badge.className = 'chats-dropdown-unread-badge';
                     link.appendChild(badge);
+                } else {
+                    // Неизвестный тип ссылки — не клеим Bootstrap absolute-бейдж
+                    return;
                 }
             }
             badge.textContent = count > 99 ? '99+' : String(count);
@@ -323,11 +358,7 @@ function validateForm(formId) {
             if (timeEl) timeEl.classList.add('has-unread');
         } else {
             if (badge) {
-                if (badge.classList.contains('chat-unread-badge-modern')) {
-                    badge.remove();
-                } else {
-                    badge.style.display = 'none';
-                }
+                badge.remove();
             }
             const timeEl = link.querySelector('.chat-time-modern');
             if (timeEl) timeEl.classList.remove('has-unread');

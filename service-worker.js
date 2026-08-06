@@ -4,7 +4,7 @@
  * Обрабатывает push-уведомления в фоновом режиме
  */
 
-const CACHE_NAME = 'aru-app-v7'; // v7: badge clears when dialog is read
+const CACHE_NAME = 'aru-app-v8'; // v8: fix duplicate chat/modal unread badges
 // Папка приложения = каталог, в котором лежит service-worker.js (например /aru-app/)
 const SW_SCRIPT = self.location.pathname || '/';
 const BASE_PATH = SW_SCRIPT.replace(/[^/]+$/, '');
