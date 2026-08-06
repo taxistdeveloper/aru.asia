@@ -972,6 +972,7 @@ class AdminController
             'feedback' => $feedbackList,
             'stats' => $stats,
             'currentStatus' => $status,
+            'panelBase' => 'admin',
             'isMobile' => View::isMobile()
         ]);
     }

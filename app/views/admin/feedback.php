@@ -1,8 +1,13 @@
 <?php
 
 /**
- * АДМИН-ПАНЕЛЬ - УПРАВЛЕНИЕ ОБРАТНОЙ СВЯЗЬЮ
+ * УПРАВЛЕНИЕ ОБРАТНОЙ СВЯЗЬЮ
+ * Используется админом и менеджером ($panelBase = 'admin' | 'manager')
  */
+
+$panelBase = $panelBase ?? (Helper::isAdminLoggedIn() ? 'admin' : 'manager');
+$panelTitle = $panelBase === 'admin' ? 'Админ-панель' : 'Панель менеджера';
+$notesLabel = $panelBase === 'admin' ? 'Заметки администратора' : 'Заметки менеджера';
 
 ob_start();
 ?>
@@ -79,19 +84,19 @@ ob_start();
 
     <!-- Фильтры -->
     <div class="mb-3">
-        <a href="<?= BASE_URL ?>admin/feedback" class="btn btn-sm <?= $currentStatus === 'all' ? 'btn-primary' : 'btn-outline-primary' ?>">
+        <a href="<?= BASE_URL ?><?= $panelBase ?>/feedback" class="btn btn-sm <?= $currentStatus === 'all' ? 'btn-primary' : 'btn-outline-primary' ?>">
             Все
         </a>
-        <a href="<?= BASE_URL ?>admin/feedback?status=new" class="btn btn-sm <?= $currentStatus === 'new' ? 'btn-warning' : 'btn-outline-warning' ?>">
+        <a href="<?= BASE_URL ?><?= $panelBase ?>/feedback?status=new" class="btn btn-sm <?= $currentStatus === 'new' ? 'btn-warning' : 'btn-outline-warning' ?>">
             Новые (<?= $stats['new'] ?>)
         </a>
-        <a href="<?= BASE_URL ?>admin/feedback?status=in_progress" class="btn btn-sm <?= $currentStatus === 'in_progress' ? 'btn-info' : 'btn-outline-info' ?>">
+        <a href="<?= BASE_URL ?><?= $panelBase ?>/feedback?status=in_progress" class="btn btn-sm <?= $currentStatus === 'in_progress' ? 'btn-info' : 'btn-outline-info' ?>">
             В работе
         </a>
-        <a href="<?= BASE_URL ?>admin/feedback?status=resolved" class="btn btn-sm <?= $currentStatus === 'resolved' ? 'btn-success' : 'btn-outline-success' ?>">
+        <a href="<?= BASE_URL ?><?= $panelBase ?>/feedback?status=resolved" class="btn btn-sm <?= $currentStatus === 'resolved' ? 'btn-success' : 'btn-outline-success' ?>">
             Решено
         </a>
-        <a href="<?= BASE_URL ?>admin/feedback?status=closed" class="btn btn-sm <?= $currentStatus === 'closed' ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+        <a href="<?= BASE_URL ?><?= $panelBase ?>/feedback?status=closed" class="btn btn-sm <?= $currentStatus === 'closed' ? 'btn-secondary' : 'btn-outline-secondary' ?>">
             Закрыто
         </a>
     </div>
@@ -121,18 +126,26 @@ ob_start();
                         </thead>
                         <tbody>
                             <?php foreach ($feedback as $item): ?>
+                                <?php
+                                $typeLabels = [
+                                    'bug' => ['label' => 'Ошибка', 'class' => 'danger'],
+                                    'suggestion' => ['label' => 'Пожелание', 'class' => 'info'],
+                                    'feature' => ['label' => 'Функция', 'class' => 'primary'],
+                                    'other' => ['label' => 'Другое', 'class' => 'secondary']
+                                ];
+                                $typeInfo = $typeLabels[$item['type']] ?? $typeLabels['other'];
+
+                                $statusLabels = [
+                                    'new' => ['label' => 'Новая', 'class' => 'warning'],
+                                    'in_progress' => ['label' => 'В работе', 'class' => 'info'],
+                                    'resolved' => ['label' => 'Решено', 'class' => 'success'],
+                                    'closed' => ['label' => 'Закрыто', 'class' => 'secondary']
+                                ];
+                                $statusInfo = $statusLabels[$item['status']] ?? $statusLabels['new'];
+                                ?>
                                 <tr>
                                     <td><?= $item['id'] ?></td>
                                     <td>
-                                        <?php
-                                        $typeLabels = [
-                                            'bug' => ['label' => 'Ошибка', 'class' => 'danger'],
-                                            'suggestion' => ['label' => 'Пожелание', 'class' => 'info'],
-                                            'feature' => ['label' => 'Функция', 'class' => 'primary'],
-                                            'other' => ['label' => 'Другое', 'class' => 'secondary']
-                                        ];
-                                        $typeInfo = $typeLabels[$item['type']] ?? $typeLabels['other'];
-                                        ?>
                                         <span class="badge bg-<?= $typeInfo['class'] ?>"><?= $typeInfo['label'] ?></span>
                                     </td>
                                     <td>
@@ -149,15 +162,6 @@ ob_start();
                                     </td>
                                     <td><?= Helper::escape($item['email'] ?? $item['user_email'] ?? '-') ?></td>
                                     <td>
-                                        <?php
-                                        $statusLabels = [
-                                            'new' => ['label' => 'Новая', 'class' => 'warning'],
-                                            'in_progress' => ['label' => 'В работе', 'class' => 'info'],
-                                            'resolved' => ['label' => 'Решено', 'class' => 'success'],
-                                            'closed' => ['label' => 'Закрыто', 'class' => 'secondary']
-                                        ];
-                                        $statusInfo = $statusLabels[$item['status']] ?? $statusLabels['new'];
-                                        ?>
                                         <span class="badge bg-<?= $statusInfo['class'] ?>"><?= $statusInfo['label'] ?></span>
                                     </td>
                                     <td><?= date('d.m.Y H:i', strtotime($item['created_at'])) ?></td>
@@ -166,7 +170,7 @@ ob_start();
                                             <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#feedbackModal<?= $item['id'] ?>">
                                                 <i class="bi bi-eye"></i> Просмотр
                                             </button>
-                                            <form method="POST" action="<?= BASE_URL ?>admin/feedback/delete" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите удалить эту заявку?');">
+                                            <form method="POST" action="<?= BASE_URL ?><?= $panelBase ?>/feedback/delete" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите удалить эту заявку?');">
                                                 <input type="hidden" name="feedback_id" value="<?= $item['id'] ?>">
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Удалить заявку">
                                                     <i class="bi bi-trash"></i>
@@ -175,93 +179,104 @@ ob_start();
                                         </div>
                                     </td>
                                 </tr>
-
-                                <!-- Модальное окно для просмотра заявки -->
-                                <div class="modal fade" id="feedbackModal<?= $item['id'] ?>" tabindex="-1" aria-labelledby="feedbackModalLabel<?= $item['id'] ?>" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="feedbackModalLabel<?= $item['id'] ?>">
-                                                    Заявка #<?= $item['id'] ?>
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <strong>Тип:</strong>
-                                                    <span class="badge bg-<?= $typeInfo['class'] ?>"><?= $typeInfo['label'] ?></span>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <strong>Тема:</strong>
-                                                    <p><?= Helper::escape($item['subject']) ?></p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <strong>Сообщение:</strong>
-                                                    <p class="border p-3 rounded"><?= nl2br(Helper::escape($item['message'])) ?></p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <strong>Пользователь:</strong>
-                                                    <p>
-                                                        <?php if ($item['user_id']): ?>
-                                                            <?= Helper::escape($item['user_name'] ?? 'Пользователь #' . $item['user_id']) ?>
-                                                            (ID: <?= $item['user_id'] ?>)
-                                                        <?php else: ?>
-                                                            <span class="text-muted">Гость</span>
-                                                        <?php endif; ?>
-                                                    </p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <strong>Email:</strong>
-                                                    <p><?= Helper::escape($item['email'] ?? $item['user_email'] ?? 'Не указан') ?></p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <strong>Дата создания:</strong>
-                                                    <p><?= date('d.m.Y H:i:s', strtotime($item['created_at'])) ?></p>
-                                                </div>
-                                                <?php if ($item['admin_notes']): ?>
-                                                    <div class="mb-3">
-                                                        <strong>Заметки администратора:</strong>
-                                                        <p class="border p-3 rounded bg-light"><?= nl2br(Helper::escape($item['admin_notes'])) ?></p>
-                                                    </div>
-                                                <?php endif; ?>
-
-                                                <hr>
-
-                                                <form method="POST" action="<?= BASE_URL ?>admin/feedback/update-status">
-                                                    <input type="hidden" name="feedback_id" value="<?= $item['id'] ?>">
-                                                    <div class="mb-3">
-                                                        <label for="status<?= $item['id'] ?>" class="form-label">Статус</label>
-                                                        <select name="status" id="status<?= $item['id'] ?>" class="form-select" required>
-                                                            <option value="new" <?= $item['status'] === 'new' ? 'selected' : '' ?>>Новая</option>
-                                                            <option value="in_progress" <?= $item['status'] === 'in_progress' ? 'selected' : '' ?>>В работе</option>
-                                                            <option value="resolved" <?= $item['status'] === 'resolved' ? 'selected' : '' ?>>Решено</option>
-                                                            <option value="closed" <?= $item['status'] === 'closed' ? 'selected' : '' ?>>Закрыто</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label for="admin_notes<?= $item['id'] ?>" class="form-label">Заметки администратора</label>
-                                                        <textarea name="admin_notes" id="admin_notes<?= $item['id'] ?>" class="form-control" rows="3" placeholder="Введите заметки..."><?= Helper::escape($item['admin_notes'] ?? '') ?></textarea>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label for="admin_reply<?= $item['id'] ?>" class="form-label">
-                                                            <i class="bi bi-envelope"></i> Ответ пользователю (отправится на email)
-                                                        </label>
-                                                        <textarea name="admin_reply" id="admin_reply<?= $item['id'] ?>" class="form-control" rows="4" placeholder="Введите ответ пользователю. Если заполнено, ответ будет отправлен на email: <?= Helper::escape($item['email'] ?? $item['user_email'] ?? 'Не указан') ?>"></textarea>
-                                                        <small class="text-muted">Если заполнено, ответ будет отправлен на email пользователя</small>
-                                                    </div>
-                                                    <div class="d-flex justify-content-end gap-2">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                                                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Модальные окна (вне таблицы) -->
+                <?php foreach ($feedback as $item): ?>
+                    <?php
+                    $typeLabels = [
+                        'bug' => ['label' => 'Ошибка', 'class' => 'danger'],
+                        'suggestion' => ['label' => 'Пожелание', 'class' => 'info'],
+                        'feature' => ['label' => 'Функция', 'class' => 'primary'],
+                        'other' => ['label' => 'Другое', 'class' => 'secondary']
+                    ];
+                    $typeInfo = $typeLabels[$item['type']] ?? $typeLabels['other'];
+                    ?>
+                    <div class="modal fade" id="feedbackModal<?= $item['id'] ?>" tabindex="-1" aria-labelledby="feedbackModalLabel<?= $item['id'] ?>" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="feedbackModalLabel<?= $item['id'] ?>">
+                                        Заявка #<?= $item['id'] ?>
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <strong>Тип:</strong>
+                                        <span class="badge bg-<?= $typeInfo['class'] ?>"><?= $typeInfo['label'] ?></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Тема:</strong>
+                                        <p><?= Helper::escape($item['subject']) ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Сообщение:</strong>
+                                        <p class="border p-3 rounded"><?= nl2br(Helper::escape($item['message'])) ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Пользователь:</strong>
+                                        <p>
+                                            <?php if ($item['user_id']): ?>
+                                                <?= Helper::escape($item['user_name'] ?? 'Пользователь #' . $item['user_id']) ?>
+                                                (ID: <?= $item['user_id'] ?>)
+                                            <?php else: ?>
+                                                <span class="text-muted">Гость</span>
+                                            <?php endif; ?>
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Email:</strong>
+                                        <p><?= Helper::escape($item['email'] ?? $item['user_email'] ?? 'Не указан') ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Дата создания:</strong>
+                                        <p><?= date('d.m.Y H:i:s', strtotime($item['created_at'])) ?></p>
+                                    </div>
+                                    <?php if ($item['admin_notes']): ?>
+                                        <div class="mb-3">
+                                            <strong><?= Helper::escape($notesLabel) ?>:</strong>
+                                            <p class="border p-3 rounded bg-light"><?= nl2br(Helper::escape($item['admin_notes'])) ?></p>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <hr>
+
+                                    <form method="POST" action="<?= BASE_URL ?><?= $panelBase ?>/feedback/update-status">
+                                        <input type="hidden" name="feedback_id" value="<?= $item['id'] ?>">
+                                        <div class="mb-3">
+                                            <label for="status<?= $item['id'] ?>" class="form-label">Статус</label>
+                                            <select name="status" id="status<?= $item['id'] ?>" class="form-select" required>
+                                                <option value="new" <?= $item['status'] === 'new' ? 'selected' : '' ?>>Новая</option>
+                                                <option value="in_progress" <?= $item['status'] === 'in_progress' ? 'selected' : '' ?>>В работе</option>
+                                                <option value="resolved" <?= $item['status'] === 'resolved' ? 'selected' : '' ?>>Решено</option>
+                                                <option value="closed" <?= $item['status'] === 'closed' ? 'selected' : '' ?>>Закрыто</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="admin_notes<?= $item['id'] ?>" class="form-label"><?= Helper::escape($notesLabel) ?></label>
+                                            <textarea name="admin_notes" id="admin_notes<?= $item['id'] ?>" class="form-control" rows="3" placeholder="Введите заметки..."><?= Helper::escape($item['admin_notes'] ?? '') ?></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="admin_reply<?= $item['id'] ?>" class="form-label">
+                                                <i class="bi bi-envelope"></i> Ответ пользователю (отправится на email)
+                                            </label>
+                                            <textarea name="admin_reply" id="admin_reply<?= $item['id'] ?>" class="form-control" rows="4" placeholder="Введите ответ пользователю. Если заполнено, ответ будет отправлен на email: <?= Helper::escape($item['email'] ?? $item['user_email'] ?? 'Не указан') ?>"></textarea>
+                                            <small class="text-muted">Если заполнено, ответ будет отправлен на email пользователя и в аккаунт (если пользователь зарегистрирован)</small>
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
 
                 <!-- Мобильная версия в виде карточек -->
                 <div class="admin-feedback-mobile-list">
@@ -313,7 +328,7 @@ ob_start();
                                                 data-bs-target="#feedbackModal<?= $item['id'] ?>">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <form method="POST" action="<?= BASE_URL ?>admin/feedback/delete" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите удалить эту заявку?');">
+                                        <form method="POST" action="<?= BASE_URL ?><?= $panelBase ?>/feedback/delete" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите удалить эту заявку?');">
                                             <input type="hidden" name="feedback_id" value="<?= $item['id'] ?>">
                                             <button type="submit" class="btn btn-outline-danger btn-sm" title="Удалить">
                                                 <i class="bi bi-trash"></i>
@@ -332,11 +347,6 @@ ob_start();
 
 <?php
 $content = ob_get_clean();
-$title = 'Обратная связь - Админ-панель';
+$title = 'Обратная связь - ' . $panelTitle;
 include __DIR__ . '/../admin_layout.php';
 ?>
-
-
-
-
-

@@ -299,10 +299,21 @@
                                 <i class="bi bi-heart"></i>
                                 <span>Все свидания</span>
                             </a>
-                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/manager/feedback') !== false ? 'active' : '' ?>"
+                            <?php
+                            $managerFeedbackBadge = '';
+                            if (class_exists('Feedback')) {
+                                $feedbackModel = new Feedback();
+                                $newCount = $feedbackModel->getNewCount();
+                                if ($newCount > 0) {
+                                    $managerFeedbackBadge = '<span class="badge bg-warning text-dark ms-auto">' . (int)$newCount . '</span>';
+                                }
+                            }
+                            ?>
+                            <a class="nav-link d-flex align-items-center <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/manager/feedback') !== false ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>manager/feedback">
                                 <i class="bi bi-chat-dots"></i>
                                 <span>Обратная связь</span>
+                                <?= $managerFeedbackBadge ?>
                             </a>
                         </nav>
                         <div class="nav-title">Профиль</div>
@@ -434,10 +445,11 @@
                         <i class="bi bi-heart"></i>
                         <span>Все свидания</span>
                     </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/manager/feedback') !== false ? 'active' : '' ?>"
+                    <a class="nav-link d-flex align-items-center <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/manager/feedback') !== false ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>manager/feedback">
                         <i class="bi bi-chat-dots"></i>
                         <span>Обратная связь</span>
+                        <?= $managerFeedbackBadge ?? '' ?>
                     </a>
                 </nav>
                 <div class="nav-title">Профиль</div>

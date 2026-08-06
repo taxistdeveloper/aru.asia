@@ -1394,10 +1394,11 @@ class ManagerController
             'closed' => count($this->feedbackModel->getByStatus('closed', 1000))
         ];
 
-        View::render('manager/feedback', [
+        View::render('admin/feedback', [
             'feedback' => $feedbackList,
             'stats' => $stats,
             'currentStatus' => $status,
+            'panelBase' => 'manager',
             'isMobile' => View::isMobile()
         ]);
     }

@@ -195,6 +195,15 @@ ob_start();
                                 <span class="badge bg-danger"><?= $pending_ads ?></span>
                             <?php endif; ?>
                         </a>
+                        <a href="<?= BASE_URL ?>manager/feedback" class="btn btn-warning">
+                            <i class="bi bi-chat-dots"></i> Обратная связь
+                            <?php
+                            $feedbackModel = new Feedback();
+                            $newFeedback = $feedbackModel->getNewCount();
+                            if ($newFeedback > 0): ?>
+                                <span class="badge bg-danger"><?= (int)$newFeedback ?></span>
+                            <?php endif; ?>
+                        </a>
                         <a href="<?= BASE_URL ?>home" class="btn btn-outline-secondary">
                             <i class="bi bi-house"></i> На главную сайта
                         </a>
@@ -282,7 +291,7 @@ ob_start();
     <div class="alert alert-info mt-3 py-2" style="font-size: 0.85rem;">
         <h6 class="mb-1" style="font-size: 0.9rem;"><i class="bi bi-info-circle"></i> О панели менеджера</h6>
         <p class="mb-0" style="font-size: 0.85rem;">
-            Вы вошли как <strong>менеджер</strong>. У вас есть доступ к просмотру статистики, данных пользователей, модерации мероприятий и управлению рекламой.
+            Вы вошли как <strong>менеджер</strong>. У вас есть доступ к статистике, пользователям, модерации мероприятий, рекламе и обратной связи (просмотр, ответ, смена статуса, удаление).
         </p>
     </div>
 </div>
