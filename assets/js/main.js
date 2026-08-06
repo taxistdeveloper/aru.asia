@@ -8,7 +8,8 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         const swPath = typeof BASE_URL !== 'undefined' ? BASE_URL + 'service-worker.js' : '/aru-app/service-worker.js';
-        navigator.serviceWorker.register(swPath)
+        // updateViaCache: 'none' — иначе на проде браузер может долго отдавать старый SW из HTTP-кэша
+        navigator.serviceWorker.register(swPath, { updateViaCache: 'none' })
             .then(function(registration) {
                 console.log('Service Worker зарегистрирован:', registration.scope);
 
@@ -1138,10 +1139,16 @@ function validateForm(formId) {
     }
 
     function initializePWAInstall() {
+        // Сбрасываем ложный флаг «установлено», если сайт открыт в обычном браузере
+        // (часто на проде после «Уже на экране» кнопка пропадала, хотя ярлыка нет)
+        if (!isRunningAsPWA() && localStorage.getItem(INSTALLED_KEY) === 'true') {
+            localStorage.removeItem(INSTALLED_KEY);
+        }
+
         // На /info кнопку показываем всегда (кроме standalone), даже после «Больше не показывать»
         setPersistentInstallUIVisible();
 
-        if (isPWAInstalled() || isInstallDismissed()) {
+        if (isRunningAsPWA() || isInstallDismissed()) {
             setInstallUIVisible(false);
             hideInstallBanner();
             return;

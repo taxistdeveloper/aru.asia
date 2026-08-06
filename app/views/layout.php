@@ -749,7 +749,7 @@
         // Определяем BASE_URL для JavaScript
         const BASE_URL = '<?= BASE_URL ?>';
     </script>
-    <script src="<?= BASE_URL ?>assets/js/main.js?v=7"></script>
+    <script src="<?= BASE_URL ?>assets/js/main.js?v=8"></script>
     <?php if (Helper::isLoggedIn()): ?>
         <script src="<?= BASE_URL ?>assets/js/push-notifications.js"></script>
     <?php endif; ?>

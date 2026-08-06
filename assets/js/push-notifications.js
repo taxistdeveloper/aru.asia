@@ -21,7 +21,9 @@
      */
     async function registerServiceWorker() {
         try {
-            registration = await navigator.serviceWorker.register(BASE_URL + 'service-worker.js');
+            registration = await navigator.serviceWorker.register(BASE_URL + 'service-worker.js', {
+                updateViaCache: 'none'
+            });
             console.log('Service Worker зарегистрирован:', registration);
 
             // Проверяем обновления service worker

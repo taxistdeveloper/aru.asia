@@ -4,7 +4,7 @@
  * Обрабатывает push-уведомления в фоновом режиме
  */
 
-const CACHE_NAME = 'aru-app-v9'; // v9: не кэшировать API unread/messages — иначе пуши/бейджи на проде «замирают»
+const CACHE_NAME = 'aru-app-v10'; // v10: сброс кэша main.js / PWA install на проде
 // Папка приложения = каталог, в котором лежит service-worker.js (например /aru-app/)
 const SW_SCRIPT = self.location.pathname || '/';
 const BASE_PATH = SW_SCRIPT.replace(/[^/]+$/, '');
