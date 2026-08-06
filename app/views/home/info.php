@@ -26,8 +26,8 @@ ob_start();
                 <i class="bi bi-chat-dots"></i> Сообщение разработчику
             </button>
 
-            <!-- Кнопка "Добавить на главный экран телефона" (PWA; на iOS — ручная установка через Safari) -->
-            <button type="button" class="btn btn-outline-primary btn-lg pwa-install-trigger" id="info-page-pwa-trigger">
+            <!-- Кнопка всегда доступна здесь (в отличие от баннера/FAB), кроме режима уже установленного PWA -->
+            <button type="button" class="btn btn-outline-primary btn-lg pwa-install-trigger pwa-install-persistent" id="info-page-pwa-trigger">
                 <i class="bi bi-phone"></i> Добавить на главный экран
             </button>
            

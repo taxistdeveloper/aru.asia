@@ -843,10 +843,7 @@ function validateForm(formId) {
         return localStorage.getItem(DISMISS_KEY) === 'true';
     }
 
-    function isPWAInstalled() {
-        if (localStorage.getItem(INSTALLED_KEY) === 'true') {
-            return true;
-        }
+    function isRunningAsPWA() {
         if (window.matchMedia('(display-mode: standalone)').matches) {
             return true;
         }
@@ -859,23 +856,40 @@ function validateForm(formId) {
         return false;
     }
 
+    function isPWAInstalled() {
+        if (localStorage.getItem(INSTALLED_KEY) === 'true') {
+            return true;
+        }
+        return isRunningAsPWA();
+    }
+
     function hideInstallBanner() {
         if (installBanner) {
             installBanner.style.display = 'none';
         }
     }
 
+    // Кнопка на /info всегда видна, пока сайт не открыт как установленное приложение
+    function setPersistentInstallUIVisible() {
+        const show = !isRunningAsPWA();
+        document.querySelectorAll('.pwa-install-persistent').forEach(function(el) {
+            el.style.display = show ? '' : 'none';
+        });
+    }
+
     function setInstallUIVisible(isVisible) {
         if (installButton) {
             installButton.style.display = isVisible ? 'inline-flex' : 'none';
         }
-        document.querySelectorAll('.pwa-install-trigger').forEach(function(el) {
+        // Баннер / FAB — промо; persistent-кнопка на info не трогаем
+        document.querySelectorAll('.pwa-install-trigger:not(.pwa-install-persistent)').forEach(function(el) {
             el.style.display = isVisible ? '' : 'none';
         });
         // Плавающая кнопка на platform — скрываем весь блок
         document.querySelectorAll('.pwa-fab').forEach(function(el) {
             el.style.display = isVisible ? '' : 'none';
         });
+        setPersistentInstallUIVisible();
     }
 
     function dismissInstallPrompts() {
@@ -917,7 +931,8 @@ function validateForm(formId) {
     });
 
     async function installPWA() {
-        if (isPWAInstalled()) {
+        // Только если сайт уже открыт как приложение — не показываем инструкцию снова
+        if (isRunningAsPWA()) {
             markInstalled();
             return;
         }
@@ -1123,6 +1138,9 @@ function validateForm(formId) {
     }
 
     function initializePWAInstall() {
+        // На /info кнопку показываем всегда (кроме standalone), даже после «Больше не показывать»
+        setPersistentInstallUIVisible();
+
         if (isPWAInstalled() || isInstallDismissed()) {
             setInstallUIVisible(false);
             hideInstallBanner();
