@@ -225,6 +225,64 @@ ob_start();
             font-size: 18px;
         }
 
+        .chat-page-header .chat-user-link {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex-grow: 1;
+            text-decoration: none;
+            color: inherit;
+            border-radius: 8px;
+            padding: 2px 4px 2px 2px;
+            margin: -2px -4px -2px -2px;
+            transition: background 0.15s ease;
+        }
+
+        .chat-page-header .chat-user-link:hover {
+            background: rgba(0, 0, 0, 0.04);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .chat-page-header .chat-user-link:hover h2,
+        .chat-page-header .chat-user-link:hover h4 {
+            color: #3390ec;
+        }
+
+        .chat-page-header .chat-user-profile-hint {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #3390ec;
+            line-height: 1.2;
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-page-header .btn-view-profile {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-color: #3390ec;
+            color: #3390ec;
+        }
+
+        .chat-page-header .btn-view-profile:hover {
+            background: #3390ec;
+            border-color: #3390ec;
+            color: #fff;
+        }
+
+        .chat-page-header .btn-view-profile .bi {
+            margin-right: 0 !important;
+        }
+
         .chat-page-header .btn-danger {
             white-space: nowrap;
             flex-shrink: 0;
@@ -1091,7 +1149,8 @@ ob_start();
     }
 
     .list-group-item .block-and-delete-dialog-btn,
-    .list-group-item .delete-dialog-btn {
+    .list-group-item .delete-dialog-btn,
+    .list-group-item .view-profile-dialog-btn {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1105,6 +1164,33 @@ ob_start();
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         flex-shrink: 0;
+        text-decoration: none;
+    }
+
+    .list-group-item .view-profile-dialog-btn {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1d4ed8;
+    }
+
+    .list-group-item .view-profile-dialog-btn:hover {
+        background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(29, 78, 216, 0.4);
+        color: #1d4ed8;
+    }
+
+    .list-group-item .view-profile-dialog-btn:active {
+        background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+        transform: scale(0.95);
+    }
+
+    .list-group-item .view-profile-dialog-btn i {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .list-group-item .view-profile-dialog-btn:hover i {
+        transform: scale(1.1);
     }
 
     .list-group-item .block-and-delete-dialog-btn {
@@ -1168,14 +1254,16 @@ ob_start();
         }
         
         .list-group-item .block-and-delete-dialog-btn,
-        .list-group-item .delete-dialog-btn {
+        .list-group-item .delete-dialog-btn,
+        .list-group-item .view-profile-dialog-btn {
             width: 32px;
             height: 32px;
             min-height: 32px;
         }
 
         .list-group-item .block-and-delete-dialog-btn i,
-        .list-group-item .delete-dialog-btn i {
+        .list-group-item .delete-dialog-btn i,
+        .list-group-item .view-profile-dialog-btn i {
             font-size: 14px;
         }
         
@@ -1231,6 +1319,12 @@ ob_start();
                                         </div>
                                     </a>
                                     <div class="d-flex gap-1">
+                                        <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$conv['other_user_id'] ?>"
+                                            class="view-profile-dialog-btn"
+                                            title="Смотреть профиль"
+                                            onclick="event.stopPropagation();">
+                                            <i class="bi bi-person"></i>
+                                        </a>
                                         <button type="button" class="block-and-delete-dialog-btn"
                                             data-user-id="<?= $conv['other_user_id'] ?>"
                                             title="Заблокировать и удалить">
@@ -1267,7 +1361,7 @@ ob_start();
             <div class="chat-page-header">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
-                        <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
+                        <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$selectedUserId ?>" class="chat-user-link" title="Открыть профиль">
                             <?php if ($firstPhoto): ?>
                                 <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $firstPhoto ?>"
                                     class="rounded-circle me-2 flex-shrink-0"
@@ -1280,10 +1374,15 @@ ob_start();
                             <?php endif; ?>
                             <div style="min-width: 0; overflow: hidden;">
                                 <h2 class="mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= Helper::escape($selectedUser['full_name'] ?? $selectedUser['email'] ?? 'Пользователь') ?></h2>
+                                <span class="chat-user-profile-hint">Смотреть профиль</span>
                             </div>
-                        </div>
+                        </a>
                     </div>
-                    <div class="d-flex align-items-center flex-shrink-0 ms-2">
+                    <div class="d-flex align-items-center flex-shrink-0 ms-2 gap-2">
+                        <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$selectedUserId ?>" class="btn btn-sm btn-outline-primary btn-view-profile" title="Открыть профиль">
+                            <i class="bi bi-person"></i>
+                            <span class="d-none d-xl-inline">Профиль</span>
+                        </a>
                         <?php if ($isBlockedByOther): ?>
                             <span class="badge bg-warning text-dark">Собеседник вас заблокировал</span>
                         <?php elseif ($isBlockedByMe): ?>
@@ -1510,6 +1609,12 @@ ob_start();
                                             </div>
                                         </a>
                                         <div class="d-flex gap-1">
+                                            <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$conv['other_user_id'] ?>"
+                                                class="view-profile-dialog-btn"
+                                                title="Смотреть профиль"
+                                                onclick="event.stopPropagation();">
+                                                <i class="bi bi-person"></i>
+                                            </a>
                                             <button type="button" class="block-and-delete-dialog-btn"
                                                 data-user-id="<?= $conv['other_user_id'] ?>"
                                                 title="Заблокировать и удалить">
@@ -1553,7 +1658,7 @@ ob_start();
                             <button type="button" onclick="goBack()" class="btn btn-sm btn-secondary me-2 flex-shrink-0">
                                 <i class="bi bi-arrow-left" style="display: inline-block;"></i> <span class="d-none d-md-inline">Назад</span>
                             </button>
-                            <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
+                            <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$selectedUserId ?>" class="chat-user-link" title="Открыть профиль">
                                 <?php if ($firstPhoto): ?>
                                     <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $firstPhoto ?>"
                                         class="rounded-circle me-2 flex-shrink-0"
@@ -1567,10 +1672,15 @@ ob_start();
                                 <div style="min-width: 0; overflow: hidden;">
                                     <h2 class="d-none d-md-block mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= Helper::escape($selectedUser['full_name'] ?? $selectedUser['email'] ?? 'Пользователь') ?></h2>
                                     <h4 class="d-block d-md-none mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= Helper::escape($selectedUser['full_name'] ?? $selectedUser['email'] ?? 'Пользователь') ?></h4>
+                                    <span class="chat-user-profile-hint">Смотреть профиль</span>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                        <div class="d-flex align-items-center flex-shrink-0 ms-2">
+                        <div class="d-flex align-items-center flex-shrink-0 ms-2 gap-1">
+                            <a href="<?= BASE_URL ?>profile/view?id=<?= (int)$selectedUserId ?>" class="btn btn-sm btn-outline-primary btn-view-profile" title="Открыть профиль">
+                                <i class="bi bi-person"></i>
+                                <span class="d-none d-sm-inline">Профиль</span>
+                            </a>
                             <?php if ($isBlockedByOther): ?>
                                 <span class="badge bg-warning text-dark">Собеседник вас заблокировал</span>
                             <?php elseif ($isBlockedByMe): ?>

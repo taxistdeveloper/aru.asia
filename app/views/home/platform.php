@@ -1940,6 +1940,114 @@ ob_start();
         </div>
     <?php endif; ?>
 
+    <!-- Поиск по номеру -->
+    <style>
+        .platform-search {
+            max-width: 420px;
+            margin-bottom: 1rem;
+        }
+
+        .platform-search-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .platform-search-hint {
+            margin-top: 12px;
+            margin-bottom: 0;
+            text-align: left;
+        }
+
+        .platform-search-hint-text {
+            display: block;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .platform-search-platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .platform-search-platform {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+
+        .platform-search-platform i {
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        .platform-search-platform--tiktok {
+            background: #f5f5f5;
+            color: #111827;
+            border-color: #e5e7eb;
+        }
+
+        .platform-search-platform--instagram {
+            background: linear-gradient(135deg, rgba(131, 58, 180, 0.08), rgba(253, 29, 29, 0.08), rgba(252, 176, 69, 0.12));
+            color: #c13584;
+            border-color: rgba(193, 53, 132, 0.2);
+        }
+
+        .platform-search-platform--telegram {
+            background: rgba(34, 158, 217, 0.08);
+            color: #229ed9;
+            border-color: rgba(34, 158, 217, 0.22);
+        }
+
+        .platform-search-platform--youtube {
+            background: rgba(255, 0, 0, 0.06);
+            color: #cc0000;
+            border-color: rgba(255, 0, 0, 0.16);
+        }
+    </style>
+    <div class="platform-search">
+        <form method="GET" action="<?= BASE_URL ?>search" class="platform-search-form">
+            <input
+                type="text"
+                class="form-control"
+                name="q"
+                placeholder="aru789136"
+                autocomplete="off"
+                aria-label="Поиск по номеру Aru"
+            >
+            <button type="submit" class="btn btn-primary flex-shrink-0" title="Найти" aria-label="Найти по номеру">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+        <div class="platform-search-hint">
+            <span class="platform-search-hint-text">Увидели номер — введите его сюда</span>
+            <div class="platform-search-platforms" aria-label="Платформы">
+                <span class="platform-search-platform platform-search-platform--tiktok">
+                    <i class="bi bi-tiktok" aria-hidden="true"></i> TikTok
+                </span>
+                <span class="platform-search-platform platform-search-platform--instagram">
+                    <i class="bi bi-instagram" aria-hidden="true"></i> Instagram
+                </span>
+                <span class="platform-search-platform platform-search-platform--telegram">
+                    <i class="bi bi-telegram" aria-hidden="true"></i> Telegram
+                </span>
+                <span class="platform-search-platform platform-search-platform--youtube">
+                    <i class="bi bi-youtube" aria-hidden="true"></i> YouTube
+                </span>
+            </div>
+        </div>
+    </div>
+
     <?php if (isset($logoutMessage)): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-heart-fill"></i> <?= Helper::escape($logoutMessage) ?>

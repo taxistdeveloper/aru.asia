@@ -28,6 +28,8 @@ class Router
         // Платформа (функционал с пользователями)
         $this->routes['platform'] = ['controller' => 'Home', 'method' => 'platform'];
         $this->routes['info'] = ['controller' => 'Home', 'method' => 'info'];
+        $this->routes['info/toggle-aru-number'] = ['controller' => 'Home', 'method' => 'toggleAruNumber'];
+        $this->routes['search'] = ['controller' => 'Home', 'method' => 'search'];
 
         // Публичный API (JSON)
         $this->routes['api/exchange-rates'] = ['controller' => 'Api', 'method' => 'exchangeRates'];

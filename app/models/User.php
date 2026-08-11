@@ -26,9 +26,10 @@ class User
     {
         // Нормализуем email: убираем пробелы и приводим к нижнему регистру
         $email = trim(strtolower($email));
+        $aruCode = $this->generateUniqueAruCode();
 
-        $sql = "INSERT INTO users (email, password, verification_token, registration_ip, registration_country, created_at)
-                VALUES (:email, :password, :token, :ip, :country, NOW())";
+        $sql = "INSERT INTO users (email, password, verification_token, registration_ip, registration_country, aru_code, created_at)
+                VALUES (:email, :password, :token, :ip, :country, :aru_code, NOW())";
 
         $stmt = $this->db->prepare($sql);
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -38,7 +39,8 @@ class User
             ':password' => $hashedPassword,
             ':token' => $token,
             ':ip' => $ip,
-            ':country' => $country
+            ':country' => $country,
+            ':aru_code' => $aruCode,
         ]);
     }
 
@@ -707,5 +709,171 @@ class User
                !empty($user['marital_status']) &&
                !empty($user['country']) &&
                !empty($user['city']);
+    }
+
+    /**
+     * Публичный номер: aru + случайный код (например aru789136)
+     */
+    public static function formatAruNumber($aruCode)
+    {
+        $code = preg_replace('/\D+/', '', (string) $aruCode);
+        if ($code === '') {
+            return null;
+        }
+        return 'aru' . $code;
+    }
+
+    /**
+     * Извлекает цифровой код из запроса: aru789136, aru 789136, 789136
+     */
+    public static function parseAruNumber($query)
+    {
+        $query = trim((string) $query);
+        if ($query === '') {
+            return null;
+        }
+
+        if (preg_match('/^aru[:_\s-]*(\d+)$/iu', $query, $m)) {
+            return $m[1];
+        }
+
+        if (preg_match('/^\d+$/', $query)) {
+            return $query;
+        }
+
+        return null;
+    }
+
+    /**
+     * Генерирует уникальный 6-значный код
+     */
+    public function generateUniqueAruCode()
+    {
+        for ($attempt = 0; $attempt < 50; $attempt++) {
+            $code = (string) random_int(100000, 999999);
+            $sql = "SELECT id FROM users WHERE aru_code = :code LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':code' => $code]);
+            if (!$stmt->fetch()) {
+                return $code;
+            }
+        }
+
+        // Запасной вариант: более длинный код
+        return (string) random_int(1000000, 999999999);
+    }
+
+    /**
+     * Гарантирует наличие aru_code у пользователя (для старых аккаунтов)
+     */
+    public function ensureAruCode($userId)
+    {
+        $user = $this->findById($userId);
+        if (!$user) {
+            return null;
+        }
+
+        if (!empty($user['aru_code'])) {
+            return $user['aru_code'];
+        }
+
+        $code = $this->generateUniqueAruCode();
+        $sql = "UPDATE users SET aru_code = :code, updated_at = NOW() WHERE id = :id AND (aru_code IS NULL OR aru_code = '')";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':code' => $code,
+            ':id' => (int) $userId,
+        ]);
+
+        $fresh = $this->findById($userId);
+        return $fresh['aru_code'] ?? $code;
+    }
+
+    /**
+     * Находит пользователя по коду номера (без префикса aru)
+     */
+    public function findByAruCode($code)
+    {
+        $code = preg_replace('/\D+/', '', (string) $code);
+        if ($code === '') {
+            return null;
+        }
+
+        $sql = "SELECT * FROM users WHERE aru_code = :code LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':code' => $code]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * Включён ли номер для публичного поиска
+     */
+    public function isAruNumberEnabled($userId)
+    {
+        $user = $this->findById($userId);
+        if (!$user) {
+            return false;
+        }
+        // По умолчанию включён (для строк до миграции)
+        return (int) ($user['aru_number_enabled'] ?? 1) === 1;
+    }
+
+    /**
+     * Включить / отключить публичный поиск по номеру
+     */
+    public function setAruNumberEnabled($userId, $enabled)
+    {
+        $sql = "UPDATE users SET aru_number_enabled = :enabled, updated_at = NOW() WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':id' => (int) $userId,
+            ':enabled' => $enabled ? 1 : 0,
+        ]);
+    }
+
+    /**
+     * Поиск пользователя по номеру aru789136.
+     * Возвращает: ['status' => 'found'|'disabled'|'not_found', 'user' => ?array, 'aru_number' => ?string]
+     */
+    public function searchByAruNumber($query)
+    {
+        $code = self::parseAruNumber($query);
+        if ($code === null || $code === '') {
+            return [
+                'status' => 'not_found',
+                'user' => null,
+                'aru_number' => null,
+            ];
+        }
+
+        $aruNumber = self::formatAruNumber($code);
+        $user = $this->findByAruCode($code);
+
+        if (
+            !$user
+            || !empty($user['deleted_at'])
+            || (int) ($user['email_verified'] ?? 0) !== 1
+            || (int) ($user['profile_blocked'] ?? 0) === 1
+        ) {
+            return [
+                'status' => 'not_found',
+                'user' => null,
+                'aru_number' => $aruNumber,
+            ];
+        }
+
+        if ((int) ($user['aru_number_enabled'] ?? 1) !== 1) {
+            return [
+                'status' => 'disabled',
+                'user' => null,
+                'aru_number' => $aruNumber,
+            ];
+        }
+
+        return [
+            'status' => 'found',
+            'user' => $user,
+            'aru_number' => $aruNumber,
+        ];
     }
 }

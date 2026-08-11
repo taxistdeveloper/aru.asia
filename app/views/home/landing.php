@@ -87,6 +87,123 @@ $canonical = $seo['canonical'] ?? BASE_URL;
         text-align: center;
     }
 
+    .landing-search {
+        max-width: 360px;
+        margin: 0 auto 28px;
+        text-align: left;
+    }
+
+    .landing-search-label {
+        display: block;
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 6px;
+    }
+
+    .landing-search-form {
+        display: flex;
+        gap: 8px;
+    }
+
+    .landing-search-form .form-control {
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 12px 14px;
+        font-size: 15px;
+    }
+
+    .landing-search-form .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        outline: none;
+    }
+
+    .landing-search-form .btn {
+        border-radius: 8px;
+        padding: 12px 16px;
+        background: #667eea;
+        border-color: #667eea;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .landing-search-form .btn:hover {
+        background: #5568d3;
+        border-color: #5568d3;
+        color: #fff;
+    }
+
+    .landing-search-hint {
+        margin-top: 12px;
+        margin-bottom: 0;
+        text-align: center;
+    }
+
+    .landing-search-hint-text {
+        display: block;
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 8px;
+    }
+
+    .landing-search-platforms {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .landing-search-platform {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        line-height: 1;
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+
+    .landing-search-platform i {
+        font-size: 13px;
+        line-height: 1;
+    }
+
+    .landing-search-platform--tiktok {
+        background: #f5f5f5;
+        color: #111827;
+        border-color: #e5e7eb;
+    }
+
+    .landing-search-platform--instagram {
+        background: linear-gradient(135deg, rgba(131, 58, 180, 0.08), rgba(253, 29, 29, 0.08), rgba(252, 176, 69, 0.12));
+        color: #c13584;
+        border-color: rgba(193, 53, 132, 0.2);
+    }
+
+    .landing-search-platform--telegram {
+        background: rgba(34, 158, 217, 0.08);
+        color: #229ed9;
+        border-color: rgba(34, 158, 217, 0.22);
+    }
+
+    .landing-search-platform--youtube {
+        background: rgba(255, 0, 0, 0.06);
+        color: #cc0000;
+        border-color: rgba(255, 0, 0, 0.16);
+    }
+
+    .landing-search-alert {
+        max-width: 360px;
+        margin: 0 auto 16px;
+        text-align: left;
+        font-size: 14px;
+    }
+
     .landing-btn {
         padding: 14px 32px;
         font-size: 16px;
@@ -893,6 +1010,54 @@ $canonical = $seo['canonical'] ?? BASE_URL;
 
         <p class="landing-subtitle">Найдите интересное свидание или создайте мероприятие. Платформа для знакомств и организаций событий </p>
 
+        <?php if (!Helper::isLoggedIn()): ?>
+            <?php
+            $searchQuery = $searchQuery ?? '';
+            $searchStatus = $searchStatus ?? null;
+            $searchMessage = $searchMessage ?? null;
+            ?>
+            <?php if (!empty($searchMessage)): ?>
+                <div class="alert <?= $searchStatus === 'disabled' ? 'alert-warning' : 'alert-info' ?> landing-search-alert" role="alert">
+                    <?= Helper::escape($searchMessage) ?>
+                </div>
+            <?php endif; ?>
+            <div class="landing-search">
+                <label for="landing-aru-search" class="landing-search-label">Найти по номеру</label>
+                <form method="GET" action="<?= BASE_URL ?>search" class="landing-search-form">
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="landing-aru-search"
+                        name="q"
+                        value="<?= Helper::escape($searchQuery) ?>"
+                        placeholder="aru789136"
+                        autocomplete="off"
+                        inputmode="text"
+                    >
+                    <button type="submit" class="btn" title="Найти" aria-label="Найти по номеру">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+                <div class="landing-search-hint">
+                    <span class="landing-search-hint-text">Увидели номер — введите его сюда</span>
+                    <div class="landing-search-platforms" aria-label="Платформы">
+                        <span class="landing-search-platform landing-search-platform--tiktok">
+                            <i class="bi bi-tiktok" aria-hidden="true"></i> TikTok
+                        </span>
+                        <span class="landing-search-platform landing-search-platform--instagram">
+                            <i class="bi bi-instagram" aria-hidden="true"></i> Instagram
+                        </span>
+                        <span class="landing-search-platform landing-search-platform--telegram">
+                            <i class="bi bi-telegram" aria-hidden="true"></i> Telegram
+                        </span>
+                        <span class="landing-search-platform landing-search-platform--youtube">
+                            <i class="bi bi-youtube" aria-hidden="true"></i> YouTube
+                        </span>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="landing-buttons">
             <?php if (Helper::isLoggedIn()): ?>
                 <a href="<?= BASE_URL ?>platform" class="landing-btn landing-btn-primary" aria-label="Перейти к платформе Aru">
@@ -1160,7 +1325,7 @@ $canonical = $seo['canonical'] ?? BASE_URL;
             "@type": "SearchAction",
             "target": {
                 "@type": "EntryPoint",
-                "urlTemplate": "<?= BASE_URL ?>platform?search={search_term_string}"
+                "urlTemplate": "<?= BASE_URL ?>search?q={search_term_string}"
             },
             "query-input": "required name=search_term_string"
         }
