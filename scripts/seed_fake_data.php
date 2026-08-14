@@ -73,15 +73,12 @@ $karagandaPlaces = [
 
 function pickUsers(PDO $db, int $limit): array
 {
-    // Только пользователи из Караганды (радиус ~25 км от центра города)
     $sql = "SELECT u.id, u.email, u.gender, u.latitude, u.longitude
             FROM users u
             WHERE u.gender IN ('male', 'female')
               AND (u.marital_status IS NULL OR u.marital_status != 'married')
               AND u.latitude IS NOT NULL
               AND u.longitude IS NOT NULL
-              AND u.latitude BETWEEN 49.65 AND 49.95
-              AND u.longitude BETWEEN 72.95 AND 73.35
               AND u.id NOT IN (
                   SELECT user_id FROM events
                   WHERE event_date >= NOW() AND status IN ('approved', 'pending')
