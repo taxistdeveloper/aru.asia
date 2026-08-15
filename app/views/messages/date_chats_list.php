@@ -20,16 +20,21 @@ $currentUserId = $currentUserId ?? null;
         --chat-hover: #f5f6f6;
     }
 
-    body.chats-list-page .container-fluid {
+    body.chats-list-page {
         padding-left: 0 !important;
         padding-right: 0 !important;
-        max-width: 100% !important;
     }
 
+    body.chats-list-page .container-fluid,
+    body.chats-list-page .container-fluid.px-3,
     body.chats-list-page .desktop-layout {
-        max-width: 100%;
-        padding: 0;
-        margin: 0;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-top: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 
     .chats-page-container {
@@ -180,7 +185,7 @@ $currentUserId = $currentUserId ?? null;
         margin: 0 auto;
         background: #fff;
         width: 100%;
-        overflow: hidden;
+        overflow: visible;
     }
 
     body.chats-list-page .mobile-page-container .chats-list-modern,
@@ -489,10 +494,27 @@ $currentUserId = $currentUserId ?? null;
     @media (max-width: 767px) {
         .chats-page-container {
             padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+            width: 100%;
+        }
+
+        .chats-header-content,
+        .chats-list-modern {
+            max-width: none;
+            width: 100%;
+        }
+
+        .chat-card-modern {
+            width: 100%;
+            max-width: 100%;
         }
 
         .chat-card-link {
             padding: 11px 2px 11px 14px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .chat-card-modern:active {
+            background: var(--chat-hover);
         }
 
         .chat-avatar-modern {

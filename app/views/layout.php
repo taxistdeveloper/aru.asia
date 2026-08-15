@@ -77,6 +77,16 @@
                 padding-right: 15px;
             }
         }
+
+        body.chats-list-page .container-fluid,
+        body.chats-list-page .container-fluid.px-3,
+        body.chat-page .container-fluid,
+        body.chat-page .container-fluid.px-3 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
     </style>
 
     <style>

@@ -10,6 +10,12 @@ ob_start();
 <?php if ($selectedUserId): ?>
     <style>
         /* Стили для страницы чата в стиле Telegram */
+        html.chat-html,
+        html.chat-html body.chat-page {
+            height: 100%;
+            overscroll-behavior: none;
+        }
+
         body.chat-page {
             padding: 0 !important;
             margin: 0 !important;
@@ -21,21 +27,24 @@ ob_start();
             display: none !important;
         }
 
-        body.chat-page .container-fluid {
+        body.chat-page .container-fluid,
+        body.chat-page .container-fluid.px-3,
+        body.chat-page .desktop-layout {
             padding: 0 !important;
             margin: 0 !important;
             max-width: 100% !important;
+            width: 100% !important;
         }
 
         body.chat-page .mobile-page-container {
             margin: 0 !important;
             padding: 0 !important;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
+            width: 100%;
         }
 
         /* Контейнер сообщений */
@@ -363,15 +372,17 @@ ob_start();
         }
 
         /* Карточка чата */
+        body.chat-page .mobile-page-container .chat-card,
         .chat-card {
             border: none;
-            box-shadow: none;
-            flex: 1;
+            box-shadow: none !important;
+            flex: 1 1 auto;
             display: flex;
             flex-direction: column;
             height: calc(100vh - 60px);
             min-height: 0;
-            overflow: visible;
+            overflow: hidden;
+            transform: none !important;
         }
 
         .chat-card .card-header {
@@ -485,8 +496,8 @@ ob_start();
             background: #2a7fd4;
         }
 
-        /* ПК ВЕРСИЯ (от 1025px) */
-        @media (min-width: 1025px) {
+        /* ПК ВЕРСИЯ (от 992px — как Bootstrap lg, чтобы не было дыры 768–1024) */
+        @media (min-width: 992px) {
             body.chat-page {
                 background: #f5f5f5;
             }
@@ -737,27 +748,51 @@ ob_start();
             }
         }
 
-        /* МОБИЛЬНЫЕ УСТРОЙСТВА (до 767px) */
-        @media (max-width: 767px) {
+        /* МОБИЛЬНЫЕ И ПЛАНШЕТЫ (до lg / 991px — тот же порог, что d-lg-none) */
+        @media (max-width: 991.98px) {
+            html.chat-html,
+            html.chat-html body.chat-page {
+                height: 100%;
+                overscroll-behavior: none;
+            }
+
             body.chat-page {
                 background: #e5e5e5;
-                height: 100vh;
+                height: 100%;
                 height: 100dvh;
-                overflow: hidden;
+                height: var(--app-height, 100dvh);
+                max-height: var(--app-height, 100dvh);
+                overflow: hidden !important;
+                padding: 0 !important;
+                position: fixed;
+                inset: 0;
+                width: 100%;
             }
 
             body.chat-page .mobile-top-nav {
                 display: none !important;
             }
 
-            .mobile-page-container {
-                height: 100vh;
-                height: 100dvh;
+            body.chat-page .mobile-page-container,
+            body.chat-page #chat-view.mobile-page-container {
+                height: 100%;
+                max-height: 100%;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                padding-bottom: env(safe-area-inset-bottom, 0px);
+                padding: 0 !important;
+                margin: 0 !important;
                 box-sizing: border-box;
+                width: 100%;
+            }
+
+            body.chat-page .d-lg-none {
+                flex: 1 1 auto;
+                min-height: 0;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                width: 100%;
             }
 
             .chat-page-header {
@@ -815,27 +850,31 @@ ob_start();
                 max-width: clamp(120px, 30vw, 200px);
             }
 
-            .chat-card {
-                flex: 1;
+            body.chat-page .mobile-page-container .chat-card {
+                flex: 1 1 auto;
                 min-height: 0;
                 display: flex;
                 flex-direction: column;
-                height: 0;
-                overflow: visible;
+                height: auto;
+                max-height: 100%;
+                overflow: hidden !important;
+                transform: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
             }
 
             #messages-container {
-                flex: 1;
+                flex: 1 1 auto;
                 min-height: 0;
                 padding: clamp(6px, 2vw, 10px) clamp(8px, 2.5vw, 12px);
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
 
-            .chat-card .card-footer {
+            body.chat-page .mobile-page-container .chat-card .card-footer {
                 padding: clamp(4px, 1.5vw, 8px) clamp(6px, 2vw, 10px);
-                padding-bottom: calc(clamp(4px, 1.5vw, 8px) + env(safe-area-inset-bottom, 0px));
-                flex-shrink: 0;
+                padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+                flex: 0 0 auto;
                 background: white;
                 z-index: 100;
                 position: relative;
@@ -844,9 +883,7 @@ ob_start();
                 opacity: 1 !important;
                 width: 100%;
                 box-sizing: border-box;
-                margin-bottom: 0;
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
+                margin: 0;
             }
 
             .chat-input-form {
@@ -1246,6 +1283,31 @@ ob_start();
     .list-group-item a {
         flex: 1;
         min-width: 0;
+    }
+
+    @media (max-width: 991.98px) {
+        #conversations-view,
+        #conversations-view .card,
+        .mobile-page-container #conversations-view .card {
+            overflow: visible !important;
+            transform: none !important;
+            max-width: 100%;
+        }
+
+        .mobile-page-container #conversations-view .card:active {
+            transform: none !important;
+        }
+
+        #conversations-view .list-group,
+        #conversations-view .list-group-item {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        #conversations-view .list-group-item a {
+            min-width: 0;
+        }
     }
 
     @media (max-width: 767px) {
@@ -1813,6 +1875,26 @@ ob_start();
 
 <?php if ($selectedUserId): ?>
     <script>
+        (function() {
+            document.documentElement.classList.add('chat-html');
+
+            function setAppHeight() {
+                var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                if (!h || h < 100) h = window.innerHeight;
+                document.documentElement.style.setProperty('--app-height', h + 'px');
+            }
+
+            setAppHeight();
+            window.addEventListener('resize', setAppHeight);
+            window.addEventListener('orientationchange', function() {
+                setTimeout(setAppHeight, 100);
+            });
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setAppHeight);
+                window.visualViewport.addEventListener('scroll', setAppHeight);
+            }
+        })();
+
         // Функция для возврата назад или на страницу сообщений
         function goBack() {
             // Проверяем, есть ли история для возврата
@@ -2027,7 +2109,7 @@ ob_start();
         // Автоматическая высота контейнера (только для десктопной версии)
         function adjustMessagesContainerHeight() {
             // На мобильных и планшетах используем flexbox, не устанавливаем фиксированную высоту
-            if (window.innerWidth <= 1024) {
+            if (window.innerWidth < 992) {
                 return;
             }
 
@@ -2055,7 +2137,7 @@ ob_start();
         setTimeout(adjustMessagesContainerHeight, 100);
 
         // Обработка виртуальной клавиатуры на мобильных устройствах
-        if (window.innerWidth <= 767) {
+        if (window.innerWidth < 992) {
             let viewportHeight = window.innerHeight;
 
             // Функция для обеспечения видимости footer
