@@ -12,6 +12,11 @@ class User
     /** Сколько месяцев хранить аккаунт после удаления (для восстановления по email) */
     public const SOFT_DELETE_MONTHS = 6;
 
+    /** Считаем пользователя онлайн, если был активен за последние N минут */
+    public const ONLINE_THRESHOLD_MINUTES = 5;
+
+    private static ?bool $lastActivityColumnReady = null;
+
     private $db; // Подключение к базе данных
 
     public function __construct()
@@ -144,6 +149,7 @@ class User
     /**
      * Пользователи для ленты (лендинг / платформа): с фото и без.
      * Без фото внизу списка (после всех с валидным фото).
+     * Сортировка: онлайн → недавняя активность → новые регистрации.
      * Если указан пол текущего пользователя — только противоположный пол.
      * Если указана страна — только из той же страны.
      * Исключает заблокированных (и по правилам ниже текущего пользователя).
@@ -227,9 +233,14 @@ class User
 
     /**
      * Выборка пользователей для ленты: только с фото или только без.
+     * Сортировка: онлайн сверху → недавняя активность → новые регистрации.
      */
     private function fetchFeedUsers($limit, $excludeUserId, $userGender, $userCountry, $withPhoto, $offset = 0)
     {
+        self::ensureLastActivityColumn();
+
+        $onlineMinutes = (int) self::ONLINE_THRESHOLD_MINUTES;
+
         $sql = "SELECT u.*,
                 (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo
                 FROM users u
@@ -286,7 +297,11 @@ class User
                     )";
         }
 
-        $sql .= " ORDER BY u.created_at DESC LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY
+                (u.last_activity_at IS NOT NULL AND u.last_activity_at >= DATE_SUB(NOW(), INTERVAL {$onlineMinutes} MINUTE)) DESC,
+                COALESCE(u.last_activity_at, u.created_at) DESC,
+                u.created_at DESC
+                LIMIT :limit OFFSET :offset";
         $params[':limit'] = $limit;
         $params[':offset'] = $offset;
 
@@ -875,5 +890,82 @@ class User
             'user' => $user,
             'aru_number' => $aruNumber,
         ];
+    }
+
+    /**
+     * Добавляет колонку last_activity_at, если её ещё нет.
+     */
+    public static function ensureLastActivityColumn(): void
+    {
+        if (self::$lastActivityColumnReady === true) {
+            return;
+        }
+
+        try {
+            $db = Database::getInstance()->getConnection();
+            $check = $db->query("SHOW COLUMNS FROM users LIKE 'last_activity_at'");
+            if ($check->rowCount() === 0) {
+                $db->exec("ALTER TABLE users ADD COLUMN last_activity_at DATETIME NULL DEFAULT NULL");
+                $db->exec("CREATE INDEX idx_users_last_activity_at ON users (last_activity_at)");
+            }
+
+            self::$lastActivityColumnReady = true;
+        } catch (Exception $e) {
+            error_log('User::ensureLastActivityColumn error: ' . $e->getMessage());
+            self::$lastActivityColumnReady = false;
+        }
+    }
+
+    /**
+     * Обновляет время последней активности (не чаще раза в минуту на сессию).
+     */
+    public static function touchLastActivity(?int $userId = null): void
+    {
+        if ($userId === null) {
+            $userId = Helper::getUserId();
+        }
+
+        if (!$userId) {
+            return;
+        }
+
+        $now = time();
+        $lastTouch = (int) ($_SESSION['last_activity_touch'] ?? 0);
+        if ($now - $lastTouch < 60) {
+            return;
+        }
+
+        $_SESSION['last_activity_touch'] = $now;
+
+        self::ensureLastActivityColumn();
+
+        try {
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare('UPDATE users SET last_activity_at = NOW() WHERE id = :id');
+            $stmt->execute([':id' => $userId]);
+        } catch (Exception $e) {
+            error_log('User::touchLastActivity error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Проверяет, онлайн ли пользователь по last_activity_at.
+     */
+    public static function isOnline($user): bool
+    {
+        $lastActivity = is_array($user)
+            ? ($user['last_activity_at'] ?? null)
+            : $user;
+
+        if (empty($lastActivity)) {
+            return false;
+        }
+
+        $timestamp = strtotime((string) $lastActivity);
+        if ($timestamp === false) {
+            return false;
+        }
+
+        return (time() - $timestamp) <= (self::ONLINE_THRESHOLD_MINUTES * 60);
     }
 }

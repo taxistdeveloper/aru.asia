@@ -947,6 +947,34 @@ ob_start();
             border: 2px dashed rgba(102, 126, 234, 0.28);
         }
 
+        .user-card--online {
+            border: 2px solid #22c55e;
+            box-shadow:
+                0 3px 12px rgba(34, 197, 94, 0.22),
+                0 1px 4px rgba(0, 0, 0, 0.04),
+                0 0 0 1px rgba(34, 197, 94, 0.12);
+        }
+
+        .user-card--online::after {
+            background: linear-gradient(90deg,
+                    #22c55e 0%,
+                    #16a34a 50%,
+                    #22c55e 100%);
+        }
+
+        .user-card--online.user-card--no-photo {
+            border: 2px solid #22c55e;
+        }
+
+        .user-card--online:hover,
+        .user-card--online:active {
+            border-color: #16a34a;
+            box-shadow:
+                0 12px 35px rgba(34, 197, 94, 0.28),
+                0 6px 15px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(34, 197, 94, 0.2);
+        }
+
         .user-card:nth-child(1) {
             animation-delay: 0.05s;
         }
@@ -2071,11 +2099,19 @@ ob_start();
                 <?php
                 $hasMainPhoto = !empty($user['main_photo']) && trim((string) $user['main_photo']) !== '';
                 $isFemale = ($user['gender'] ?? '') === 'female';
+                $isOnline = User::isOnline($user);
                 $placeholderSvg = $isFemale ? $femalePlaceholderSvg : $malePlaceholderSvg;
                 $placeholderImage = 'data:image/svg+xml;utf8,' . rawurlencode($placeholderSvg);
+                $userCardClasses = 'user-card';
+                if (!$hasMainPhoto) {
+                    $userCardClasses .= ' user-card--no-photo';
+                }
+                if ($isOnline) {
+                    $userCardClasses .= ' user-card--online';
+                }
                 ?>
                 <a href="<?= BASE_URL ?>profile/view?id=<?= $user['id'] ?>" class="user-card-link">
-                    <div class="user-card<?= $hasMainPhoto ? '' : ' user-card--no-photo' ?>">
+                    <div class="<?= $userCardClasses ?>">
                         <?php if ($hasMainPhoto): ?>
                             <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . rawurlencode($user['main_photo']) ?>"
                                 alt="<?= !empty($user['full_name']) ? Helper::escape($user['full_name']) : 'Фото пользователя' ?>"

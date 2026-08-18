@@ -10,7 +10,7 @@ ob_start();
 ?>
 
 <div class="mobile-page-container">
-   
+
     <!-- Рекламный баннер -->
     <style>
         @keyframes sparkle {
@@ -24,7 +24,7 @@ ob_start();
             margin-bottom: 20px;
             text-align: center;
             color: white;
-            box-shadow: 
+            box-shadow:
                 0 10px 25px rgba(0, 0, 0, 0.3),
                 0 0 0 1px rgba(99, 102, 241, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -33,7 +33,7 @@ ob_start();
             animation: fadeIn 0.5s ease-in;
             border: 2px solid rgba(99, 102, 241, 0.2);
         }
-        
+
         .new-year-banner::before {
             content: '';
             position: absolute;
@@ -44,12 +44,12 @@ ob_start();
             background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
             animation: rotate 20s linear infinite;
         }
-        
+
         @keyframes rotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        
+
         .new-year-banner::after {
             content: '';
             position: absolute;
@@ -57,7 +57,7 @@ ob_start();
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.05) 50%, transparent 100%),
                 repeating-linear-gradient(
                     0deg,
@@ -83,7 +83,7 @@ ob_start();
             background: #ffffff;
             border-radius: 18px;
             overflow: hidden;
-            box-shadow: 
+            box-shadow:
                 0 3px 12px rgba(0, 0, 0, 0.08),
                 0 1px 4px rgba(0, 0, 0, 0.04),
                 0 0 0 1px rgba(0, 0, 0, 0.02);
@@ -132,8 +132,8 @@ ob_start();
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, 
-                #667eea 0%, 
+            background: linear-gradient(90deg,
+                #667eea 0%,
                 #764ba2 25%,
                 #f093fb 50%,
                 #4facfe 75%,
@@ -162,8 +162,8 @@ ob_start();
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, 
-                rgba(102, 126, 234, 0.08) 0%, 
+            background: linear-gradient(135deg,
+                rgba(102, 126, 234, 0.08) 0%,
                 rgba(118, 75, 162, 0.08) 50%,
                 rgba(240, 147, 251, 0.08) 100%);
             opacity: 0;
@@ -175,7 +175,7 @@ ob_start();
         .user-card:active,
         .user-card:hover {
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 
+            box-shadow:
                 0 12px 35px rgba(102, 126, 234, 0.2),
                 0 6px 15px rgba(0, 0, 0, 0.1),
                 0 0 0 1px rgba(102, 126, 234, 0.1);
@@ -209,8 +209,8 @@ ob_start();
             height: 220px;
             min-height: 220px;
             max-height: 220px;
-            background: linear-gradient(135deg, 
-                #f8f9fa 0%, 
+            background: linear-gradient(135deg,
+                #f8f9fa 0%,
                 #e9ecef 30%,
                 #f8f9fa 60%,
                 #e9ecef 100%);
@@ -236,9 +236,9 @@ ob_start();
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, 
-                transparent 30%, 
-                rgba(255,255,255,0.7) 50%, 
+            background: linear-gradient(45deg,
+                transparent 30%,
+                rgba(255,255,255,0.7) 50%,
                 transparent 70%);
             animation: shimmer 2.5s infinite;
         }
@@ -259,7 +259,7 @@ ob_start();
 
         .user-card > div {
             padding: 14px 12px;
-            background: linear-gradient(to bottom, 
+            background: linear-gradient(to bottom,
                 rgba(255, 255, 255, 0.98) 0%,
                 #ffffff 100%);
             position: relative;
@@ -337,7 +337,7 @@ ob_start();
 
             .user-card {
                 border-radius: 16px;
-                box-shadow: 
+                box-shadow:
                     0 4px 14px rgba(0, 0, 0, 0.1),
                     0 2px 6px rgba(0, 0, 0, 0.06),
                     0 0 0 1px rgba(102, 126, 234, 0.05);
@@ -381,7 +381,7 @@ ob_start();
 
             .user-card:active {
                 transform: translateY(-4px) scale(1.01);
-                box-shadow: 
+                box-shadow:
                     0 10px 25px rgba(102, 126, 234, 0.2),
                     0 5px 12px rgba(0, 0, 0, 0.1),
                     0 0 0 1px rgba(102, 126, 234, 0.15);
@@ -398,7 +398,7 @@ ob_start();
         @media (min-width: 768px) {
             .mobile-page-container {
                 background: #f8f9fa;
-                background-image: 
+                background-image:
                     linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
                     linear-gradient(225deg, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
                 min-height: calc(100vh - 80px);
@@ -407,14 +407,14 @@ ob_start();
 
             /* Рекламный баннер для ПК - темный дизайн */
             .new-year-banner {
-                background: linear-gradient(135deg, 
-                    #0f172a 0%, 
-                    #1e293b 50%, 
+                background: linear-gradient(135deg,
+                    #0f172a 0%,
+                    #1e293b 50%,
                     #334155 100%);
                 border-radius: 24px;
                 padding: 60px 80px;
                 margin-bottom: 50px;
-                box-shadow: 
+                box-shadow:
                     0 20px 60px rgba(0, 0, 0, 0.4),
                     0 0 0 1px rgba(99, 102, 241, 0.4),
                     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -425,7 +425,7 @@ ob_start();
                 font-size: 44px !important;
                 font-weight: 800 !important;
                 margin-bottom: 20px !important;
-                text-shadow: 
+                text-shadow:
                     0 0 20px rgba(99, 102, 241, 0.5),
                     0 2px 10px rgba(0, 0, 0, 0.5) !important;
                 letter-spacing: 1px;
@@ -563,7 +563,7 @@ ob_start();
             }
         }
     </style>
-    
+
     <div class="new-year-banner">
         <div style="position: relative; z-index: 2;">
             <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px;">

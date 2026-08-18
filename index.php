@@ -84,6 +84,11 @@ if (!Helper::isLoggedIn() && isset($_COOKIE['remember_token'])) {
 // Если пользователь был удален админом, выполняется выход с сообщением
 Helper::checkUserExists();
 
+// Фиксируем активность для индикатора «онлайн» на платформе
+if (Helper::isLoggedIn()) {
+    User::touchLastActivity();
+}
+
 // Счётчик заходов по разделам сайта (не админка)
 DailyVisit::trackToday();
 
