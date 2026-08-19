@@ -25,6 +25,11 @@ class Database {
             ];
 
             $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
+
+            if (defined('APP_TIMEZONE')) {
+                $offset = (new DateTime('now', new DateTimeZone(APP_TIMEZONE)))->format('P');
+                $this->connection->exec('SET time_zone = ' . $this->connection->quote($offset));
+            }
         } catch (PDOException $e) {
             error_log("Database connection error: " . $e->getMessage());
             // Пробрасываем исключение — index.php покажет страницу «Технические работы»

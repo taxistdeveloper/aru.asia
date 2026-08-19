@@ -242,7 +242,8 @@ class User
         $onlineMinutes = (int) self::ONLINE_THRESHOLD_MINUTES;
 
         $sql = "SELECT u.*,
-                (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo
+                (SELECT photo FROM user_photos WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> '' ORDER BY created_at ASC LIMIT 1) as main_photo,
+                (u.last_activity_at IS NOT NULL AND u.last_activity_at >= DATE_SUB(NOW(), INTERVAL {$onlineMinutes} MINUTE)) AS is_online
                 FROM users u
                 WHERE u.email_verified = 1
                 AND u.deleted_at IS NULL
@@ -922,10 +923,15 @@ class User
     public static function touchLastActivity(?int $userId = null): void
     {
         if ($userId === null) {
-            $userId = Helper::getUserId();
+            $userId = (int) Helper::getUserId();
         }
 
-        if (!$userId) {
+        if ($userId <= 0) {
+            return;
+        }
+
+        self::ensureLastActivityColumn();
+        if (self::$lastActivityColumnReady !== true) {
             return;
         }
 
@@ -935,14 +941,11 @@ class User
             return;
         }
 
-        $_SESSION['last_activity_touch'] = $now;
-
-        self::ensureLastActivityColumn();
-
         try {
             $db = Database::getInstance()->getConnection();
             $stmt = $db->prepare('UPDATE users SET last_activity_at = NOW() WHERE id = :id');
             $stmt->execute([':id' => $userId]);
+            $_SESSION['last_activity_touch'] = $now;
         } catch (Exception $e) {
             error_log('User::touchLastActivity error: ' . $e->getMessage());
         }
@@ -953,6 +956,10 @@ class User
      */
     public static function isOnline($user): bool
     {
+        if (is_array($user) && array_key_exists('is_online', $user) && $user['is_online'] !== null && $user['is_online'] !== '') {
+            return (int) $user['is_online'] === 1;
+        }
+
         $lastActivity = is_array($user)
             ? ($user['last_activity_at'] ?? null)
             : $user;
@@ -961,11 +968,15 @@ class User
             return false;
         }
 
-        $timestamp = strtotime((string) $lastActivity);
-        if ($timestamp === false) {
+        try {
+            $timezone = new DateTimeZone(defined('APP_TIMEZONE') ? APP_TIMEZONE : date_default_timezone_get());
+            $activityAt = new DateTime((string) $lastActivity, $timezone);
+            $threshold = new DateTime('now', $timezone);
+            $threshold->modify('-' . self::ONLINE_THRESHOLD_MINUTES . ' minutes');
+
+            return $activityAt >= $threshold;
+        } catch (Exception $e) {
             return false;
         }
-
-        return (time() - $timestamp) <= (self::ONLINE_THRESHOLD_MINUTES * 60);
     }
 }

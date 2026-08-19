@@ -948,14 +948,14 @@ ob_start();
         }
 
         .user-card--online {
-            border: 2px solid #22c55e;
+            border: 3px solid #22c55e;
             box-shadow:
-                0 3px 12px rgba(34, 197, 94, 0.22),
-                0 1px 4px rgba(0, 0, 0, 0.04),
-                0 0 0 1px rgba(34, 197, 94, 0.12);
+                0 3px 12px rgba(34, 197, 94, 0.28),
+                0 0 0 3px rgba(34, 197, 94, 0.18);
         }
 
         .user-card--online::after {
+            opacity: 1;
             background: linear-gradient(90deg,
                     #22c55e 0%,
                     #16a34a 50%,
@@ -963,16 +963,51 @@ ob_start();
         }
 
         .user-card--online.user-card--no-photo {
-            border: 2px solid #22c55e;
+            border: 3px solid #22c55e;
         }
 
         .user-card--online:hover,
         .user-card--online:active {
             border-color: #16a34a;
             box-shadow:
-                0 12px 35px rgba(34, 197, 94, 0.28),
-                0 6px 15px rgba(0, 0, 0, 0.1),
-                0 0 0 1px rgba(34, 197, 94, 0.2);
+                0 12px 35px rgba(34, 197, 94, 0.32),
+                0 0 0 3px rgba(34, 197, 94, 0.22);
+        }
+
+        .user-card-status {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 6;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.01em;
+            pointer-events: none;
+        }
+
+        .user-card-status::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .user-card-status--online {
+            background: #22c55e;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+        }
+
+        .user-card-status--offline {
+            background: rgba(17, 24, 39, 0.62);
+            color: #e5e7eb;
         }
 
         .user-card:nth-child(1) {
@@ -1345,6 +1380,12 @@ ob_start();
                     0 0 0 1px rgba(102, 126, 234, 0.05);
                 height: auto;
                 min-height: calc(var(--card-image-height) + var(--card-info-min-height));
+            }
+
+            .user-card--online {
+                box-shadow:
+                    0 4px 14px rgba(34, 197, 94, 0.28),
+                    0 0 0 3px rgba(34, 197, 94, 0.2);
             }
 
             .user-card img {
@@ -2112,6 +2153,9 @@ ob_start();
                 ?>
                 <a href="<?= BASE_URL ?>profile/view?id=<?= $user['id'] ?>" class="user-card-link">
                     <div class="<?= $userCardClasses ?>">
+                        <span class="user-card-status <?= $isOnline ? 'user-card-status--online' : 'user-card-status--offline' ?>">
+                            <?= $isOnline ? 'Онлайн' : 'Офлайн' ?>
+                        </span>
                         <?php if ($hasMainPhoto): ?>
                             <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . rawurlencode($user['main_photo']) ?>"
                                 alt="<?= !empty($user['full_name']) ? Helper::escape($user['full_name']) : 'Фото пользователя' ?>"
