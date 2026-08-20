@@ -697,43 +697,6 @@ $canonical = $seo['canonical'] ?? BASE_URL;
         background: #f3f4f6;
     }
 
-    .landing-user-card-status {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 4;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 8px;
-        border-radius: 999px;
-        font-size: 10px;
-        font-weight: 700;
-        pointer-events: none;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-    }
-
-    .landing-user-card-status::before {
-        content: '';
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: currentColor;
-    }
-
-    .landing-user-card-status--online {
-        background: rgba(255, 255, 255, 0.88);
-        color: #16a34a;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-    }
-
-    .landing-user-card-status--offline {
-        background: rgba(255, 255, 255, 0.88);
-        color: #6b7280;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-    }
-
     .landing-user-card-last-seen {
         font-size: 11px;
         font-weight: 500;
@@ -1153,11 +1116,6 @@ $canonical = $seo['canonical'] ?? BASE_URL;
                         <a href="<?= BASE_URL ?>profile/view?id=<?= $user['id'] ?>"
                             class="landing-user-card<?= $hasMainPhoto ? '' : ' landing-user-card--no-photo' ?><?= $isOnline ? ' landing-user-card--online' : '' ?>">
                             <div class="landing-user-card-media">
-                                <?php if ($hasVisited): ?>
-                                    <span class="landing-user-card-status <?= $isOnline ? 'landing-user-card-status--online' : 'landing-user-card-status--offline' ?>">
-                                        <?= $isOnline ? 'Онлайн' : 'Офлайн' ?>
-                                    </span>
-                                <?php endif; ?>
                                 <?php if ($hasMainPhoto): ?>
                                     <?php
                                     $photoName = $user['main_photo'];

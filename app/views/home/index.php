@@ -111,44 +111,6 @@ ob_start();
                 0 0 0 3px rgba(34, 197, 94, 0.18);
         }
 
-        .user-card-status {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 6;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 700;
-            line-height: 1;
-            pointer-events: none;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .user-card-status::before {
-            content: '';
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .user-card-status--online {
-            background: rgba(255, 255, 255, 0.88);
-            color: #16a34a;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-        }
-
-        .user-card-status--offline {
-            background: rgba(255, 255, 255, 0.88);
-            color: #6b7280;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-        }
-
         .user-card-last-seen {
             display: block;
             margin-top: 4px;
@@ -705,11 +667,6 @@ ob_start();
                 ?>
                 <a href="<?= BASE_URL ?>profile/view?id=<?= $user['id'] ?>" class="user-card-link">
                     <div class="<?= $userCardClasses ?>">
-                        <?php if ($hasVisited): ?>
-                            <span class="user-card-status <?= $isOnline ? 'user-card-status--online' : 'user-card-status--offline' ?>">
-                                <?= $isOnline ? 'Онлайн' : 'Офлайн' ?>
-                            </span>
-                        <?php endif; ?>
                         <?php if ($hasMainPhoto): ?>
                             <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . rawurlencode($user['main_photo']) ?>"
                                 alt="<?= !empty($user['full_name']) ? Helper::escape($user['full_name']) : 'Фото пользователя' ?>"
