@@ -33,6 +33,7 @@ class Router
 
         // Публичный API (JSON)
         $this->routes['api/exchange-rates'] = ['controller' => 'Api', 'method' => 'exchangeRates'];
+        $this->routes['api/presence'] = ['controller' => 'Api', 'method' => 'presence'];
 
         // Авторизация и регистрация
         $this->routes['auth/login'] = ['controller' => 'Auth', 'method' => 'login'];

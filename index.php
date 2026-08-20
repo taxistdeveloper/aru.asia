@@ -67,6 +67,7 @@ if (!Helper::isLoggedIn() && isset($_COOKIE['remember_token'])) {
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_gender'] = $user['gender'];
         $_SESSION['user_role'] = $user['role'] ?? 'user';
+        User::touchLastActivity((int) $user['id'], true);
     } else {
         // Токен недействителен, удаляем cookie
         setcookie('remember_token', '', [
@@ -85,8 +86,9 @@ if (!Helper::isLoggedIn() && isset($_COOKIE['remember_token'])) {
 Helper::checkUserExists();
 
 // Фиксируем активность для индикатора «онлайн» на платформе
+User::ensureLastActivityColumn();
 if (Helper::isLoggedIn()) {
-    User::touchLastActivity();
+    User::touchLastActivity(null, true);
 }
 
 // Счётчик заходов по разделам сайта (не админка)

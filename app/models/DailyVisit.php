@@ -79,6 +79,11 @@ class DailyVisit
             return null;
         }
 
+        // Heartbeat онлайна — не считаем отдельным заходом
+        if ($uri === 'api/presence') {
+            return null;
+        }
+
         $map = [
             'platform' => 'platform',
             'info' => 'info',

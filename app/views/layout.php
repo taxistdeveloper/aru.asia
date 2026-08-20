@@ -760,8 +760,11 @@
     <script>
         // Определяем BASE_URL для JavaScript
         const BASE_URL = '<?= BASE_URL ?>';
+        const IS_LOGGED_IN = <?= Helper::isLoggedIn() ? 'true' : 'false' ?>;
+        window.APP_TODAY = '<?= date('Y-m-d') ?>';
+        window.APP_YESTERDAY = '<?= date('Y-m-d', strtotime('yesterday')) ?>';
     </script>
-    <script src="<?= BASE_URL ?>assets/js/main.js?v=8"></script>
+    <script src="<?= BASE_URL ?>assets/js/main.js?v=10"></script>
     <?php if (Helper::isLoggedIn()): ?>
         <script src="<?= BASE_URL ?>assets/js/push-notifications.js"></script>
     <?php endif; ?>

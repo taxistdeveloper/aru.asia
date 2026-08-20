@@ -154,6 +154,10 @@ class HomeController
             unset($_SESSION['logout_message']); // Удаляем сообщение после получения
         }
 
+        if ($currentUserId) {
+            User::touchLastActivity((int) $currentUserId, true);
+        }
+
         // Передаем данные в представление
         View::render('home/platform', [
             'users' => $users,
@@ -163,7 +167,8 @@ class HomeController
             'logoutMessage' => $logoutMessage,
             'isBlocked' => $isBlocked,
             'adminRemark' => $adminRemark,
-            'remarkType' => $remarkType
+            'remarkType' => $remarkType,
+            'showPresence' => (bool) $currentUserId,
         ]);
     }
 

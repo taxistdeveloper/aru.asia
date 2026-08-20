@@ -12,8 +12,8 @@ class User
     /** Сколько месяцев хранить аккаунт после удаления (для восстановления по email) */
     public const SOFT_DELETE_MONTHS = 6;
 
-    /** Считаем пользователя онлайн, если был активен за последние N минут */
-    public const ONLINE_THRESHOLD_MINUTES = 5;
+    /** На сайте = онлайн, если активность была за последние N минут */
+    public const ONLINE_THRESHOLD_MINUTES = 3;
 
     private static ?bool $lastActivityColumnReady = null;
 
@@ -907,7 +907,12 @@ class User
             $check = $db->query("SHOW COLUMNS FROM users LIKE 'last_activity_at'");
             if ($check->rowCount() === 0) {
                 $db->exec("ALTER TABLE users ADD COLUMN last_activity_at DATETIME NULL DEFAULT NULL");
+            }
+
+            try {
                 $db->exec("CREATE INDEX idx_users_last_activity_at ON users (last_activity_at)");
+            } catch (Exception $e) {
+                // Индекс уже есть — не мешаем работе
             }
 
             self::$lastActivityColumnReady = true;
@@ -918,9 +923,9 @@ class User
     }
 
     /**
-     * Обновляет время последней активности (не чаще раза в минуту на сессию).
+     * Обновляет время последней активности (не чаще раза в 30 сек, кроме force).
      */
-    public static function touchLastActivity(?int $userId = null): void
+    public static function touchLastActivity(?int $userId = null, bool $force = false): void
     {
         if ($userId === null) {
             $userId = (int) Helper::getUserId();
@@ -937,7 +942,7 @@ class User
 
         $now = time();
         $lastTouch = (int) ($_SESSION['last_activity_touch'] ?? 0);
-        if ($now - $lastTouch < 60) {
+        if (!$force && $now - $lastTouch < 30) {
             return;
         }
 
@@ -977,6 +982,105 @@ class User
             return $activityAt >= $threshold;
         } catch (Exception $e) {
             return false;
+        }
+    }
+
+    /**
+     * Сбрасывает активность — пользователь сразу офлайн (выход).
+     */
+    public static function clearLastActivity(?int $userId = null): void
+    {
+        if ($userId === null) {
+            $userId = (int) Helper::getUserId();
+        }
+
+        if ($userId <= 0) {
+            return;
+        }
+
+        self::ensureLastActivityColumn();
+        if (self::$lastActivityColumnReady !== true) {
+            return;
+        }
+
+        try {
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare('UPDATE users SET last_activity_at = DATE_SUB(NOW(), INTERVAL 10 MINUTE) WHERE id = :id');
+            $stmt->execute([':id' => $userId]);
+            unset($_SESSION['last_activity_touch']);
+        } catch (Exception $e) {
+            error_log('User::clearLastActivity error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Был ли пользователь хотя бы раз на сайте после включения трекинга.
+     */
+    public static function hasVisitedSite($user): bool
+    {
+        if (!is_array($user)) {
+            return !empty($user);
+        }
+
+        return !empty($user['last_activity_at']);
+    }
+
+    /**
+     * Текст «когда заходил» для карточки профиля.
+     */
+    public static function formatLastSeen($user): string
+    {
+        if (!self::hasVisitedSite($user)) {
+            return '';
+        }
+
+        if (self::isOnline($user)) {
+            return 'сейчас на сайте';
+        }
+
+        $lastActivity = is_array($user)
+            ? ($user['last_activity_at'] ?? null)
+            : $user;
+
+        if (empty($lastActivity)) {
+            return '';
+        }
+
+        try {
+            $timezone = new DateTimeZone(defined('APP_TIMEZONE') ? APP_TIMEZONE : date_default_timezone_get());
+            $activityAt = new DateTime((string) $lastActivity, $timezone);
+            $now = new DateTime('now', $timezone);
+            $diffSeconds = max(0, $now->getTimestamp() - $activityAt->getTimestamp());
+
+            if ($diffSeconds < 60) {
+                return 'только что';
+            }
+
+            if ($diffSeconds < 3600) {
+                $minutes = (int) floor($diffSeconds / 60);
+                return $minutes . ' мин назад';
+            }
+
+            if ($diffSeconds < 86400) {
+                $hours = (int) floor($diffSeconds / 3600);
+                return $hours . ' ч назад';
+            }
+
+            $today = $now->format('Y-m-d');
+            $activityDay = $activityAt->format('Y-m-d');
+            $yesterday = (clone $now)->modify('-1 day')->format('Y-m-d');
+
+            if ($activityDay === $today) {
+                return 'сегодня в ' . $activityAt->format('H:i');
+            }
+
+            if ($activityDay === $yesterday) {
+                return 'вчера в ' . $activityAt->format('H:i');
+            }
+
+            return 'был ' . $activityAt->format('d.m.Y H:i');
+        } catch (Exception $e) {
+            return '';
         }
     }
 }

@@ -997,6 +997,51 @@ class Helper
     }
 
     /**
+     * Время сообщения в часовом поясе приложения (H:i).
+     * created_at из БД уже в APP_TIMEZONE — не конвертируем повторно.
+     */
+    public static function formatMessageTime(?string $dateTime): string
+    {
+        if ($dateTime === null || $dateTime === '') {
+            return '';
+        }
+        $ts = strtotime($dateTime);
+        return $ts ? date('H:i', $ts) : '';
+    }
+
+    /**
+     * Подпись дня в чате: Сегодня / Вчера / 19 августа
+     */
+    public static function formatChatDateLabel(?string $dateTime): string
+    {
+        if ($dateTime === null || $dateTime === '') {
+            return '';
+        }
+        $ts = strtotime($dateTime);
+        if ($ts === false) {
+            return '';
+        }
+        $today = strtotime('today');
+        $yesterday = strtotime('yesterday');
+        if ($ts >= $today) {
+            return 'Сегодня';
+        }
+        if ($ts >= $yesterday) {
+            return 'Вчера';
+        }
+        $months = [
+            1 => 'января', 2 => 'февраля', 3 => 'марта', 4 => 'апреля',
+            5 => 'мая', 6 => 'июня', 7 => 'июля', 8 => 'августа',
+            9 => 'сентября', 10 => 'октября', 11 => 'ноября', 12 => 'декабря'
+        ];
+        $label = ((int) date('j', $ts)) . ' ' . $months[(int) date('n', $ts)];
+        if ((int) date('Y', $ts) !== (int) date('Y')) {
+            $label .= ' ' . date('Y', $ts);
+        }
+        return $label;
+    }
+
+    /**
      * Проверяет дату свидания/мероприятия. Возвращает текст ошибки или null.
      */
     public static function validatePlanningDateTime(?string $dateTime): ?string

@@ -180,6 +180,22 @@ ob_start();
             margin-top: 0;
         }
 
+        .wa-date-sep {
+            display: flex;
+            justify-content: center;
+            margin: 12px 0 10px;
+        }
+
+        .wa-date-sep span {
+            background: rgba(255, 255, 255, 0.92);
+            color: #667eea;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(102, 126, 234, 0.12);
+        }
+
         .wa-checks {
             display: inline-flex;
             align-items: center;
@@ -1495,11 +1511,12 @@ ob_start();
                             <p class="mb-0">Вы заблокировали этого пользователя. Вы не можете видеть сообщения.</p>
                         </div>
                     <?php elseif (empty($messages)): ?>
-                        <div style="text-align: center; padding: 40px; color: #999;">
+                        <div class="wa-empty-state" style="text-align: center; padding: 40px; color: #999;">
                             <p class="mb-0">Нет сообщений. Начните общение!</p>
                         </div>
                     <?php else: ?>
                         <?php
+                        $lastDateKey = null;
                         foreach ($messages as $msg):
                             $isManager = isset($msg['from_role']) && $msg['from_role'] === 'manager';
                             $isAdmin = isset($msg['from_is_admin']) && $msg['from_is_admin'] == 1;
@@ -1510,7 +1527,14 @@ ob_start();
                             } elseif ($isManager) {
                                 $roleBadge = '<span class="message-role-badge manager">Менеджер</span>';
                             }
+                            $dateKey = date('Y-m-d', strtotime($msg['created_at']));
+                            if ($dateKey !== $lastDateKey):
+                                $lastDateKey = $dateKey;
                         ?>
+                            <div class="wa-date-sep" data-date-key="<?= $dateKey ?>">
+                                <span><?= Helper::formatChatDateLabel($msg['created_at']) ?></span>
+                            </div>
+                            <?php endif; ?>
                             <div class="message-item <?= $isOwnMessage ? 'text-end' : 'text-start' ?>" data-message-id="<?= $msg['id'] ?>">
                                 <div class="message-bubble <?= $isOwnMessage ? 'own' : 'other' ?>">
                                     <?php if (!$isOwnMessage): ?>
@@ -1527,7 +1551,7 @@ ob_start();
                                         <?= nl2br(Helper::escape($msg['message'])) ?>
                                     </div>
                                     <div class="message-meta">
-                                        <span class="message-time"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
+                                        <span class="message-time"><?= Helper::formatMessageTime($msg['created_at']) ?></span>
                                         <?php if ($isOwnMessage): ?>
                                             <?php $isMsgRead = !empty($msg['is_read']); ?>
                                             <span class="wa-checks<?= $isMsgRead ? ' read' : '' ?>" title="<?= $isMsgRead ? 'Прочитано' : 'Доставлено' ?>"><i class="bi bi-check2-all"></i></span>
@@ -1793,11 +1817,12 @@ ob_start();
                                 <p class="mb-0">Вы заблокировали этого пользователя. Вы не можете видеть сообщения.</p>
                             </div>
                         <?php elseif (empty($messages)): ?>
-                            <div style="text-align: center; padding: 40px; color: #999;">
+                            <div class="wa-empty-state" style="text-align: center; padding: 40px; color: #999;">
                                 <p class="mb-0">Нет сообщений. Начните общение!</p>
                             </div>
                         <?php else: ?>
                             <?php
+                            $lastDateKey = null;
                             foreach ($messages as $msg):
                                 $isManager = isset($msg['from_role']) && $msg['from_role'] === 'manager';
                                 $isAdmin = isset($msg['from_is_admin']) && $msg['from_is_admin'] == 1;
@@ -1808,7 +1833,14 @@ ob_start();
                                 } elseif ($isManager) {
                                     $roleBadge = '<span class="message-role-badge manager">Менеджер</span>';
                                 }
+                                $dateKey = date('Y-m-d', strtotime($msg['created_at']));
+                                if ($dateKey !== $lastDateKey):
+                                    $lastDateKey = $dateKey;
                             ?>
+                                <div class="wa-date-sep" data-date-key="<?= $dateKey ?>">
+                                    <span><?= Helper::formatChatDateLabel($msg['created_at']) ?></span>
+                                </div>
+                                <?php endif; ?>
                                 <div class="message-item <?= $isOwnMessage ? 'text-end' : 'text-start' ?>" data-message-id="<?= $msg['id'] ?>">
                                     <div class="message-bubble <?= $isOwnMessage ? 'own' : 'other' ?>">
                                         <?php if (!$isOwnMessage): ?>
@@ -1825,7 +1857,7 @@ ob_start();
                                             <?= nl2br(Helper::escape($msg['message'])) ?>
                                         </div>
                                         <div class="message-meta">
-                                            <span class="message-time"><?= date('H:i', strtotime($msg['created_at'])) ?></span>
+                                            <span class="message-time"><?= Helper::formatMessageTime($msg['created_at']) ?></span>
                                             <?php if ($isOwnMessage): ?>
                                                 <?php $isMsgRead = !empty($msg['is_read']); ?>
                                                 <span class="wa-checks<?= $isMsgRead ? ' read' : '' ?>" title="<?= $isMsgRead ? 'Прочитано' : 'Доставлено' ?>"><i class="bi bi-check2-all"></i></span>
@@ -1924,16 +1956,19 @@ ob_start();
             const isOwnMessage = messageData.from_user_id == window.currentUserId;
             const isManager = messageData.from_role === 'manager';
             const isAdmin = messageData.from_is_admin === true || messageData.from_role === 'admin';
+            const empty = container.querySelector('.wa-empty-state');
+            if (empty) empty.remove();
+            if (typeof window.ensureChatDateSeparator === 'function') {
+                window.ensureChatDateSeparator(container, messageData.created_at);
+            }
             const messageItem = document.createElement('div');
             messageItem.className = `message-item ${isOwnMessage ? 'text-end' : 'text-start'}`;
             messageItem.setAttribute('data-message-id', messageData.id);
 
             const bubbleClass = isOwnMessage ? 'own' : 'other';
-            const date = new Date(messageData.created_at);
-            const timeStr = date.toLocaleTimeString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            const timeStr = (typeof window.formatServerTime === 'function')
+                ? window.formatServerTime(messageData.created_at)
+                : String(messageData.created_at || '').replace('T', ' ').substring(11, 16);
 
             let roleBadge = '';
             if (isAdmin) {

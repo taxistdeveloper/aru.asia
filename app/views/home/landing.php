@@ -697,6 +697,50 @@ $canonical = $seo['canonical'] ?? BASE_URL;
         background: #f3f4f6;
     }
 
+    .landing-user-card-status {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        pointer-events: none;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .landing-user-card-status::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .landing-user-card-status--online {
+        background: rgba(255, 255, 255, 0.88);
+        color: #16a34a;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .landing-user-card-status--offline {
+        background: rgba(255, 255, 255, 0.88);
+        color: #6b7280;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .landing-user-card-last-seen {
+        font-size: 11px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+
     .landing-user-card-img {
         position: absolute;
         inset: 0;
@@ -1095,16 +1139,25 @@ $canonical = $seo['canonical'] ?? BASE_URL;
                 $femalePlaceholderSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><linearGradient id="bgF" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="55%" stop-color="#f9a8d4"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs><rect width="320" height="320" fill="url(#bgF)"/><circle cx="160" cy="114" r="50" fill="#be185d"/><path d="M160 184l86 114H74l86-114z" fill="#9d174d"/><circle cx="146" cy="110" r="5" fill="#fce7f3"/><circle cx="174" cy="110" r="5" fill="#fce7f3"/><path d="M144 130c10 8 22 8 32 0" fill="none" stroke="#fce7f3" stroke-width="4" stroke-linecap="round"/></svg>';
                 ?>
                 <div class="landing-users-grid">
-                    <?php foreach ($users as $user): ?>
-                        <?php
+                    <?php
+                    $showPresence = Helper::isLoggedIn();
+                    foreach ($users as $user):
                         $hasMainPhoto = !empty($user['main_photo']) && trim((string) $user['main_photo']) !== '';
                         $isFemale = ($user['gender'] ?? '') === 'female';
+                        $hasVisited = $showPresence && User::hasVisitedSite($user);
+                        $isOnline = $hasVisited && User::isOnline($user);
+                        $lastSeenText = $hasVisited ? User::formatLastSeen($user) : '';
                         $placeholderSvg = $isFemale ? $femalePlaceholderSvg : $malePlaceholderSvg;
                         $placeholderImage = 'data:image/svg+xml;utf8,' . rawurlencode($placeholderSvg);
                         ?>
                         <a href="<?= BASE_URL ?>profile/view?id=<?= $user['id'] ?>"
-                            class="landing-user-card<?= $hasMainPhoto ? '' : ' landing-user-card--no-photo' ?>">
+                            class="landing-user-card<?= $hasMainPhoto ? '' : ' landing-user-card--no-photo' ?><?= $isOnline ? ' landing-user-card--online' : '' ?>">
                             <div class="landing-user-card-media">
+                                <?php if ($hasVisited): ?>
+                                    <span class="landing-user-card-status <?= $isOnline ? 'landing-user-card-status--online' : 'landing-user-card-status--offline' ?>">
+                                        <?= $isOnline ? 'Онлайн' : 'Офлайн' ?>
+                                    </span>
+                                <?php endif; ?>
                                 <?php if ($hasMainPhoto): ?>
                                     <?php
                                     $photoName = $user['main_photo'];
@@ -1136,6 +1189,9 @@ $canonical = $seo['canonical'] ?? BASE_URL;
                             <div class="landing-user-card-info">
                                 <?php if (!empty($user['full_name'])): ?>
                                     <div class="landing-user-card-name"><?= Helper::escape($user['full_name']) ?></div>
+                                <?php endif; ?>
+                                <?php if ($hasVisited && $lastSeenText !== ''): ?>
+                                    <div class="landing-user-card-last-seen"><?= Helper::escape($lastSeenText) ?></div>
                                 <?php endif; ?>
                                 <?php if (!empty($user['age'])): ?>
                                     <div class="landing-user-card-age"><?= $user['age'] ?> лет</div>

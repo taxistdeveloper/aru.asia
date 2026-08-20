@@ -4,6 +4,100 @@
  * Здесь общие функции для всего приложения
  */
 
+// Время из БД уже в часовом поясе приложения (Asia/Almaty).
+// Не используем new Date("YYYY-MM-DD HH:MM:SS") — браузер берёт свой пояс
+// и на iOS такая строка часто не парсится.
+(function initChatTimeHelpers() {
+    var MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля',
+        'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+    function parseServerDateTime(value) {
+        if (!value) return null;
+        var m = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+        if (!m) return null;
+        return {
+            dateKey: m[1] + '-' + m[2] + '-' + m[3],
+            time: (m[4] || '00') + ':' + (m[5] || '00'),
+            year: parseInt(m[1], 10),
+            month: parseInt(m[2], 10),
+            day: parseInt(m[3], 10)
+        };
+    }
+
+    window.formatServerTime = function(createdAt) {
+        var parsed = parseServerDateTime(createdAt);
+        return parsed ? parsed.time : '';
+    };
+
+    window.getServerDateKey = function(createdAt) {
+        var parsed = parseServerDateTime(createdAt);
+        return parsed ? parsed.dateKey : '';
+    };
+
+    window.formatChatDateLabel = function(createdAt) {
+        var parsed = parseServerDateTime(createdAt);
+        if (!parsed) return '';
+        var today = window.APP_TODAY || '';
+        var yesterday = window.APP_YESTERDAY || '';
+        if (parsed.dateKey === today) return 'Сегодня';
+        if (parsed.dateKey === yesterday) return 'Вчера';
+        var label = parsed.day + ' ' + MONTHS[parsed.month - 1];
+        var todayYear = today ? parseInt(today.slice(0, 4), 10) : (new Date()).getFullYear();
+        if (parsed.year !== todayYear) label += ' ' + parsed.year;
+        return label;
+    };
+
+    window.ensureChatDateSeparator = function(container, createdAt) {
+        if (!container) return;
+        var key = window.getServerDateKey(createdAt);
+        if (!key) return;
+
+        var empty = container.querySelector('.wa-empty-state');
+        if (empty) empty.remove();
+
+        var lastDateKey = null;
+        var children = Array.from(container.children);
+        for (var i = children.length - 1; i >= 0; i--) {
+            if (children[i].classList.contains('wa-date-sep')) {
+                lastDateKey = children[i].getAttribute('data-date-key');
+                break;
+            }
+        }
+        if (lastDateKey === key) return;
+
+        var sep = document.createElement('div');
+        sep.className = 'wa-date-sep';
+        sep.setAttribute('data-date-key', key);
+        sep.innerHTML = '<span>' + window.formatChatDateLabel(createdAt) + '</span>';
+        container.appendChild(sep);
+    };
+})();
+
+// Heartbeat: пока вкладка открыта — пользователь онлайн
+(function initPresenceHeartbeat() {
+    if (typeof IS_LOGGED_IN === 'undefined' || !IS_LOGGED_IN) return;
+    if (typeof BASE_URL === 'undefined') return;
+
+    function pingPresence() {
+        if (document.hidden) return;
+        fetch(BASE_URL + 'api/presence', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            cache: 'no-store'
+        }).catch(function() { /* ignore */ });
+    }
+
+    pingPresence();
+    setInterval(pingPresence, 60000);
+
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            pingPresence();
+        }
+    });
+})();
+
 // Регистрация Service Worker для PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
@@ -694,11 +788,12 @@ function validateForm(formId) {
             messageDiv.className = 'message-item ' + (isOwnMessage ? 'text-end' : 'text-start');
             messageDiv.setAttribute('data-message-id', msg.id);
 
-            const date = new Date(msg.created_at);
-            const timeStr = date.toLocaleTimeString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            if (typeof window.ensureChatDateSeparator === 'function') {
+                window.ensureChatDateSeparator(container, msg.created_at);
+            }
+            const timeStr = (typeof window.formatServerTime === 'function')
+                ? window.formatServerTime(msg.created_at)
+                : String(msg.created_at || '').replace('T', ' ').substring(11, 16);
 
             const empty = container.querySelector('.wa-empty-state, .text-muted.text-center');
             if (empty) empty.remove();

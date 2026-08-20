@@ -1122,24 +1122,22 @@ ob_start();
             return div.innerHTML;
         }
 
-        function formatWaDateLabel(date) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const d = new Date(date);
-            d.setHours(0, 0, 0, 0);
-            if (d.getTime() === today.getTime()) return 'Сегодня';
-            if (d.getTime() === yesterday.getTime()) return 'Вчера';
-            const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-            let label = d.getDate() + ' ' + months[d.getMonth()];
-            if (d.getFullYear() !== today.getFullYear()) label += ' ' + d.getFullYear();
-            return label;
+        function formatWaDateLabel(createdAt) {
+            if (typeof window.formatChatDateLabel === 'function') {
+                return window.formatChatDateLabel(createdAt);
+            }
+            const key = String(createdAt || '').replace('T', ' ').substring(0, 10);
+            if (key === (window.APP_TODAY || '')) return 'Сегодня';
+            if (key === (window.APP_YESTERDAY || '')) return 'Вчера';
+            return key;
         }
 
         function ensureDateSeparator(container, createdAt) {
-            const date = new Date(createdAt);
-            const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+            if (typeof window.ensureChatDateSeparator === 'function') {
+                window.ensureChatDateSeparator(container, createdAt);
+                return;
+            }
+            const key = String(createdAt || '').replace('T', ' ').substring(0, 10);
             const empty = container.querySelector('.wa-empty-state');
             if (empty) empty.remove();
 
@@ -1156,7 +1154,7 @@ ob_start();
             const sep = document.createElement('div');
             sep.className = 'wa-date-sep';
             sep.setAttribute('data-date-key', key);
-            sep.innerHTML = '<span>' + formatWaDateLabel(date) + '</span>';
+            sep.innerHTML = '<span>' + formatWaDateLabel(createdAt) + '</span>';
             container.appendChild(sep);
         }
 
@@ -1169,11 +1167,9 @@ ob_start();
             messageItem.setAttribute('data-message-id', messageData.id);
 
             const bubbleClass = isOwnMessage ? 'own' : 'other';
-            const date = new Date(messageData.created_at);
-            const timeStr = date.toLocaleTimeString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            const timeStr = (typeof window.formatServerTime === 'function')
+                ? window.formatServerTime(messageData.created_at)
+                : String(messageData.created_at || '').replace('T', ' ').substring(11, 16);
 
             const senderName = messageData.from_full_name || messageData.from_email || 'Пользователь';
             const senderHtml = isOwnMessage ? '' : `<div class="message-sender">${escapeHtml(senderName)}</div>`;

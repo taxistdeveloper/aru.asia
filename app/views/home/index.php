@@ -104,6 +104,59 @@ ob_start();
             border: 2px dashed rgba(102, 126, 234, 0.28);
         }
 
+        .user-card--online {
+            border: 3px solid #22c55e;
+            box-shadow:
+                0 3px 12px rgba(34, 197, 94, 0.28),
+                0 0 0 3px rgba(34, 197, 94, 0.18);
+        }
+
+        .user-card-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 6;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .user-card-status::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .user-card-status--online {
+            background: rgba(255, 255, 255, 0.88);
+            color: #16a34a;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+
+        .user-card-status--offline {
+            background: rgba(255, 255, 255, 0.88);
+            color: #6b7280;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+
+        .user-card-last-seen {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #9ca3af;
+        }
+
         .user-card:nth-child(1) { animation-delay: 0.05s; }
         .user-card:nth-child(2) { animation-delay: 0.1s; }
         .user-card:nth-child(3) { animation-delay: 0.15s; }
@@ -632,15 +685,31 @@ ob_start();
         $femalePlaceholderSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><linearGradient id="bgF" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="55%" stop-color="#f9a8d4"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs><rect width="320" height="320" fill="url(#bgF)"/><circle cx="160" cy="114" r="50" fill="#be185d"/><path d="M160 184l86 114H74l86-114z" fill="#9d174d"/><circle cx="146" cy="110" r="5" fill="#fce7f3"/><circle cx="174" cy="110" r="5" fill="#fce7f3"/><path d="M144 130c10 8 22 8 32 0" fill="none" stroke="#fce7f3" stroke-width="4" stroke-linecap="round"/></svg>';
         ?>
         <div class="user-photo-grid">
-            <?php foreach ($users as $user): ?>
-                <?php
+            <?php
+            $showPresence = Helper::isLoggedIn();
+            foreach ($users as $user):
                 $hasMainPhoto = !empty($user['main_photo']) && trim((string) $user['main_photo']) !== '';
                 $isFemale = ($user['gender'] ?? '') === 'female';
+                $hasVisited = $showPresence && User::hasVisitedSite($user);
+                $isOnline = $hasVisited && User::isOnline($user);
+                $lastSeenText = $hasVisited ? User::formatLastSeen($user) : '';
                 $placeholderSvg = $isFemale ? $femalePlaceholderSvg : $malePlaceholderSvg;
                 $placeholderImage = 'data:image/svg+xml;utf8,' . rawurlencode($placeholderSvg);
+                $userCardClasses = 'user-card';
+                if (!$hasMainPhoto) {
+                    $userCardClasses .= ' user-card--no-photo';
+                }
+                if ($isOnline) {
+                    $userCardClasses .= ' user-card--online';
+                }
                 ?>
                 <a href="<?= BASE_URL ?>profile/view?id=<?= $user['id'] ?>" class="user-card-link">
-                    <div class="user-card<?= $hasMainPhoto ? '' : ' user-card--no-photo' ?>">
+                    <div class="<?= $userCardClasses ?>">
+                        <?php if ($hasVisited): ?>
+                            <span class="user-card-status <?= $isOnline ? 'user-card-status--online' : 'user-card-status--offline' ?>">
+                                <?= $isOnline ? 'Онлайн' : 'Офлайн' ?>
+                            </span>
+                        <?php endif; ?>
                         <?php if ($hasMainPhoto): ?>
                             <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . rawurlencode($user['main_photo']) ?>"
                                 alt="<?= !empty($user['full_name']) ? Helper::escape($user['full_name']) : 'Фото пользователя' ?>"
@@ -658,6 +727,9 @@ ob_start();
                         <div>
                             <?php if (!empty($user['full_name'])): ?>
                                 <strong><?= Helper::escape($user['full_name']) ?></strong>
+                            <?php endif; ?>
+                            <?php if ($hasVisited && $lastSeenText !== ''): ?>
+                                <span class="user-card-last-seen"><?= Helper::escape($lastSeenText) ?></span>
                             <?php endif; ?>
                             <?php if (!empty($user['age'])): ?>
                                 <small><?= $user['age'] ?> лет</small>

@@ -63,6 +63,7 @@ class AuthController
                     $_SESSION['user_email'] = $user['email'];
                     $_SESSION['user_gender'] = $user['gender'];
                     $_SESSION['user_role'] = $user['role'] ?? 'user';
+                    User::touchLastActivity((int) $user['id'], true);
 
                     // Если пользователь выбрал "Запомнить меня", создаем токен
                     if ($rememberMe) {
@@ -218,6 +219,7 @@ class AuthController
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_gender'] = $user['gender'];
             $_SESSION['user_role'] = $user['role'] ?? 'user';
+            User::touchLastActivity((int) $user['id'], true);
 
             Helper::redirect('profile');
         } else {
@@ -359,6 +361,7 @@ class AuthController
         if (Helper::isLoggedIn()) {
             $userId = Helper::getUserId();
             $this->userModel->clearRememberToken($userId);
+            User::clearLastActivity((int) $userId);
         }
 
         // Удаляем cookie
