@@ -866,6 +866,7 @@ ob_start();
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: center 20%;
         display: block;
     }
 
@@ -1196,30 +1197,30 @@ ob_start();
                             <div class="ad-live-demo-user-grid">
                                 <div class="ad-live-demo-user-card">
                                     <div class="ad-live-demo-user-ph">
-                                        <img src="<?= BASE_URL ?>assets/images/placeholder-male.svg"
-                                            alt="Алексей"
+                                        <img src="<?= BASE_URL ?>assets/images/demo-arman.jpeg"
+                                            alt="Арман"
                                             width="160"
                                             height="100"
                                             loading="lazy"
                                             decoding="async">
                                     </div>
                                     <div class="ad-live-demo-user-cap">
-                                        <strong class="ad-live-demo-user-name">Алексей</strong>
-                                        <small class="ad-live-demo-user-meta">29 лет</small>
+                                        <strong class="ad-live-demo-user-name">Арман</strong>
+                                        <small class="ad-live-demo-user-meta">42 лет</small>
                                     </div>
                                 </div>
                                 <div class="ad-live-demo-user-card">
                                     <div class="ad-live-demo-user-ph">
-                                        <img src="<?= BASE_URL ?>assets/images/placeholder-female.svg"
-                                            alt="Мария"
+                                        <img src="<?= BASE_URL ?>assets/images/demo-aru.jpg"
+                                            alt="Aru"
                                             width="160"
                                             height="100"
                                             loading="lazy"
                                             decoding="async">
                                     </div>
                                     <div class="ad-live-demo-user-cap">
-                                        <strong class="ad-live-demo-user-name">Мария</strong>
-                                        <small class="ad-live-demo-user-meta">27 лет</small>
+                                        <strong class="ad-live-demo-user-name">Aru</strong>
+                                        <small class="ad-live-demo-user-meta">30 лет</small>
                                     </div>
                                 </div>
                             </div>
