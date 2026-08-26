@@ -1378,7 +1378,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
 
                 <button type="submit" class="btn btn-primary btn-lg" id="event-create-submit-btn">
                     <?php if (!$eventPublishPaid): ?>
-                        <i class="bi bi-gift"></i> Создать мероприятие (сейчас бесплатно)
+                        <i class="bi bi-gift"></i> Создать мероприятие
                     <?php else: ?>
                         <i class="bi bi-check-circle"></i> Создать мероприятие
                     <?php endif; ?>

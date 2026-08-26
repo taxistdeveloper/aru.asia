@@ -858,25 +858,15 @@ ob_start();
 
     .ad-live-demo-user-ph {
         height: 100px;
-        background: linear-gradient(135deg, #dbeafe 0%, #e9d5ff 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background: #e8eef5;
+        overflow: hidden;
     }
 
-    .ad-live-demo-user-ph>i {
-        font-size: 3.25rem;
-        line-height: 1;
-        color: #3b5bdb;
-        opacity: 0.92;
-    }
-
-    .ad-live-demo-user-ph.alt {
-        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
-    }
-
-    .ad-live-demo-user-ph.alt>i {
-        color: #db2777;
+    .ad-live-demo-user-ph img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
 
     .ad-live-demo-user-cap {
@@ -1034,7 +1024,7 @@ ob_start();
                         </div>
                     </div>
 
-                    <div class="tariff-box">
+                    <div class="tariff-box d-none" aria-hidden="true"><!-- временно скрыто -->
                         <h6><i class="bi bi-cash-stack"></i> Тариф размещения рекламы</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -1205,8 +1195,13 @@ ob_start();
                             </div>
                             <div class="ad-live-demo-user-grid">
                                 <div class="ad-live-demo-user-card">
-                                    <div class="ad-live-demo-user-ph" role="img" aria-label="Профиль мужчины">
-                                        <i class="bi bi-person" aria-hidden="true"></i>
+                                    <div class="ad-live-demo-user-ph">
+                                        <img src="<?= BASE_URL ?>assets/images/placeholder-male.svg"
+                                            alt="Алексей"
+                                            width="160"
+                                            height="100"
+                                            loading="lazy"
+                                            decoding="async">
                                     </div>
                                     <div class="ad-live-demo-user-cap">
                                         <strong class="ad-live-demo-user-name">Алексей</strong>
@@ -1214,8 +1209,13 @@ ob_start();
                                     </div>
                                 </div>
                                 <div class="ad-live-demo-user-card">
-                                    <div class="ad-live-demo-user-ph alt" role="img" aria-label="Профиль женщины">
-                                        <i class="bi bi-person-standing-dress" aria-hidden="true"></i>
+                                    <div class="ad-live-demo-user-ph">
+                                        <img src="<?= BASE_URL ?>assets/images/placeholder-female.svg"
+                                            alt="Мария"
+                                            width="160"
+                                            height="100"
+                                            loading="lazy"
+                                            decoding="async">
                                     </div>
                                     <div class="ad-live-demo-user-cap">
                                         <strong class="ad-live-demo-user-name">Мария</strong>
@@ -1229,7 +1229,7 @@ ob_start();
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary cta-free-submit">
-                            <i class="bi bi-gift"></i> Разместить БЕСПЛАТНО (с модерацией)
+                            <i class="bi bi-gift"></i> Разместить рекламу
                         </button>
                     </div>
                 </div>
