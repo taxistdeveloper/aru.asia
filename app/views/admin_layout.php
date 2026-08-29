@@ -192,7 +192,33 @@
                     <?php if (Helper::isAdminLoggedIn()): ?>
                         <div class="nav-title">Администрирование</div>
                         <nav class="nav flex-column mb-2">
-                            <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin') !== false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/users') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/ads') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/events') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/feedback') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/send-message') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/stats') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/login') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') === false) ? 'active' : '' ?>"
+                            <?php
+                            $adminLogsBadge = '';
+                            $adminLogsErrorCount = 0;
+                            if (class_exists('ActivityLog')) {
+                                try {
+                                    $adminLogsErrorCount = (new ActivityLog())->recentErrorCount(24);
+                                    if ($adminLogsErrorCount > 0) {
+                                        $adminLogsBadge = '<span class="badge bg-danger ms-auto">' . ($adminLogsErrorCount > 99 ? '99+' : (int)$adminLogsErrorCount) . '</span>';
+                                    }
+                                } catch (Throwable $e) {
+                                    $adminLogsBadge = '';
+                                }
+                            }
+                            $adminUri = $_SERVER['REQUEST_URI'] ?? '';
+                            $adminDashActive = (strpos($adminUri, '/admin') !== false
+                                && strpos($adminUri, '/admin/users') === false
+                                && strpos($adminUri, '/admin/ads') === false
+                                && strpos($adminUri, '/admin/events') === false
+                                && strpos($adminUri, '/admin/feedback') === false
+                                && strpos($adminUri, '/admin/send-message') === false
+                                && strpos($adminUri, '/admin/stats') === false
+                                && strpos($adminUri, '/admin/login') === false
+                                && strpos($adminUri, '/admin/logs') === false
+                                && strpos($adminUri, '/admin/activity-logs') === false
+                                && strpos($adminUri, '/admin/dates') === false);
+                            ?>
+                            <a class="nav-link <?= $adminDashActive ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>admin">
                                 <i class="bi bi-speedometer2"></i>
                                 <span>Dashboard</span>
@@ -207,10 +233,11 @@
                                 <i class="bi bi-people"></i>
                                 <span>Пользователи</span>
                             </a>
-                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false ? 'active' : '' ?>"
-                               href="<?= BASE_URL ?>admin/activity-logs">
-                                <i class="bi bi-clock-history"></i>
-                                <span>Логи действий</span>
+                            <a class="nav-link d-flex align-items-center <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/logs') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false) ? 'active' : '' ?>"
+                               href="<?= BASE_URL ?>admin/logs">
+                                <i class="bi bi-journal-text"></i>
+                                <span><?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?></span>
+                                <?= $adminLogsBadge ?>
                             </a>
                             <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/events') !== false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/events/all') === false) ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>admin/events">
@@ -345,7 +372,7 @@
             <?php if (Helper::isAdminLoggedIn()): ?>
                 <div class="nav-title">Навигация</div>
                 <nav class="nav flex-column mb-3">
-                    <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin') !== false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/users') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/ads') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/events') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/feedback') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/send-message') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/stats') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/login') === false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') === false) ? 'active' : '' ?>"
+                    <a class="nav-link <?= !empty($adminDashActive) ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
@@ -360,10 +387,11 @@
                         <i class="bi bi-people"></i>
                         <span>Пользователи</span>
                     </a>
-                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false ? 'active' : '' ?>"
-                       href="<?= BASE_URL ?>admin/activity-logs">
-                        <i class="bi bi-clock-history"></i>
-                        <span>Логи действий</span>
+                    <a class="nav-link d-flex align-items-center <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/logs') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false) ? 'active' : '' ?>"
+                       href="<?= BASE_URL ?>admin/logs">
+                        <i class="bi bi-journal-text"></i>
+                        <span><?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?></span>
+                        <?= $adminLogsBadge ?? '' ?>
                     </a>
                     <a class="nav-link <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/events') !== false && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/events/all') === false) ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin/events">

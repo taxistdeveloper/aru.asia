@@ -536,6 +536,18 @@ ob_start();
                                         <div class="stat-number" style="color: #17a2b8;"><?= $stats['managers'] ?? 0 ?></div>
                                     </div>
                                 </div>
+                                <div class="col-12 col-sm-6">
+                                    <div class="admin-card success h-100">
+                                        <div class="stat-label"><?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs_logins_today')) : 'Уникальных входов сегодня' ?></div>
+                                        <div class="stat-number" style="color: #198754;"><?= $stats['logins_today'] ?? 0 ?></div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <div class="admin-card info h-100">
+                                        <div class="stat-label"><?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs_logins_week')) : 'Уникальных входов за неделю' ?></div>
+                                        <div class="stat-number" style="color: #0dcaf0;"><?= $stats['logins_week'] ?? 0 ?></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -549,6 +561,12 @@ ob_start();
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
+                                <a href="<?= BASE_URL ?>admin/logs" class="btn btn-outline-dark btn-sm text-start d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-journal-text"></i> <?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?></span>
+                                    <?php if (($stats['recent_errors'] ?? 0) > 0): ?>
+                                        <span class="badge bg-danger small-badge"><?= ($stats['recent_errors'] > 99) ? '99+' : (int)$stats['recent_errors'] ?></span>
+                                    <?php endif; ?>
+                                </a>
                                 <a href="<?= BASE_URL ?>admin/users" class="btn btn-outline-primary btn-sm text-start">
                                     <i class="bi bi-people"></i> Открыть список пользователей
                                 </a>

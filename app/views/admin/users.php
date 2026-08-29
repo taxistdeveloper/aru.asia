@@ -135,6 +135,11 @@ ob_start();
                                             target="_blank">
                                             <i class="bi bi-person"></i>
                                         </a>
+                                        <a href="<?= BASE_URL ?>admin/logs?user_id=<?= (int)$user['id'] ?>"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            title="<?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?>">
+                                            <i class="bi bi-journal-text"></i>
+                                        </a>
                                         <a href="<?= BASE_URL ?>admin/send-message?user_id=<?= $user['id'] ?>"
                                             class="btn btn-info btn-sm"
                                             title="Отправить сообщение">
@@ -340,6 +345,11 @@ ob_start();
                                            title="Профиль"
                                            target="_blank">
                                             <i class="bi bi-person"></i>
+                                        </a>
+                                        <a href="<?= BASE_URL ?>admin/logs?user_id=<?= (int)$user['id'] ?>"
+                                           class="btn btn-outline-secondary btn-sm"
+                                           title="<?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?>">
+                                            <i class="bi bi-journal-text"></i>
                                         </a>
                                         <a href="<?= BASE_URL ?>admin/send-message?user_id=<?= $user['id'] ?>"
                                            class="btn btn-outline-info btn-sm"

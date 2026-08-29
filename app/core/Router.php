@@ -144,6 +144,7 @@ class Router
         $this->routes['admin/feedback/chat/send'] = ['controller' => 'Admin', 'method' => 'feedbackChatSend'];
         $this->routes['admin/send-message'] = ['controller' => 'Admin', 'method' => 'sendMessage'];
         $this->routes['admin/send-message/submit'] = ['controller' => 'Admin', 'method' => 'submitMessage'];
+        $this->routes['admin/logs'] = ['controller' => 'Admin', 'method' => 'logs'];
         $this->routes['admin/activity-logs'] = ['controller' => 'Admin', 'method' => 'activityLogs'];
 
         // Панель менеджера
@@ -223,21 +224,6 @@ class Router
             $route = $this->routes[$uri];
             $controllerName = $route['controller'] . 'Controller';
             $methodName = $route['method'];
-
-            // Логирование действий пользователей (не админка)
-            $isUserLoggedIn = Helper::isLoggedIn();
-            $isAdminLoggedIn = Helper::isAdminLoggedIn();
-            if ($isUserLoggedIn && !$isAdminLoggedIn && strpos($uri, 'admin') !== 0 && strpos($uri, 'api/') !== 0) {
-                $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-                $action = strtoupper($requestMethod) === 'GET' ? 'view' : 'submit';
-                $params = strtoupper($requestMethod) === 'POST' ? ($_POST ?? []) : ($_GET ?? []);
-                $queryString = $_SERVER['QUERY_STRING'] ?? '';
-                $userId = Helper::getUserId();
-                if ($userId) {
-                    $activityLog = new UserActivityLog();
-                    $activityLog->logRequest($userId, $uri, $requestMethod, $action, $params, $queryString);
-                }
-            }
 
             // Создаем объект контроллера
             $controllerFile = __DIR__ . '/../controllers/' . $controllerName . '.php';

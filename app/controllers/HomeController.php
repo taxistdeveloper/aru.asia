@@ -237,6 +237,7 @@ class HomeController
         $enabled = isset($_POST['aru_number_enabled']) && (string) $_POST['aru_number_enabled'] === '1';
 
         if ($this->userModel->setAruNumberEnabled($userId, $enabled)) {
+            ActivityLogger::info('profile.aru_number', $enabled ? 'Номер aru включён' : 'Номер aru отключён', 'user', $userId, ['enabled' => $enabled]);
             $_SESSION['aru_toggle_message'] = $enabled
                 ? 'Номер включён — другие смогут найти вас по номеру.'
                 : 'Номер отключён — поиск по вашему номеру скрыт.';

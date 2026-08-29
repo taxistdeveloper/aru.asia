@@ -258,6 +258,7 @@ class AdController
         }
 
         if ($createdCount === $totalToCreate && $totalToCreate > 0) {
+            ActivityLogger::info('ad.create', 'Заявка на рекламу отправлена', 'ad', null, ['count' => $createdCount, 'country' => $country]);
             $_SESSION['success_message'] = 'Ваша реклама отправлена на модерацию. После проверки она будет опубликована.';
             Helper::redirect('profile');
         } else {
@@ -452,6 +453,7 @@ class AdController
 
         // Удаляем рекламу
         if ($this->adModel->deleteByUser($adId, $user['email'])) {
+            ActivityLogger::info('ad.delete', 'Реклама удалена пользователем', 'ad', $adId);
             $_SESSION['success_message'] = 'Реклама успешно удалена';
         } else {
             $_SESSION['error_message'] = 'Не удалось удалить рекламу. Возможно, она не принадлежит вам или уже удалена.';

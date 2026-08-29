@@ -54,7 +54,12 @@ require_once 'app/core/Router.php';
 require_once 'app/core/Database.php';
 require_once 'app/core/View.php';
 require_once 'app/core/Helper.php';
+require_once 'app/core/Lang.php';
+require_once 'app/core/ActivityLogger.php';
 require_once 'app/models/DailyVisit.php';
+require_once 'app/models/ActivityLog.php';
+
+ActivityLogger::registerHandlers();
 
 // Автоматический вход по remember_token если пользователь не авторизован
 if (!Helper::isLoggedIn() && isset($_COOKIE['remember_token'])) {

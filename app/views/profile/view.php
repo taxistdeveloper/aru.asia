@@ -34,6 +34,9 @@ ob_start();
                 <a href="<?= BASE_URL ?>admin/users" class="btn btn-primary btn-sm">
                     <i class="bi bi-arrow-left"></i> Вернуться к управлению пользователями
                 </a>
+                <a href="<?= BASE_URL ?>admin/logs?user_id=<?= (int)$user['id'] ?>" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-journal-text"></i> <?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?>
+                </a>
             </div>
         </div>
     <?php endif; ?>
@@ -48,6 +51,9 @@ ob_start();
             <?php elseif (isset($isAdmin) && $isAdmin): ?>
                 <a href="<?= BASE_URL ?>admin/users" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Назад к пользователям
+                </a>
+                <a href="<?= BASE_URL ?>admin/logs?user_id=<?= (int)$user['id'] ?>" class="btn btn-outline-secondary">
+                    <i class="bi bi-journal-text"></i> <?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs')) : 'Журнал' ?>
                 </a>
             <?php elseif ($currentUserId): ?>
                 <a href="<?= BASE_URL ?>messages?user_id=<?= $user['id'] ?>" class="btn btn-primary">
@@ -69,6 +75,44 @@ ob_start();
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if (isset($isAdmin) && $isAdmin): ?>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-journal-text"></i>
+                        <?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs_recent')) : 'Последние события' ?>
+                    </h5>
+                    <a href="<?= BASE_URL ?>admin/logs?user_id=<?= (int)$user['id'] ?>" class="btn btn-sm btn-outline-secondary">
+                        <?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs_view_all')) : 'Все события пользователя' ?>
+                    </a>
+                </div>
+                <?php if (empty($userActivityLogs ?? [])): ?>
+                    <p class="text-muted mb-0 small"><?= class_exists('Lang') ? Helper::escape(Lang::t('admin.logs_empty')) : 'Записей пока нет' ?></p>
+                <?php else: ?>
+                    <ul class="list-unstyled mb-0">
+                        <?php foreach ($userActivityLogs as $log): ?>
+                            <li class="border-bottom py-2">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <div>
+                                        <?php
+                                        $lvl = $log['level'] ?? 'info';
+                                        $badgeClass = $lvl === 'error' ? 'bg-danger' : ($lvl === 'warning' ? 'bg-warning text-dark' : 'bg-info text-dark');
+                                        ?>
+                                        <span class="badge <?= $badgeClass ?>"><?= Helper::escape(class_exists('Lang') ? Lang::t('admin.logs_level_' . $lvl, $lvl) : $lvl) ?></span>
+                                        <?= Helper::escape(class_exists('ActivityLogger') ? ActivityLogger::actionLabel($log['action'] ?? '') : ($log['action'] ?? '')) ?>
+                                        <div class="small text-muted"><?= Helper::escape($log['message'] ?? '') ?></div>
+                                    </div>
+                                    <small class="text-muted text-nowrap"><?= date('d.m H:i', strtotime($log['created_at'])) ?></small>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <!-- Фотографии -->
     <div class="card mb-4">

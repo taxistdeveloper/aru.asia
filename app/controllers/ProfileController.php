@@ -215,10 +215,16 @@ class ProfileController
         $isProfileBlocked = false;
         $adminRemark = null;
         $remarkType = null;
+        $userActivityLogs = [];
         if ($isAdmin) {
             $isProfileBlocked = $this->userModel->isProfileBlocked($viewUserId);
             $adminRemark = $this->userModel->getAdminRemark($viewUserId);
             $remarkType = $this->userModel->getRemarkType($viewUserId);
+            try {
+                $userActivityLogs = (new ActivityLog())->recentForUser((int)$viewUserId, 8);
+            } catch (Throwable $e) {
+                $userActivityLogs = [];
+            }
         }
 
         // Кнопка «Вернуться в чат» при переходе из переписки
@@ -249,6 +255,7 @@ class ProfileController
             'isProfileBlocked' => $isProfileBlocked,
             'adminRemark' => $adminRemark,
             'remarkType' => $remarkType,
+            'userActivityLogs' => $userActivityLogs,
             'backToChatUrl' => $backToChatUrl,
             'backToChatLabel' => $backToChatLabel,
             'isMobile' => View::isMobile()
@@ -434,6 +441,7 @@ class ProfileController
 
                 // Обновляем профиль
                 if ($this->userModel->updateProfile($userId, $data)) {
+                    ActivityLogger::info('profile.update', 'Профиль обновлён', 'user', $userId);
                     // Обновляем данные в сессии, если они изменились
                     if (isset($data['gender'])) {
                         $_SESSION['user_gender'] = $data['gender'];

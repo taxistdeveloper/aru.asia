@@ -269,8 +269,10 @@ class DatesController
             ];
 
             if ($this->dateModel->create($data)) {
-                // Получаем созданное свидание для отправки уведомлений
                 $createdDate = $this->dateModel->getByUserId($userId);
+                ActivityLogger::info('date.create', 'Создано свидание', 'date', $createdDate['id'] ?? null);
+
+                // Получаем созданное свидание для отправки уведомлений
 
                 // Отправляем push-уведомления пользователям противоположного пола в радиусе
                 if ($createdDate && $createdDate['latitude'] && $createdDate['longitude']) {
@@ -406,6 +408,7 @@ class DatesController
             ];
 
             if ($this->dateModel->update($dateId, $userId, $data)) {
+                ActivityLogger::info('date.update', 'Свидание обновлено', 'date', $dateId);
                 Helper::redirect('profile');
                 return;
             }
@@ -428,7 +431,9 @@ class DatesController
         $dateId = $_GET['id'] ?? 0;
 
         if ($dateId) {
-            $this->dateModel->delete($dateId, $userId);
+            if ($this->dateModel->delete($dateId, $userId)) {
+                ActivityLogger::info('date.delete', 'Свидание удалено', 'date', $dateId);
+            }
         }
 
         Helper::redirect('profile');

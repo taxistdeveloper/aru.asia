@@ -342,6 +342,7 @@ class MessagesController
 
         if ($blockedUserId) {
             $this->blockedModel->block($userId, $blockedUserId);
+            ActivityLogger::warning('user.block', 'Пользователь заблокирован', 'user', $blockedUserId, ['blocked_user_id' => (int)$blockedUserId]);
         }
 
         if ($this->isAjaxRequest()) {

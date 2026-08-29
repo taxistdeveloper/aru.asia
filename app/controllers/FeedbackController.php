@@ -171,6 +171,8 @@ class FeedbackController
 
         // Сохраняем заявку
         if ($this->feedbackModel->create($data)) {
+            $feedbackId = ActivityLog::lastInsertId();
+            ActivityLogger::info('feedback.create', 'Обращение в поддержку', 'feedback', $feedbackId ?: null, ['type' => $type]);
             // Проверяем последнюю заявку (если была resolved/closed, показываем специальное сообщение)
             $lastFeedback = $this->feedbackModel->getLastFeedback($userId, $email);
             $responseMessage = 'Спасибо! Ваше сообщение отправлено разработчикам. Мы рассмотрим его в ближайшее время.';

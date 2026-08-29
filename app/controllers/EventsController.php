@@ -287,6 +287,7 @@ class EventsController
             ];
 
             if ($this->eventModel->create($data)) {
+                ActivityLogger::info('event.create', 'Мероприятие отправлено на модерацию', 'event', ActivityLog::lastInsertId() ?: null);
                 $_SESSION['success_message'] = 'Ваше мероприятие отправлено на модерацию. Вы получите уведомление после проверки.';
                 Helper::redirect('events');
             } else {
@@ -448,6 +449,7 @@ class EventsController
             ];
 
             if ($this->eventModel->update($eventId, $userId, $data)) {
+                ActivityLogger::info('event.update', 'Мероприятие обновлено', 'event', $eventId);
                 $_SESSION['success_message'] = 'Мероприятие обновлено и отправлено на повторную модерацию.';
                 Helper::redirect('events');
             } else {
@@ -480,6 +482,7 @@ class EventsController
 
         if ($eventId) {
             $this->eventModel->delete($eventId, $userId);
+            ActivityLogger::info('event.delete', 'Мероприятие удалено', 'event', $eventId);
             $_SESSION['success_message'] = 'Мероприятие успешно удалено.';
         }
 

@@ -207,6 +207,7 @@ class ManagerController
 
         if ($userId && $role) {
             if ($this->userModel->updateRole($userId, $role)) {
+                ActivityLogger::info('admin.user_role', 'Роль пользователя обновлена', 'user', $userId, ['role' => $role, 'panel' => 'manager'], $userId);
                 $_SESSION['success_message'] = 'Роль пользователя успешно обновлена';
             } else {
                 $_SESSION['error_message'] = 'Ошибка при обновлении роли';
@@ -236,7 +237,9 @@ class ManagerController
             // Проверяем, что пользователь существует
             $user = $this->userModel->findById($userId);
             if ($user) {
+                $userEmail = $user['email'] ?? null;
                 if ($this->userModel->delete($userId)) {
+                    ActivityLogger::warning('admin.user_delete', 'Пользователь удалён', 'user', $userId, ['panel' => 'manager'], $userId, $userEmail);
                     $_SESSION['success_message'] = 'Пользователь успешно удален';
                 } else {
                     $_SESSION['error_message'] = 'Ошибка при удалении пользователя';
@@ -370,6 +373,7 @@ class ManagerController
 
         // Устанавливаем замечание и блокируем профиль
         if ($this->userModel->setAdminRemark($userId, $remark, $remarkType)) {
+            ActivityLogger::warning('admin.user_block', 'Профиль заблокирован', 'user', $userId, ['remark_type' => $remarkType, 'panel' => 'manager'], $userId);
             $_SESSION['success_message'] = 'Замечание добавлено, профиль заблокирован';
 
             // Отправляем уведомление пользователю
@@ -413,6 +417,7 @@ class ManagerController
 
         // Снимаем блокировку
         if ($this->userModel->clearAdminRemark($userId)) {
+            ActivityLogger::info('admin.user_unblock', 'Профиль разблокирован', 'user', $userId, ['panel' => 'manager'], $userId);
             $_SESSION['success_message'] = 'Профиль разблокирован';
         } else {
             $_SESSION['error_message'] = 'Ошибка при разблокировке профиля';
@@ -585,6 +590,7 @@ class ManagerController
 
             if (!empty($data['name'])) {
                 $this->categoryModel->create($data);
+                ActivityLogger::info('manager.category_create', 'Создана категория', 'category', ActivityLog::lastInsertId() ?: null, ['name' => $data['name']]);
             }
         }
 
@@ -609,6 +615,7 @@ class ManagerController
 
             if (!empty($data['name'])) {
                 $this->categoryModel->update($id, $data);
+                ActivityLogger::info('manager.category_update', 'Категория обновлена', 'category', $id, ['name' => $data['name']]);
             }
         }
 
@@ -626,6 +633,7 @@ class ManagerController
 
         if ($id) {
             $this->categoryModel->delete($id);
+            ActivityLogger::warning('manager.category_delete', 'Категория удалена', 'category', $id);
         }
 
         Helper::redirect('manager/categories');
@@ -737,6 +745,7 @@ class ManagerController
 
         $photosDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . rtrim(UPLOAD_DIR, '/\\') . DIRECTORY_SEPARATOR . 'photos';
         if ($this->eventModel->updatePhoto($eventId, $newPhoto)) {
+            ActivityLogger::info('admin.event_photo', 'Фото мероприятия обновлено менеджером', 'event', $eventId, ['panel' => 'manager']);
             $oldPhoto = basename((string)($event['photo'] ?? ''));
             if ($oldPhoto !== '' && $oldPhoto !== $newPhoto) {
                 $oldPath = $photosDir . DIRECTORY_SEPARATOR . $oldPhoto;
@@ -840,6 +849,7 @@ class ManagerController
 
         // Обновляем дату
         if ($this->eventModel->updateDate($eventId, $newDate)) {
+            ActivityLogger::info('manager.event_extend', 'Дедлайн мероприятия продлён', 'event', $eventId, ['days' => $days]);
             $_SESSION['success_message'] = "Дедлайн мероприятия успешно увеличен на {$days} " . ($days == 1 ? 'день' : ($days < 5 ? 'дня' : 'дней'));
         } else {
             $_SESSION['error_message'] = 'Ошибка при обновлении дедлайна';
@@ -884,6 +894,7 @@ class ManagerController
 
         // Обновляем дату
         if ($this->dateModel->updateDate($dateId, $newDate)) {
+            ActivityLogger::info('manager.date_extend', 'Дедлайн свидания продлён', 'date', $dateId, ['days' => $days]);
             $_SESSION['success_message'] = "Дедлайн свидания успешно увеличен на {$days} " . ($days == 1 ? 'день' : ($days < 5 ? 'дня' : 'дней'));
         } else {
             $_SESSION['error_message'] = 'Ошибка при обновлении дедлайна';
@@ -922,6 +933,7 @@ class ManagerController
 
         // Удаляем свидание
         if ($this->dateModel->deleteById($dateId)) {
+            ActivityLogger::warning('admin.date_delete', 'Свидание удалено менеджером', 'date', $dateId, ['panel' => 'manager'], $date['user_id'] ?? null);
             $_SESSION['success_message'] = 'Свидание успешно удалено';
 
             // Отправляем уведомление пользователю
@@ -980,6 +992,7 @@ class ManagerController
             $pushService = new PushNotificationService();
             $pushService->sendAdminNotification($date['user_id'], 'Замечание к свиданию', $message, $dateId);
 
+            ActivityLogger::warning('manager.date_remark', 'Замечание к свиданию', 'date', $dateId, null, $date['user_id'] ?? null);
             $_SESSION['success_message'] = 'Замечание успешно отправлено пользователю';
         } else {
             $_SESSION['error_message'] = 'Ошибка при отправке замечания';
@@ -1002,6 +1015,7 @@ class ManagerController
             if ($eventId && $userId) {
                 $event = $this->eventModel->getById($eventId);
                 if ($event && $this->eventModel->approve($eventId, $userId)) {
+                    ActivityLogger::info('admin.event_approve', 'Мероприятие одобрено', 'event', $eventId, ['panel' => 'manager'], $event['user_id'] ?? null);
                     // Отправляем уведомление пользователю
                     $this->sendEventNotification($event['user_id'], $eventId, 'approved');
                     $_SESSION['success_message'] = 'Мероприятие одобрено';
@@ -1029,6 +1043,7 @@ class ManagerController
             if ($eventId && $userId && !empty($reason)) {
                 $event = $this->eventModel->getById($eventId);
                 if ($event && $this->eventModel->reject($eventId, $userId, $reason)) {
+                    ActivityLogger::warning('admin.event_reject', 'Мероприятие отклонено', 'event', $eventId, ['panel' => 'manager'], $event['user_id'] ?? null);
                     // Отправляем уведомление пользователю
                     $this->sendEventNotification($event['user_id'], $eventId, 'rejected', $reason);
                     $_SESSION['success_message'] = 'Мероприятие отклонено';
@@ -1072,6 +1087,7 @@ class ManagerController
         }
 
         if ($this->eventModel->delete($eventId, (int)$event['user_id'])) {
+            ActivityLogger::warning('admin.event_delete', 'Мероприятие удалено менеджером', 'event', $eventId, ['panel' => 'manager'], $event['user_id'] ?? null);
             $_SESSION['success_message'] = 'Мероприятие удалено';
         } else {
             $_SESSION['error_message'] = 'Не удалось удалить мероприятие';
@@ -1156,6 +1172,7 @@ class ManagerController
             if ($adId) {
                 $ad = $this->adModel->findById($adId);
                 if ($ad && $this->adModel->approve($adId)) {
+                    ActivityLogger::info('admin.ad_approve', 'Реклама одобрена', 'ad', $adId, ['panel' => 'manager']);
                     // Уведомляем рекламодателя (сообщение в личный кабинет + push)
                     $this->sendAdApprovalNotification($ad);
                     $_SESSION['success_message'] = 'Реклама одобрена';
@@ -1188,6 +1205,7 @@ class ManagerController
 
                 $ad = $this->adModel->findById($adId);
                 if ($ad && $this->adModel->reject($adId, $rejectionReason)) {
+                    ActivityLogger::warning('admin.ad_reject', 'Реклама отклонена', 'ad', $adId, ['panel' => 'manager']);
                     // Отправляем email рекламодателю с причиной отказа
                     $this->sendAdRejectionEmail($ad, $rejectionReason);
                     // Отправляем уведомление в личный кабинет
@@ -1352,6 +1370,7 @@ class ManagerController
             if ($adId) {
                 $ad = $this->adModel->findById($adId);
                 if ($ad && $this->adModel->delete($adId)) {
+                    ActivityLogger::warning('admin.ad_delete', 'Реклама удалена менеджером', 'ad', $adId, ['panel' => 'manager']);
                     $_SESSION['success_message'] = 'Реклама успешно удалена';
                 } else {
                     $_SESSION['error_message'] = 'Ошибка при удалении рекламы';
@@ -1434,6 +1453,7 @@ class ManagerController
                     );
 
                     if (!empty($result['success'])) {
+                        ActivityLogger::info('admin.feedback_status', 'Статус обращения обновлён', 'feedback', $feedbackId, ['status' => $result['status'] ?? $status, 'panel' => 'manager']);
                         $successMessage = ($result['status'] ?? $status) === 'closed'
                             ? 'Заявка закрыта. Пользователю отправлено: «Ваше обращение закрыто»'
                             : 'Статус заявки успешно обновлен';
@@ -1514,6 +1534,7 @@ class ManagerController
             $feedback = $this->feedbackModel->findById($feedbackId);
             if ($feedback) {
                 if ($this->feedbackModel->delete($feedbackId)) {
+                    ActivityLogger::warning('admin.feedback_delete', 'Обращение удалено', 'feedback', $feedbackId, ['panel' => 'manager']);
                     $_SESSION['success_message'] = 'Заявка успешно удалена';
                 } else {
                     $_SESSION['error_message'] = 'Ошибка при удалении заявки';

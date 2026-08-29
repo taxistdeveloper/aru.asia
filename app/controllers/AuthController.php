@@ -81,12 +81,26 @@ class AuthController
                         ]);
                     }
 
+                    ActivityLogger::info('auth.login', 'Вход в аккаунт', 'user', $user['id']);
+
                     Helper::redirect('profile');
                 } else {
                     $error = "Пожалуйста, подтвердите ваш email";
+                    ActivityLogger::warning('auth.login_failed', 'Вход без подтверждения email', 'user', $user['id'] ?? null, ['email' => $email], $user['id'] ?? null, $email);
                 }
             } else {
                 $error = "Неверный email или пароль";
+                $failedId = (is_array($user) && !empty($user['id'])) ? $user['id'] : null;
+                $failedName = (is_array($user) && !empty($user['email'])) ? $user['email'] : $email;
+                ActivityLogger::warning(
+                    'auth.login_failed',
+                    'Неудачная попытка входа',
+                    'user',
+                    $failedId,
+                    ['email' => $email],
+                    $failedId,
+                    $failedName
+                );
             }
         }
 
@@ -158,6 +172,17 @@ class AuthController
 
                 // Создаем пользователя
                 if ($this->userModel->create($email, $password, $token, $ip, $country)) {
+                    $newUser = $this->userModel->findByEmail($email);
+                    ActivityLogger::info(
+                        'auth.register',
+                        'Регистрация аккаунта',
+                        'user',
+                        $newUser['id'] ?? null,
+                        null,
+                        $newUser['id'] ?? null,
+                        $email
+                    );
+
                     // Отправляем email с подтверждением
                     $verifyUrl = BASE_URL . 'auth/verify?token=' . $token;
                     $emailService = new EmailService();
@@ -221,6 +246,8 @@ class AuthController
             $_SESSION['user_role'] = $user['role'] ?? 'user';
             User::touchLastActivity((int) $user['id'], true);
 
+            ActivityLogger::info('auth.verify', 'Email подтверждён', 'user', $user['id']);
+
             Helper::redirect('profile');
         } else {
             die("Ошибка подтверждения email. Неверный токен.");
@@ -265,6 +292,8 @@ class AuthController
                     // Отправляем email с ссылкой для восстановления пароля
                     $emailService = new EmailService();
                     $emailService->sendPasswordResetEmail($email, $resetUrl);
+
+                    ActivityLogger::info('auth.password_forgot', 'Запрос сброса пароля', 'user', $user['id'], null, $user['id'], $user['email'] ?? $email);
 
                     // Для безопасности не сообщаем, если пользователь не найден
                     $success = "Если пользователь с таким email существует, на него будет отправлена ссылка для восстановления пароля. Проверьте вашу почту (в том числе папку 'Спам').";
@@ -325,6 +354,7 @@ class AuthController
                 if ($user) {
                     // Обновляем пароль
                     if ($this->userModel->updatePassword($user['id'], $password)) {
+                        ActivityLogger::info('auth.password_reset', 'Пароль сброшен', 'user', $user['id'], null, $user['id'], $user['email'] ?? null);
                         Helper::redirect('auth/login?password_reset=success');
                         return;
                     } else {
@@ -360,6 +390,7 @@ class AuthController
         // Очищаем remember token если есть
         if (Helper::isLoggedIn()) {
             $userId = Helper::getUserId();
+            ActivityLogger::info('auth.logout', 'Выход из аккаунта', 'user', $userId);
             $this->userModel->clearRememberToken($userId);
             User::clearLastActivity((int) $userId);
         }
@@ -406,6 +437,8 @@ class AuthController
             Helper::redirect('info');
             return;
         }
+
+        ActivityLogger::info('auth.account_delete', 'Аккаунт удалён пользователем', 'user', $userId);
 
         // Удаляем cookie remember_token
         if (isset($_COOKIE['remember_token'])) {

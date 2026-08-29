@@ -52,9 +52,12 @@ class AdminController
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_email'] = $admin['email'];
 
+                ActivityLogger::info('auth.admin_login', 'Вход в админ-панель', 'admin', $admin['id'], null, null, $admin['email']);
+
                 Helper::redirect('admin');
             } else {
                 $error = "Неверный email или пароль";
+                ActivityLogger::warning('auth.admin_login_failed', 'Неудачный вход в админ-панель', 'admin', null, ['email' => $email], null, $email);
             }
         }
 
@@ -69,6 +72,7 @@ class AdminController
      */
     public function logout()
     {
+        ActivityLogger::info('auth.admin_logout', 'Выход из админ-панели');
         // Удаляем только админские данные из сессии
         unset($_SESSION['admin_id']);
         unset($_SESSION['admin_email']);
@@ -115,6 +119,7 @@ class AdminController
             if (empty($errors) && $admin) {
                 $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
                 if ($this->adminModel->updatePassword($admin['id'], $newHash)) {
+                    ActivityLogger::info('admin.password_change', 'Пароль администратора изменён', 'admin', $admin['id']);
                     $_SESSION['success_message'] = 'Пароль успешно изменён';
                     Helper::redirect('admin/change-password');
                     return;
@@ -182,6 +187,11 @@ class AdminController
             // Ожидающие модерации рекламы
             $pending_ads = $safeFetchAll("SELECT * FROM ads WHERE status = 'pending' ORDER BY created_at DESC LIMIT 5", []);
 
+            $activityLog = new ActivityLog();
+            $stats['logins_today'] = $activityLog->countUniqueLoginsSince('CURDATE()');
+            $stats['logins_week'] = $activityLog->countUniqueLoginsSince('NOW() - INTERVAL 7 DAY');
+            $stats['recent_errors'] = $activityLog->recentErrorCount(24);
+
             View::render('admin/index', [
                 'stats' => $stats,
                 'recent_users' => $recent_users,
@@ -206,6 +216,9 @@ class AdminController
         try {
             $adminStats = new AdminStats();
             $stats = $adminStats->getSummary();
+            $activityLog = new ActivityLog();
+            $stats['logins_today'] = $activityLog->countUniqueLoginsSince('CURDATE()');
+            $stats['logins_week'] = $activityLog->countUniqueLoginsSince('NOW() - INTERVAL 7 DAY');
             $daily_visits = $adminStats->getDailyVisits(30);
             $section_visits_today = $adminStats->getSectionVisitsToday();
             $section_visits_month = $adminStats->getSectionVisitsTotals(30);
@@ -226,45 +239,63 @@ class AdminController
     }
 
     /**
-     * Логи действий пользователей
+     * Журнал действий и ошибок (только полный админ).
+     */
+    public function logs()
+    {
+        Helper::requireAdmin();
+
+        $level = trim((string)($_GET['level'] ?? ''));
+        $action = trim((string)($_GET['action'] ?? ''));
+        $q = trim((string)($_GET['q'] ?? ''));
+        $userId = (int)($_GET['user_id'] ?? 0);
+        $page = max(1, (int)($_GET['page'] ?? 1));
+
+        $filters = [
+            'level' => $level,
+            'action' => $action,
+            'q' => $q,
+            'user_id' => $userId ?: null,
+        ];
+
+        $logModel = new ActivityLog();
+        $result = $logModel->search($filters, $page, 40);
+
+        View::render('admin/logs', [
+            'logs' => $result['items'],
+            'total' => $result['total'],
+            'page' => $result['page'],
+            'pages' => $result['pages'],
+            'perPage' => $result['per_page'],
+            'level' => $level,
+            'action' => $action,
+            'q' => $q,
+            'userId' => $userId,
+            'counts' => $logModel->countByLevel(),
+            'prefixes' => $logModel->distinctActionPrefixes(),
+            'isMobile' => View::isMobile(),
+        ]);
+    }
+
+    /**
+     * Старый URL журнала → /admin/logs
      */
     public function activityLogs()
     {
         Helper::requireAdmin();
 
-        $query = trim($_GET['q'] ?? '');
-        $method = trim($_GET['method'] ?? '');
-        $userId = (int)($_GET['user_id'] ?? 0);
-
-        $page = max(1, (int)($_GET['page'] ?? 1));
-        $perPage = 50;
-        $offset = ($page - 1) * $perPage;
-
-        $filters = [
-            'query' => $query,
-            'method' => $method,
-            'user_id' => $userId ?: null
-        ];
-
-        $logModel = new UserActivityLog();
-        $total = $logModel->getCount($filters);
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        if ($page > $totalPages) {
-            $page = $totalPages;
-            $offset = ($page - 1) * $perPage;
+        $params = [];
+        if (!empty($_GET['q'])) {
+            $params['q'] = $_GET['q'];
         }
-
-        $logs = $logModel->getLogs($perPage, $offset, $filters);
-
-        View::render('admin/activity_logs', [
-            'logs' => $logs,
-            'query' => $query,
-            'method' => $method,
-            'userId' => $userId,
-            'page' => $page,
-            'totalPages' => $totalPages,
-            'total' => $total
-        ]);
+        if (!empty($_GET['user_id'])) {
+            $params['user_id'] = $_GET['user_id'];
+        }
+        if (!empty($_GET['page'])) {
+            $params['page'] = $_GET['page'];
+        }
+        $qs = $params ? ('?' . http_build_query($params)) : '';
+        Helper::redirect('admin/logs' . $qs);
     }
 
     /**
@@ -308,6 +339,7 @@ class AdminController
 
         if ($userId && $role) {
             if ($this->userModel->updateRole($userId, $role)) {
+                ActivityLogger::info('admin.user_role', 'Роль пользователя обновлена', 'user', $userId, ['role' => $role], $userId);
                 $_SESSION['success_message'] = 'Роль пользователя успешно обновлена';
             } else {
                 $_SESSION['error_message'] = 'Ошибка при обновлении роли';
@@ -338,7 +370,9 @@ class AdminController
             // Проверяем, что пользователь существует
             $user = $this->userModel->findById($userId);
             if ($user) {
+                $userEmail = $user['email'] ?? null;
                 if ($this->userModel->delete($userId)) {
+                    ActivityLogger::warning('admin.user_delete', 'Пользователь удалён', 'user', $userId, null, $userId, $userEmail);
                     $_SESSION['success_message'] = 'Пользователь успешно удален';
                 } else {
                     $_SESSION['error_message'] = 'Ошибка при удалении пользователя';
@@ -393,6 +427,7 @@ class AdminController
             if ($adId) {
                 $ad = $this->adModel->findById($adId);
                 if ($ad && $this->adModel->approve($adId)) {
+                    ActivityLogger::info('admin.ad_approve', 'Реклама одобрена', 'ad', $adId);
                     // Уведомляем рекламодателя (сообщение в личный кабинет + push)
                     $this->sendAdApprovalNotification($ad);
                     $_SESSION['success_message'] = 'Реклама одобрена';
@@ -425,6 +460,7 @@ class AdminController
 
                 $ad = $this->adModel->findById($adId);
                 if ($ad && $this->adModel->reject($adId, $rejectionReason)) {
+                    ActivityLogger::warning('admin.ad_reject', 'Реклама отклонена', 'ad', $adId);
                     // Отправляем email рекламодателю с причиной отказа
                     $this->sendAdRejectionEmail($ad, $rejectionReason);
                     // Отправляем уведомление в личный кабинет
@@ -589,6 +625,7 @@ class AdminController
             if ($adId) {
                 $ad = $this->adModel->findById($adId);
                 if ($ad && $this->adModel->delete($adId)) {
+                    ActivityLogger::warning('admin.ad_delete', 'Реклама удалена администратором', 'ad', $adId);
                     $this->sendAdDeletedNotification($ad);
                     $_SESSION['success_message'] = 'Реклама успешно удалена';
                 } else {
@@ -662,6 +699,7 @@ class AdminController
             if ($eventId && $adminId) {
                 $event = $this->eventModel->getById($eventId);
                 if ($event && $this->eventModel->approve($eventId, $adminId)) {
+                    ActivityLogger::info('admin.event_approve', 'Мероприятие одобрено', 'event', $eventId, null, $event['user_id'] ?? null);
                     // Отправляем уведомление пользователю
                     $this->sendEventNotification($event['user_id'], $eventId, 'approved');
                     $_SESSION['success_message'] = 'Мероприятие одобрено';
@@ -689,6 +727,7 @@ class AdminController
             if ($eventId && $adminId && !empty($reason)) {
                 $event = $this->eventModel->getById($eventId);
                 if ($event && $this->eventModel->reject($eventId, $adminId, $reason)) {
+                    ActivityLogger::warning('admin.event_reject', 'Мероприятие отклонено', 'event', $eventId, null, $event['user_id'] ?? null);
                     // Отправляем уведомление пользователю
                     $this->sendEventNotification($event['user_id'], $eventId, 'rejected', $reason);
                     $_SESSION['success_message'] = 'Мероприятие отклонено';
@@ -782,6 +821,7 @@ class AdminController
 
         $photosDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . rtrim(UPLOAD_DIR, '/\\') . DIRECTORY_SEPARATOR . 'photos';
         if ($this->eventModel->updatePhoto($eventId, $newPhoto)) {
+            ActivityLogger::info('admin.event_photo', 'Фото мероприятия обновлено администратором', 'event', $eventId);
             $oldPhoto = basename((string)($event['photo'] ?? ''));
             if ($oldPhoto !== '' && $oldPhoto !== $newPhoto) {
                 $oldPath = $photosDir . DIRECTORY_SEPARATOR . $oldPhoto;
@@ -827,6 +867,7 @@ class AdminController
         }
 
         if ($this->eventModel->delete($eventId, (int)$event['user_id'])) {
+            ActivityLogger::warning('admin.event_delete', 'Мероприятие удалено администратором', 'event', $eventId, null, $event['user_id'] ?? null);
             $_SESSION['success_message'] = 'Мероприятие удалено';
         } else {
             $_SESSION['error_message'] = 'Не удалось удалить мероприятие';
@@ -898,6 +939,7 @@ class AdminController
         }
 
         if ($this->dateModel->deleteById($dateId)) {
+            ActivityLogger::warning('admin.date_delete', 'Свидание удалено администратором', 'date', $dateId, null, $date['user_id'] ?? null);
             $_SESSION['success_message'] = 'Свидание удалено';
         } else {
             $_SESSION['error_message'] = 'Не удалось удалить свидание';
@@ -1008,6 +1050,7 @@ class AdminController
                     );
 
                     if (!empty($result['success'])) {
+                        ActivityLogger::info('admin.feedback_status', 'Статус обращения обновлён', 'feedback', $feedbackId, ['status' => $result['status'] ?? $status]);
                         $successMessage = ($result['status'] ?? $status) === 'closed'
                             ? 'Заявка закрыта. Пользователю отправлено: «Ваше обращение закрыто»'
                             : 'Статус заявки успешно обновлен';
@@ -1088,6 +1131,7 @@ class AdminController
             $feedback = $this->feedbackModel->findById($feedbackId);
             if ($feedback) {
                 if ($this->feedbackModel->delete($feedbackId)) {
+                    ActivityLogger::warning('admin.feedback_delete', 'Обращение удалено', 'feedback', $feedbackId);
                     $_SESSION['success_message'] = 'Заявка успешно удалена';
                 } else {
                     $_SESSION['error_message'] = 'Ошибка при удалении заявки';
@@ -1199,6 +1243,7 @@ class AdminController
             }
 
             if ($successCount > 0) {
+                ActivityLogger::info('admin.message', 'Рассылка всем пользователям', 'message', null, ['sent' => $successCount, 'errors' => $errorCount]);
                 $_SESSION['success_message'] = "Сообщение успешно отправлено {$successCount} пользователям" .
                     ($errorCount > 0 ? " ({$errorCount} ошибок)" : "");
             } else {
@@ -1222,6 +1267,7 @@ class AdminController
 
             // Отправляем сообщение
             if ($this->messageModel->send($adminId, $toUserId, $message)) {
+                ActivityLogger::info('admin.message', 'Сообщение пользователю', 'user', $toUserId, null, $toUserId);
                 // Отправляем push-уведомление
                 $pushService->sendAdminNotification($toUserId, 'Сообщение от администратора', $message);
 
@@ -1286,6 +1332,7 @@ class AdminController
 
         // Устанавливаем замечание и блокируем профиль
         if ($this->userModel->setAdminRemark($userId, $remark, $remarkType)) {
+            ActivityLogger::warning('admin.user_block', 'Профиль заблокирован', 'user', $userId, ['remark_type' => $remarkType], $userId);
             $_SESSION['success_message'] = 'Замечание добавлено, профиль заблокирован';
 
             // Отправляем уведомление пользователю
@@ -1329,6 +1376,7 @@ class AdminController
 
         // Снимаем блокировку
         if ($this->userModel->clearAdminRemark($userId)) {
+            ActivityLogger::info('admin.user_unblock', 'Профиль разблокирован', 'user', $userId, null, $userId);
             $_SESSION['success_message'] = 'Профиль разблокирован';
         } else {
             $_SESSION['error_message'] = 'Ошибка при разблокировке профиля';

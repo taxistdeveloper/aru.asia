@@ -34,6 +34,9 @@ ob_start();
                     <div class="text-muted small">Пользователей всего</div>
                     <div class="fs-3 fw-semibold"><?= $stats['total_users'] ?? 0 ?></div>
                     <div class="text-muted small">+<?= $stats['users_today'] ?? 0 ?> сегодня</div>
+                    <div class="text-muted small mt-1">
+                        Входов: <?= (int)($stats['logins_today'] ?? 0) ?> сегодня · <?= (int)($stats['logins_week'] ?? 0) ?> / нед.
+                    </div>
                 </div>
             </div>
         </div>
