@@ -49,6 +49,7 @@ class MessagesController
         $messages = [];
         $isBlockedByMe = false;
         $isBlockedByOther = false;
+        $isSupportChatClosed = false;
 
         if ($selectedUserId) {
             $isBlockedByMe = $this->blockedModel->isBlocked($userId, $selectedUserId);
@@ -58,6 +59,9 @@ class MessagesController
                 $messages = $this->messageModel->getConversation($userId, $selectedUserId);
                 $this->messageModel->markConversationAsRead($userId, $selectedUserId);
             }
+
+            $feedbackModel = new Feedback();
+            $isSupportChatClosed = $feedbackModel->isUserSupportChatClosed($userId, $selectedUserId);
         }
 
         $conversations = $this->messageModel->getConversations($userId);
@@ -81,7 +85,8 @@ class MessagesController
             'unreadAdminCount' => $unreadAdminCount,
             'isMobile' => View::isMobile(),
             'isBlockedByMe' => $isBlockedByMe,
-            'isBlockedByOther' => $isBlockedByOther
+            'isBlockedByOther' => $isBlockedByOther,
+            'isSupportChatClosed' => $isSupportChatClosed
         ]);
     }
 
@@ -194,6 +199,24 @@ class MessagesController
                 $_SESSION['error_message'] = 'Нельзя отправлять сообщения администратору';
                 Helper::redirect('messages');
                 return;
+            }
+
+            if (!$dateId && !$eventId && $toUserId > 0) {
+                $feedbackModel = new Feedback();
+                if ($feedbackModel->isUserSupportChatClosed($fromUserId, $toUserId)) {
+                    $errorMsg = 'Обращение закрыто. Вы не можете писать в этот чат.';
+                    if ($this->isAjaxRequest()) {
+                        header('Content-Type: application/json');
+                        echo json_encode([
+                            'success' => false,
+                            'error' => $errorMsg
+                        ]);
+                        return;
+                    }
+                    $_SESSION['error_message'] = $errorMsg;
+                    Helper::redirect('messages?user_id=' . $toUserId);
+                    return;
+                }
             }
 
             // Проверяем не заблокирован ли пользователь и что получатель определен

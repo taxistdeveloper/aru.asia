@@ -140,6 +140,8 @@ class Router
         $this->routes['admin/feedback'] = ['controller' => 'Admin', 'method' => 'feedback'];
         $this->routes['admin/feedback/update-status'] = ['controller' => 'Admin', 'method' => 'updateFeedbackStatus'];
         $this->routes['admin/feedback/delete'] = ['controller' => 'Admin', 'method' => 'deleteFeedback'];
+        $this->routes['admin/feedback/chat'] = ['controller' => 'Admin', 'method' => 'feedbackChat'];
+        $this->routes['admin/feedback/chat/send'] = ['controller' => 'Admin', 'method' => 'feedbackChatSend'];
         $this->routes['admin/send-message'] = ['controller' => 'Admin', 'method' => 'sendMessage'];
         $this->routes['admin/send-message/submit'] = ['controller' => 'Admin', 'method' => 'submitMessage'];
         $this->routes['admin/activity-logs'] = ['controller' => 'Admin', 'method' => 'activityLogs'];
@@ -178,6 +180,8 @@ class Router
         $this->routes['manager/feedback'] = ['controller' => 'Manager', 'method' => 'feedback'];
         $this->routes['manager/feedback/update-status'] = ['controller' => 'Manager', 'method' => 'updateFeedbackStatus'];
         $this->routes['manager/feedback/delete'] = ['controller' => 'Manager', 'method' => 'deleteFeedback'];
+        $this->routes['manager/feedback/chat'] = ['controller' => 'Manager', 'method' => 'feedbackChat'];
+        $this->routes['manager/feedback/chat/send'] = ['controller' => 'Manager', 'method' => 'feedbackChatSend'];
     }
 
     /**

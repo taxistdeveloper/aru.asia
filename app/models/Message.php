@@ -9,19 +9,89 @@
 class Message
 {
     private $db;
+    private static ?bool $feedbackIdColumnReady = null;
 
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
+        self::ensureFeedbackIdColumn();
+    }
+
+    /**
+     * Добавляет колонку feedback_id, если её ещё нет (чат по заявке, не рассылка).
+     */
+    public static function ensureFeedbackIdColumn(): void
+    {
+        if (self::$feedbackIdColumnReady === true) {
+            return;
+        }
+
+        try {
+            $db = Database::getInstance()->getConnection();
+            $check = $db->query("SHOW COLUMNS FROM messages LIKE 'feedback_id'");
+            if (!$check->fetch()) {
+                $db->exec("ALTER TABLE messages ADD COLUMN feedback_id INT(11) NULL DEFAULT NULL AFTER event_id");
+            }
+            try {
+                $db->exec("ALTER TABLE messages ADD INDEX idx_messages_feedback_id (feedback_id)");
+            } catch (Exception $e) {
+                // Индекс уже есть
+            }
+            self::$feedbackIdColumnReady = true;
+        } catch (Exception $e) {
+            error_log('Message::ensureFeedbackIdColumn: ' . $e->getMessage());
+            self::$feedbackIdColumnReady = false;
+        }
+    }
+
+    /**
+     * Сообщения по заявке (и вся переписка этой пары) — обычный чат, не рассылка.
+     */
+    private function sqlIsSupportChat($alias = 'm')
+    {
+        if (self::$feedbackIdColumnReady !== true) {
+            return '0';
+        }
+
+        return "({$alias}.feedback_id IS NOT NULL OR EXISTS (
+                    SELECT 1 FROM messages fm
+                    WHERE fm.feedback_id IS NOT NULL
+                    AND (
+                        (fm.from_user_id = {$alias}.from_user_id AND fm.to_user_id = {$alias}.to_user_id)
+                        OR (fm.from_user_id = {$alias}.to_user_id AND fm.to_user_id = {$alias}.from_user_id)
+                    )
+                ))";
     }
 
     /**
      * Отправляет сообщение
      */
-    public function send($fromUserId, $toUserId, $message, $dateId = null, $eventId = null)
+    public function send($fromUserId, $toUserId, $message, $dateId = null, $eventId = null, $feedbackId = null)
     {
-        $sql = "INSERT INTO messages (from_user_id, to_user_id, date_id, event_id, message, is_read, created_at)
-                VALUES (:from_user_id, :to_user_id, :date_id, :event_id, :message, 0, NOW())";
+        self::ensureFeedbackIdColumn();
+
+        if (self::$feedbackIdColumnReady === true) {
+            $sql = "INSERT INTO messages (from_user_id, to_user_id, date_id, event_id, feedback_id, message, is_read, created_at)
+                    VALUES (:from_user_id, :to_user_id, :date_id, :event_id, :feedback_id, :message, 0, NOW())";
+            $params = [
+                ':from_user_id' => $fromUserId,
+                ':to_user_id' => $toUserId,
+                ':date_id' => $dateId,
+                ':event_id' => $eventId,
+                ':feedback_id' => $feedbackId,
+                ':message' => $message
+            ];
+        } else {
+            $sql = "INSERT INTO messages (from_user_id, to_user_id, date_id, event_id, message, is_read, created_at)
+                    VALUES (:from_user_id, :to_user_id, :date_id, :event_id, :message, 0, NOW())";
+            $params = [
+                ':from_user_id' => $fromUserId,
+                ':to_user_id' => $toUserId,
+                ':date_id' => $dateId,
+                ':event_id' => $eventId,
+                ':message' => $message
+            ];
+        }
         $stmt = $this->db->prepare($sql);
         
         // Логируем для отладки
@@ -30,15 +100,10 @@ class Message
         error_log('to_user_id: ' . $toUserId);
         error_log('date_id: ' . ($dateId ?? 'NULL'));
         error_log('event_id: ' . ($eventId ?? 'NULL'));
+        error_log('feedback_id: ' . ($feedbackId ?? 'NULL'));
         error_log('message: ' . substr($message, 0, 50) . '...');
         
-        $result = $stmt->execute([
-            ':from_user_id' => $fromUserId,
-            ':to_user_id' => $toUserId,
-            ':date_id' => $dateId,
-            ':event_id' => $eventId,
-            ':message' => $message
-        ]);
+        $result = $stmt->execute($params);
         
         if ($result) {
             $messageId = $this->db->lastInsertId();
@@ -136,10 +201,13 @@ class Message
                         WHERE bu2.blocked_user_id = :user_id4
                         AND bu2.user_id = m.from_user_id
                     )
-                    -- Исключаем сообщения от менеджеров (показываются в уведомлениях от администратора)
-                    AND NOT EXISTS (
-                        SELECT 1 FROM users mgr
-                        WHERE mgr.id = m.from_user_id AND mgr.role = 'manager'
+                    -- Рассылки менеджеров — в уведомлениях; чат по заявке — в диалогах
+                    AND (
+                        NOT EXISTS (
+                            SELECT 1 FROM users mgr
+                            WHERE mgr.id = m.from_user_id AND mgr.role = 'manager'
+                        )
+                        OR {$this->sqlIsSupportChat('m')}
                     )
                     
                     UNION
@@ -189,7 +257,7 @@ class Message
             $otherUserId = $conv['other_user_id'];
 
             // Информация о пользователе
-            $userSql = "SELECT id, email, full_name, gender FROM users WHERE id = :other_id";
+            $userSql = "SELECT id, email, full_name, gender, role FROM users WHERE id = :other_id";
             $userStmt = $this->db->prepare($userSql);
             $userStmt->bindValue(':other_id', $otherUserId, PDO::PARAM_INT);
             $userStmt->execute();
@@ -239,6 +307,7 @@ class Message
                 'other_user_email' => $otherUser['email'],
                 'other_user_full_name' => $otherUser['full_name'] ?? null,
                 'other_user_gender' => $otherUser['gender'],
+                'other_user_role' => $otherUser['role'] ?? 'user',
                 'photo' => $photo['photo'] ?? null,
                 'last_message' => $lastMessage['message'] ?? null,
                 'last_message_time' => $lastMessage['created_at'] ?? null,
@@ -276,9 +345,12 @@ class Message
                         WHERE bu2.blocked_user_id = :user_id3
                         AND bu2.user_id = m.from_user_id
                     )
-                    AND NOT EXISTS (
-                        SELECT 1 FROM users mgr
-                        WHERE mgr.id = m.from_user_id AND mgr.role = 'manager'
+                    AND (
+                        NOT EXISTS (
+                            SELECT 1 FROM users mgr
+                            WHERE mgr.id = m.from_user_id AND mgr.role = 'manager'
+                        )
+                        OR {$this->sqlIsSupportChat('m')}
                     )";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
@@ -309,9 +381,12 @@ class Message
                         WHERE bu2.blocked_user_id = :user_id3
                         AND bu2.user_id = m.from_user_id
                     )
-                    AND NOT EXISTS (
-                        SELECT 1 FROM users mgr
-                        WHERE mgr.id = m.from_user_id AND mgr.role = 'manager'
+                    AND (
+                        NOT EXISTS (
+                            SELECT 1 FROM users mgr
+                            WHERE mgr.id = m.from_user_id AND mgr.role = 'manager'
+                        )
+                        OR {$this->sqlIsSupportChat('m')}
                     )";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
@@ -353,7 +428,7 @@ class Message
                         WHERE bu2.blocked_user_id = :user_id3
                         AND bu2.user_id = m.from_user_id
                     )
-                    AND u.role != 'manager'
+                    AND (u.role != 'manager' OR {$this->sqlIsSupportChat('m')})
                     ORDER BY m.created_at DESC
                     LIMIT 10";
             $stmt = $this->db->prepare($sql);
@@ -386,7 +461,7 @@ class Message
                         WHERE bu2.blocked_user_id = :user_id3
                         AND bu2.user_id = m.from_user_id
                     )
-                    AND u.role != 'manager'
+                    AND (u.role != 'manager' OR {$this->sqlIsSupportChat('m')})
                     ORDER BY m.created_at DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
@@ -404,7 +479,9 @@ class Message
      */
     public function getAdminNotifications($userId, $limit = 50)
     {
+        $supportChat = $this->sqlIsSupportChat('m');
         // Объединяем уведомления от админов (таблица admins) и менеджеров (пользователи с role='manager')
+        // Чаты по заявкам обратной связи сюда не входят — они в обычных диалогах
         $sql = "SELECT * FROM (
                     -- Уведомления от администраторов
                     SELECT m.*,
@@ -417,6 +494,7 @@ class Message
                     WHERE m.to_user_id = :user_id1
                     AND m.date_id IS NULL
                     AND m.event_id IS NULL
+                    AND NOT {$supportChat}
                     AND NOT EXISTS (
                         SELECT 1 FROM blocked_users bu1
                         WHERE bu1.user_id = :user_id2
@@ -436,6 +514,7 @@ class Message
                     WHERE m.to_user_id = :user_id3
                     AND m.date_id IS NULL
                     AND m.event_id IS NULL
+                    AND NOT {$supportChat}
                     AND NOT EXISTS (
                         SELECT 1 FROM blocked_users bu2
                         WHERE bu2.user_id = :user_id4
@@ -461,6 +540,7 @@ class Message
      */
     public function getUnreadAdminNotificationsCount($userId)
     {
+        $supportChat = $this->sqlIsSupportChat('m');
         // Считаем уведомления от админов (таблица admins) и менеджеров (пользователи с role='manager')
         $sql = "SELECT COUNT(*) as count FROM (
                     -- Уведомления от администраторов
@@ -471,6 +551,7 @@ class Message
                     AND m.date_id IS NULL
                     AND m.event_id IS NULL
                     AND (m.is_read = 0 OR m.is_read IS NULL)
+                    AND NOT {$supportChat}
                     AND NOT EXISTS (
                         SELECT 1 FROM blocked_users bu1
                         WHERE bu1.user_id = :user_id2
@@ -487,6 +568,7 @@ class Message
                     AND m.date_id IS NULL
                     AND m.event_id IS NULL
                     AND (m.is_read = 0 OR m.is_read IS NULL)
+                    AND NOT {$supportChat}
                     AND NOT EXISTS (
                         SELECT 1 FROM blocked_users bu2
                         WHERE bu2.user_id = :user_id4
@@ -566,7 +648,7 @@ class Message
             $otherUserId = $conv['other_user_id'];
 
             // Информация о пользователе
-            $userSql = "SELECT id, email, full_name, gender FROM users WHERE id = :other_id";
+            $userSql = "SELECT id, email, full_name, gender, role FROM users WHERE id = :other_id";
             $userStmt = $this->db->prepare($userSql);
             $userStmt->execute([':other_id' => $otherUserId]);
             $otherUser = $userStmt->fetch();
@@ -616,6 +698,7 @@ class Message
                 'other_user_email' => $otherUser['email'],
                 'other_user_full_name' => $otherUser['full_name'] ?? null,
                 'other_user_gender' => $otherUser['gender'],
+                'other_user_role' => $otherUser['role'] ?? 'user',
                 'photo' => $photo['photo'] ?? null,
                 'last_message' => $lastMessage['message'] ?? null,
                 'last_message_time' => $lastMessage['created_at'] ?? null,

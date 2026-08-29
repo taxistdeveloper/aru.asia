@@ -1383,7 +1383,7 @@ ob_start();
                                             <?php endif; ?>
                                             <div class="flex-grow-1" style="min-width: 0;">
                                                 <div class="d-flex align-items-center justify-content-between">
-                                                    <h6 class="mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; font-size: 15px;"><?= Helper::escape($conv['other_user_full_name'] ?? $conv['other_user_email']) ?></h6>
+                                                    <h6 class="mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; font-size: 15px;"><?= Helper::escape($conv['other_user_full_name'] ?? $conv['other_user_email']) ?><?php if (($conv['other_user_role'] ?? '') === 'manager'): ?> <span class="badge bg-info" style="font-size: 0.65rem;">Менеджер</span><?php endif; ?></h6>
                                                     <?php if (isset($conv['unread_count']) && $conv['unread_count'] > 0): ?>
                                                         <span class="badge bg-danger rounded-pill ms-2" style="font-size: 0.7rem; min-width: 18px; padding: 2px 6px; flex-shrink: 0;">
                                                             <?= $conv['unread_count'] > 99 ? '99+' : $conv['unread_count'] ?>
@@ -1562,7 +1562,13 @@ ob_start();
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
-                <?php if (!$isBlockedByMe && !$isBlockedByOther): ?>
+                <?php if (!empty($isSupportChatClosed)): ?>
+                    <div class="card-footer">
+                        <div class="alert alert-secondary mb-0" role="alert">
+                            Обращение закрыто. Вы не можете писать в этот чат.
+                        </div>
+                    </div>
+                <?php elseif (!$isBlockedByMe && !$isBlockedByOther): ?>
                     <div class="card-footer">
                         <form method="POST" action="<?= BASE_URL ?>messages/send" id="message-form-desktop" class="chat-input-form">
                             <input type="hidden" name="to_user_id" value="<?= $selectedUserId ?>">
@@ -1681,7 +1687,7 @@ ob_start();
                                                 <?php endif; ?>
                                                 <div class="flex-grow-1" style="min-width: 0;">
                                                     <div class="d-flex align-items-center justify-content-between">
-                                                        <h6 class="mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;"><?= Helper::escape($conv['other_user_full_name'] ?? $conv['other_user_email']) ?></h6>
+                                                        <h6 class="mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;"><?= Helper::escape($conv['other_user_full_name'] ?? $conv['other_user_email']) ?><?php if (($conv['other_user_role'] ?? '') === 'manager'): ?> <span class="badge bg-info" style="font-size: 0.65rem;">Менеджер</span><?php endif; ?></h6>
                                                         <?php if (isset($conv['unread_count']) && $conv['unread_count'] > 0): ?>
                                                             <span class="badge bg-danger rounded-pill ms-2" style="font-size: 0.7rem; min-width: 18px; padding: 2px 5px; flex-shrink: 0;">
                                                                 <?= $conv['unread_count'] > 99 ? '99+' : $conv['unread_count'] ?>
@@ -1868,7 +1874,13 @@ ob_start();
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
-                    <?php if (!$isBlockedByMe && !$isBlockedByOther): ?>
+                    <?php if (!empty($isSupportChatClosed)): ?>
+                        <div class="card-footer">
+                            <div class="alert alert-secondary mb-0" role="alert">
+                                Обращение закрыто. Вы не можете писать в этот чат.
+                            </div>
+                        </div>
+                    <?php elseif (!$isBlockedByMe && !$isBlockedByOther): ?>
                         <div class="card-footer">
                             <form method="POST" action="<?= BASE_URL ?>messages/send" id="message-form" class="chat-input-form">
                                 <input type="hidden" name="to_user_id" value="<?= $selectedUserId ?>">

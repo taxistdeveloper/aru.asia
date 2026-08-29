@@ -1417,7 +1417,6 @@ class ManagerController
 
         $feedbackId = $_POST['feedback_id'] ?? null;
         $status = $_POST['status'] ?? null;
-        $adminNotes = trim($_POST['admin_notes'] ?? '');
         $adminReply = trim($_POST['admin_reply'] ?? '');
 
         if ($feedbackId && $status) {
@@ -1427,86 +1426,26 @@ class ManagerController
                 $feedback = $this->feedbackModel->findById($feedbackId);
 
                 if ($feedback) {
-                    // Обновляем статус и заметки
-                    if ($this->feedbackModel->updateStatus($feedbackId, $status, $adminNotes)) {
-                        $successMessage = 'Статус заявки успешно обновлен';
+                    $result = $this->feedbackModel->sendStaffChat(
+                        $feedbackId,
+                        $adminReply,
+                        Helper::getUserId(),
+                        $status
+                    );
 
-                        // Если заполнен ответ, отправляем email и сообщение в аккаунт пользователю
-                        if (!empty($adminReply)) {
-                            $recipientEmail = $feedback['email'] ?? $feedback['user_email'] ?? null;
-                            $recipientUserId = $feedback['user_id'] ?? null;
-                            $managerId = Helper::getUserId();
-
-                            // Формируем текст сообщения для пользователя
-                            $messageText = "Ответ на ваше обращение #{$feedbackId}\n\n";
-                            $messageText .= "Тема: " . $feedback['subject'] . "\n\n";
-                            $messageText .= $adminReply;
-
-                            // Если пользователь авторизован, отправляем сообщение в аккаунт
-                            if ($recipientUserId && $managerId) {
-                                try {
-                                    // Сохраняем сообщение в аккаунт пользователя
-                                    if ($this->messageModel->send($managerId, $recipientUserId, $messageText)) {
-                                        // Отправляем push-уведомление
-                                        $pushService = new PushNotificationService();
-                                        $pushService->sendAdminNotification(
-                                            $recipientUserId,
-                                            'Ответ на ваше обращение',
-                                            'Ответ на обращение: ' . mb_substr($feedback['subject'], 0, 50)
-                                        );
-                                        $successMessage .= '. Ответ отправлен в аккаунт пользователя';
-                                        error_log("ManagerController: Feedback reply sent to user account #$recipientUserId for feedback #$feedbackId");
-                                    } else {
-                                        error_log("ManagerController: Failed to send feedback reply to user account #$recipientUserId for feedback #$feedbackId");
-                                    }
-                                } catch (Exception $e) {
-                                    error_log("ManagerController: Exception while sending feedback reply to user account: " . $e->getMessage());
-                                }
-                            }
-
-                            // Отправляем email (если указан email)
-                            if ($recipientEmail && filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
-                                try {
-                                    $emailService = new EmailService();
-
-                                    // Формируем тему письма
-                                    $subject = 'Ответ на ваше обращение #' . $feedbackId;
-
-                                    // Формируем тело письма
-                                    $body = '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">';
-                                    $body .= '<h2 style="color: #333;">Ответ на ваше обращение</h2>';
-                                    $body .= '<p>Здравствуйте!</p>';
-                                    $body .= '<p>Вы оставили обращение с темой: <strong>' . Helper::escape($feedback['subject']) . '</strong></p>';
-                                    $body .= '<div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0;">';
-                                    $body .= '<p style="margin: 0; white-space: pre-wrap;">' . nl2br(Helper::escape($adminReply)) . '</p>';
-                                    $body .= '</div>';
-                                    $body .= '<p style="color: #666; font-size: 12px; margin-top: 20px;">С уважением,<br>Команда поддержки</p>';
-                                    $body .= '</div>';
-
-                                    // Отправляем email
-                                    if ($emailService->send($recipientEmail, $subject, $body)) {
-                                        $successMessage .= '. Ответ отправлен на email';
-                                        error_log("ManagerController: Feedback reply sent to $recipientEmail for feedback #$feedbackId");
-                                    } else {
-                                        if (empty($recipientUserId)) {
-                                            $_SESSION['error_message'] = 'Статус обновлен, но не удалось отправить ответ на email';
-                                        }
-                                        error_log("ManagerController: Failed to send feedback reply to $recipientEmail for feedback #$feedbackId");
-                                    }
-                                } catch (Exception $e) {
-                                    error_log("ManagerController: Exception while sending feedback reply email: " . $e->getMessage());
-                                    if (empty($recipientUserId)) {
-                                        $_SESSION['error_message'] = 'Статус обновлен, но произошла ошибка при отправке ответа на email';
-                                    }
-                                }
-                            } elseif (empty($recipientUserId)) {
-                                $_SESSION['error_message'] = 'Статус обновлен, но email пользователя не указан или неверен';
-                            }
+                    if (!empty($result['success'])) {
+                        $successMessage = ($result['status'] ?? $status) === 'closed'
+                            ? 'Заявка закрыта. Пользователю отправлено: «Ваше обращение закрыто»'
+                            : 'Статус заявки успешно обновлен';
+                        if (!empty($result['delivered']['message'])) {
+                            $successMessage .= '. Сообщение отправлено в чат';
                         }
-
+                        if (!empty($result['delivered']['email'])) {
+                            $successMessage .= '. Ответ отправлен на email';
+                        }
                         $_SESSION['success_message'] = $successMessage;
                     } else {
-                        $_SESSION['error_message'] = 'Ошибка при обновлении статуса';
+                        $_SESSION['error_message'] = $result['error'] ?? 'Ошибка при обновлении статуса';
                     }
                 } else {
                     $_SESSION['error_message'] = 'Заявка не найдена';
@@ -1519,6 +1458,41 @@ class ManagerController
         }
 
         Helper::redirect('manager/feedback');
+    }
+
+    /**
+     * JSON: история чата по заявке
+     */
+    public function feedbackChat()
+    {
+        Helper::requireManager();
+        header('Content-Type: application/json; charset=utf-8');
+
+        $feedbackId = (int)($_GET['feedback_id'] ?? 0);
+        echo json_encode($this->feedbackModel->getChatForStaff($feedbackId), JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * JSON: ответ в чат заявки из панели менеджера
+     */
+    public function feedbackChatSend()
+    {
+        Helper::requireManager();
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Метод не разрешен']);
+            return;
+        }
+
+        $feedbackId = (int)($_POST['feedback_id'] ?? 0);
+        $message = trim((string)($_POST['message'] ?? $_POST['admin_reply'] ?? ''));
+        $status = $_POST['status'] ?? null;
+
+        echo json_encode(
+            $this->feedbackModel->sendStaffChat($feedbackId, $message, Helper::getUserId(), $status),
+            JSON_UNESCAPED_UNICODE
+        );
     }
 
     /**

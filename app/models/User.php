@@ -411,6 +411,19 @@ class User
     }
 
     /**
+     * Первый активный менеджер (для чата поддержки, если отвечает админ)
+     */
+    public function findFirstManager()
+    {
+        $sql = "SELECT * FROM users
+                WHERE role = 'manager' AND deleted_at IS NULL
+                ORDER BY id ASC
+                LIMIT 1";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
      * Сохраняет remember token для пользователя
      */
     public function saveRememberToken($userId, $token)
