@@ -186,6 +186,27 @@
 
     <!-- ОСНОВНОЙ КОНТЕНТ С ЛЕВЫМ МЕНЮ -->
     <main class="admin-layout">
+        <?php
+        // Уведомление об истечении SSL-сертификата (только для администратора)
+        if (Helper::isAdminLoggedIn() && class_exists('SslCertificateChecker')) {
+            try {
+                $sslStatus = SslCertificateChecker::status();
+
+                // ?ssl_preview=warning|critical|expired — посмотреть, как выглядит уведомление
+                $sslPreview = $_GET['ssl_preview'] ?? '';
+                if (in_array($sslPreview, ['warning', 'critical', 'expired'], true)) {
+                    $sslPreviewDays = ['warning' => 21, 'critical' => 3, 'expired' => -2][$sslPreview];
+                    $sslStatus['state'] = $sslPreview;
+                    $sslStatus['days_left'] = $sslPreviewDays;
+                    $sslStatus['valid_to'] = time() + $sslPreviewDays * 86400;
+                }
+
+                include __DIR__ . '/admin/ssl_alert.php';
+            } catch (Throwable $e) {
+                error_log('admin_layout - SSL check failed: ' . $e->getMessage());
+            }
+        }
+        ?>
         <div class="row g-3 admin-layout-row">
             <aside class="col-12 col-md-3 col-lg-2 d-none d-md-block">
                 <div class="admin-sidebar">

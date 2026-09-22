@@ -593,6 +593,50 @@ ob_start();
                     </div>
                 </div>
 
+                <!-- SSL-сертификат -->
+                <?php
+                $sslCard = class_exists('SslCertificateChecker') ? SslCertificateChecker::status() : null;
+                if ($sslCard && $sslCard['state'] !== 'skipped'):
+                    $sslCardMap = [
+                        'ok' => ['success', 'shield-check', 'Сертификат в порядке'],
+                        'warning' => ['warning', 'shield-exclamation', 'Скоро истекает'],
+                        'critical' => ['danger', 'shield-exclamation', 'Истекает вот-вот'],
+                        'expired' => ['danger', 'shield-slash', 'Сертификат истёк'],
+                        'unknown' => ['secondary', 'shield-slash', 'Статус неизвестен'],
+                    ];
+                    [$sslCardColor, $sslCardIcon, $sslCardLabel] = $sslCardMap[$sslCard['state']] ?? $sslCardMap['unknown'];
+                ?>
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-<?= $sslCardIcon ?>"></i> SSL-сертификат</h6>
+                                <span class="badge bg-<?= $sslCardColor ?> small-badge"><?= Helper::escape($sslCardLabel) ?></span>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-label"><?= Helper::escape($sslCard['host']) ?></div>
+                                <?php if ($sslCard['days_left'] !== null): ?>
+                                    <div class="stat-number" style="color: var(--bs-<?= $sslCardColor ?>);">
+                                        <?= $sslCard['state'] === 'expired' ? 'Истёк' : (int) $sslCard['days_left'] . ' дн.' ?>
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        Действует до <?= date('d.m.Y H:i', (int) $sslCard['valid_to']) ?>
+                                    </small>
+                                    <?php if (!empty($sslCard['issuer'])): ?>
+                                        <small class="text-muted d-block">Выдан: <?= Helper::escape($sslCard['issuer']) ?></small>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <div class="text-muted small">
+                                        Не удалось проверить: <?= Helper::escape($sslCard['error'] ?? 'неизвестная ошибка') ?>
+                                    </div>
+                                <?php endif; ?>
+                                <small class="text-muted d-block mt-1">
+                                    Проверено: <?= date('d.m.Y H:i', (int) $sslCard['checked_at']) ?>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Риски / модерация -->
                 <div class="col-12">
                     <div class="card">
