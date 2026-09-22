@@ -789,9 +789,21 @@ ob_start();
                 display: none !important;
             }
 
+            /* Обёртка от layout.php: без высоты 100% ломается цепочка процентов
+               и футер с полем ввода уезжает под низ экрана */
+            body.chat-page .container-fluid,
+            body.chat-page .container-fluid.px-3,
+            body.chat-page .desktop-layout {
+                height: 100%;
+                max-height: 100%;
+            }
+
             body.chat-page .mobile-page-container,
             body.chat-page #chat-view.mobile-page-container {
                 height: 100%;
+                /* min-height:100vh из базового правила выше сильнее max-height,
+                   на Android без поддержки dvh это обрезает футер */
+                min-height: 0;
                 max-height: 100%;
                 display: flex;
                 flex-direction: column;
@@ -2189,7 +2201,7 @@ ob_start();
 
             // Функция для обеспечения видимости footer
             function ensureFooterVisible() {
-                const footer = document.querySelector('.chat-card .card-footer');
+                const footer = document.querySelector('#chat-view .chat-card .card-footer');
                 if (footer) {
                     const rect = footer.getBoundingClientRect();
                     const viewportHeight = window.innerHeight;
