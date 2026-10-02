@@ -9,10 +9,10 @@ ob_start();
 
 <?php if ($selectedUserId): ?>
     <style>
-        /* Стили для страницы чата в стиле Telegram */
-        html.chat-html,
-        html.chat-html body.chat-page {
-            height: 100%;
+        /* Стили для страницы чата в стиле Telegram.
+           Высоту экрана задаёт только мобильный блок ниже — иначе
+           html.chat-html body { height:100% } перебивает --app-height. */
+        html.chat-html {
             overscroll-behavior: none;
         }
 
@@ -20,7 +20,6 @@ ob_start();
             padding: 0 !important;
             margin: 0 !important;
             background: #e5e5e5;
-            overflow: hidden;
         }
 
         body.chat-page .mobile-bottom-nav {
@@ -39,8 +38,7 @@ ob_start();
         body.chat-page .mobile-page-container {
             margin: 0 !important;
             padding: 0 !important;
-            min-height: 100vh;
-            min-height: 100dvh;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
@@ -395,7 +393,8 @@ ob_start();
             flex: 1 1 auto;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 60px);
+            height: auto;
+            max-height: 100%;
             min-height: 0;
             overflow: hidden;
             transform: none !important;
@@ -597,8 +596,10 @@ ob_start();
 
             /* Контейнер для чата */
             .desktop-chat-container {
-                flex: 1;
+                flex: 1 1 auto;
                 min-width: 0;
+                min-height: 0;
+                height: auto;
                 background: white;
                 border-radius: 12px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -618,10 +619,11 @@ ob_start();
                 font-weight: 600;
             }
 
-            .desktop-chat-container .chat-card {
-                flex: 1;
+            body.chat-page .desktop-chat-container .chat-card {
+                flex: 1 1 auto;
                 min-height: 0;
                 height: auto;
+                max-height: none;
                 border-radius: 0 0 12px 12px;
             }
 
@@ -766,44 +768,47 @@ ob_start();
 
         /* МОБИЛЬНЫЕ И ПЛАНШЕТЫ (до lg / 991px — тот же порог, что d-lg-none) */
         @media (max-width: 991.98px) {
-            html.chat-html,
-            html.chat-html body.chat-page {
-                height: 100%;
+            html.chat-html {
                 overscroll-behavior: none;
             }
 
-            body.chat-page {
-                background: #e5e5e5;
-                height: 100%;
+            /* body.chat-page есть сразу из PHP. Не вешать высоту на html —
+               иначе position:fixed обрезается вместе с документом. */
+            body.chat-page,
+            html.chat-html body.chat-page {
                 height: 100dvh;
                 height: var(--app-height, 100dvh);
                 max-height: var(--app-height, 100dvh);
+                background: #e5e5e5;
+                position: fixed;
+                top: var(--app-top, 0px);
+                left: 0;
+                right: 0;
+                bottom: auto;
+                width: 100%;
                 overflow: hidden !important;
                 padding: 0 !important;
-                position: fixed;
-                inset: 0;
-                width: 100%;
+                margin: 0 !important;
             }
 
-            body.chat-page .mobile-top-nav {
+            body.chat-page .mobile-top-nav,
+            body.chat-page .desktop-nav,
+            body.chat-page .desktop-only {
                 display: none !important;
             }
 
-            /* Обёртка от layout.php: без высоты 100% ломается цепочка процентов
-               и футер с полем ввода уезжает под низ экрана */
             body.chat-page .container-fluid,
             body.chat-page .container-fluid.px-3,
             body.chat-page .desktop-layout {
                 height: 100%;
                 max-height: 100%;
+                overflow: hidden;
             }
 
             body.chat-page .mobile-page-container,
             body.chat-page #chat-view.mobile-page-container {
                 height: 100%;
-                /* min-height:100vh из базового правила выше сильнее max-height,
-                   на Android без поддержки dvh это обрезает футер */
-                min-height: 0;
+                min-height: 0 !important;
                 max-height: 100%;
                 display: flex;
                 flex-direction: column;
@@ -817,10 +822,19 @@ ob_start();
             body.chat-page .d-lg-none {
                 flex: 1 1 auto;
                 min-height: 0;
-                height: 100%;
+                height: auto;
+                max-height: 100%;
                 display: flex;
                 flex-direction: column;
                 width: 100%;
+                overflow: hidden;
+            }
+
+            body.chat-page .d-lg-none > #chat-view.mobile-page-container {
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 0 !important;
+                max-height: 100%;
             }
 
             .chat-page-header {
@@ -1935,9 +1949,12 @@ ob_start();
             document.documentElement.classList.add('chat-html');
 
             function setAppHeight() {
-                var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                var vv = window.visualViewport;
+                var h = vv ? vv.height : window.innerHeight;
                 if (!h || h < 100) h = window.innerHeight;
-                document.documentElement.style.setProperty('--app-height', h + 'px');
+                var top = vv && vv.offsetTop ? vv.offsetTop : 0;
+                document.documentElement.style.setProperty('--app-height', Math.round(h) + 'px');
+                document.documentElement.style.setProperty('--app-top', Math.round(top) + 'px');
             }
 
             setAppHeight();
@@ -2169,6 +2186,8 @@ ob_start();
         function adjustMessagesContainerHeight() {
             // На мобильных и планшетах используем flexbox, не устанавливаем фиксированную высоту
             if (window.innerWidth < 992) {
+                const mobileDesktopContainer = document.getElementById('messages-container-desktop');
+                if (mobileDesktopContainer) mobileDesktopContainer.style.height = '';
                 return;
             }
 
@@ -2195,49 +2214,10 @@ ob_start();
         window.addEventListener('load', adjustMessagesContainerHeight);
         setTimeout(adjustMessagesContainerHeight, 100);
 
-        // Обработка виртуальной клавиатуры на мобильных устройствах
-        if (window.innerWidth < 992) {
-            let viewportHeight = window.innerHeight;
-
-            // Функция для обеспечения видимости footer
-            function ensureFooterVisible() {
-                const footer = document.querySelector('#chat-view .chat-card .card-footer');
-                if (footer) {
-                    const rect = footer.getBoundingClientRect();
-                    const viewportHeight = window.innerHeight;
-                    const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0');
-
-                    // Если footer скрывается за нижней границей экрана
-                    if (rect.bottom > viewportHeight - safeAreaBottom) {
-                        footer.style.marginBottom = '0';
-                        // Прокручиваем страницу, чтобы footer был виден
-                        footer.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'end'
-                        });
-                    }
-                }
-            }
-
-            window.addEventListener('resize', function() {
-                const currentHeight = window.innerHeight;
-                // Если высота уменьшилась более чем на 150px, вероятно открылась клавиатура
-                if (currentHeight < viewportHeight - 150) {
-                    // Клавиатура открыта
-                    setTimeout(() => {
-                        scrollToBottom();
-                        ensureFooterVisible();
-                    }, 300);
-                } else {
-                    viewportHeight = currentHeight;
-                    ensureFooterVisible();
-                }
+        if (window.innerWidth < 992 && window.visualViewport) {
+            window.visualViewport.addEventListener('resize', function() {
+                setTimeout(scrollToBottom, 50);
             });
-
-            // Проверяем видимость footer при загрузке и после изменений
-            window.addEventListener('load', ensureFooterVisible);
-            window.addEventListener('scroll', ensureFooterVisible);
-            setTimeout(ensureFooterVisible, 500);
         }
     </script>
 <?php endif; ?>
@@ -2528,7 +2508,6 @@ ob_start();
         });
     });
 </script>
-</div>
 
 <?php
 $content = ob_get_clean();
