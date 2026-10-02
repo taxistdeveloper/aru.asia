@@ -588,7 +588,7 @@ ob_start();
                 </div>
 
                 <div class="mb-3">
-                    <label for="price" class="form-label">Цена <span id="currency-symbol">₸</span></label>
+                    <label for="price" class="form-label">Цена <span id="currency-symbol"><?= Helper::currencySymbol(Helper::eventCurrency($event)) ?></span></label>
                     <input type="number"
                         class="form-control"
                         id="price"
@@ -597,7 +597,7 @@ ob_start();
                         min="0"
                         step="100">
                     <small class="text-muted">Укажите 0 если мероприятие бесплатное</small>
-                    <input type="hidden" id="currency_code" name="currency_code" value="KZT">
+                    <input type="hidden" id="currency_code" name="currency_code" value="<?= Helper::escape(Helper::eventCurrency($event)) ?>">
                 </div>
 
                 <div class="event-publish-tariff mb-3">

@@ -55,7 +55,7 @@ ob_start();
                             
                             <div class="mb-2">
                                 <strong><i class="bi bi-currency-exchange"></i> Цена:</strong><br>
-                                <?= number_format($event['price'], 0) ?> ₸
+                                <?= Helper::formatEventPrice($event['price'], $event) ?>
                             </div>
                             
                             <div class="mb-2">

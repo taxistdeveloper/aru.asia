@@ -56,6 +56,7 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
         <h3 class="events-section-title">Мои мероприятия</h3>
         <div class="events-list">
             <?php foreach ($myEvents as $event): ?>
+                <?php $event['currency_code'] = Helper::eventCurrency($event); ?>
                 <div class="event-item-compact event-item-mine" 
                      id="event-<?= $event['id'] ?>" 
                      data-event='<?= htmlspecialchars(json_encode($event), ENT_QUOTES, 'UTF-8') ?>'
@@ -120,34 +121,13 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
                             <?php endif; ?>
                         <?php endif; ?>
                         <?php if (!empty($event['price']) && $event['price'] > 0): ?>
-                            <?php
-                            $currencyCode = $event['currency_code'] ?? 'KZT';
-                            $currencySymbol = '₸';
-                            $currencyMap = [
-                                'KZT' => '₸',
-                                'RUB' => '₽',
-                                'BYN' => 'Br',
-                                'UAH' => '₴',
-                                'USD' => '$',
-                                'EUR' => '€',
-                                'GBP' => '£',
-                                'CNY' => '¥',
-                                'JPY' => '¥',
-                                'TRY' => '₺',
-                                'KGS' => 'сом',
-                                'UZS' => 'сум'
-                            ];
-                            if (isset($currencyMap[$currencyCode])) {
-                                $currencySymbol = $currencyMap[$currencyCode];
-                            }
-                            ?>
                             <div class="event-compact-price"
                                  data-amount="<?= htmlspecialchars((string) (float) $event['price'], ENT_QUOTES, 'UTF-8') ?>"
-                                 data-currency="<?= Helper::escape($currencyCode) ?>">
+                                 data-currency="<?= Helper::escape($event['currency_code']) ?>">
                                 <i class="bi bi-currency-exchange"></i>
                                 <div class="event-compact-price-main">
                                     <span>
-                                        <?= number_format($event['price'], 0, ',', ' ') ?> <?= $currencySymbol ?>
+                                        <?= Helper::formatEventPrice($event['price'], $event) ?>
                                     </span>
                                 </div>
                             </div>
@@ -198,6 +178,7 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
         <?php else: ?>
             <div class="events-list">
                 <?php foreach ($otherEvents as $event): ?>
+                    <?php $event['currency_code'] = Helper::eventCurrency($event); ?>
                     <div class="event-item-compact" 
                          id="event-<?= $event['id'] ?>" 
                          data-event='<?= htmlspecialchars(json_encode($event), ENT_QUOTES, 'UTF-8') ?>'
@@ -262,34 +243,13 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
                                 <?php endif; ?>
                             <?php endif; ?>
                             <?php if (!empty($event['price']) && $event['price'] > 0): ?>
-                                <?php
-                                $currencyCode = $event['currency_code'] ?? 'KZT';
-                                $currencySymbol = '₸';
-                                $currencyMap = [
-                                    'KZT' => '₸',
-                                    'RUB' => '₽',
-                                    'BYN' => 'Br',
-                                    'UAH' => '₴',
-                                    'USD' => '$',
-                                    'EUR' => '€',
-                                    'GBP' => '£',
-                                    'CNY' => '¥',
-                                    'JPY' => '¥',
-                                    'TRY' => '₺',
-                                    'KGS' => 'сом',
-                                    'UZS' => 'сум'
-                                ];
-                                if (isset($currencyMap[$currencyCode])) {
-                                    $currencySymbol = $currencyMap[$currencyCode];
-                                }
-                                ?>
                                 <div class="event-compact-price"
                                      data-amount="<?= htmlspecialchars((string) (float) $event['price'], ENT_QUOTES, 'UTF-8') ?>"
-                                     data-currency="<?= Helper::escape($currencyCode) ?>">
+                                     data-currency="<?= Helper::escape($event['currency_code']) ?>">
                                     <i class="bi bi-currency-exchange"></i>
                                     <div class="event-compact-price-main">
                                         <span>
-                                            <?= number_format($event['price'], 0, ',', ' ') ?> <?= $currencySymbol ?>
+                                            <?= Helper::formatEventPrice($event['price'], $event) ?>
                                         </span>
                                     </div>
                                 </div>
@@ -2308,6 +2268,32 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
 
     let __aruKztRates = null;
 
+    function currencyCodeForEvent(event) {
+        const known = ['KZT', 'RUB', 'BYN', 'UAH', 'USD', 'EUR', 'GBP', 'CNY', 'JPY', 'TRY', 'KGS', 'UZS'];
+        const stored = event && event.currency_code ? String(event.currency_code).toUpperCase() : '';
+        if (known.indexOf(stored) !== -1) return stored;
+        const text = String((event && event.location) || '').toLowerCase();
+        const rules = [
+            ['беларус', 'BYN'], ['belarus', 'BYN'], ['белорусс', 'BYN'],
+            ['росси', 'RUB'], ['russia', 'RUB'],
+            ['украин', 'UAH'], ['ukraine', 'UAH'],
+            ['кыргыз', 'KGS'], ['киргиз', 'KGS'], ['kyrgyz', 'KGS'],
+            ['узбек', 'UZS'], ['uzbekistan', 'UZS'],
+            ['великобритан', 'GBP'], ['united kingdom', 'GBP'],
+            ['герман', 'EUR'], ['франц', 'EUR'], ['итали', 'EUR'], ['испан', 'EUR'],
+            ['germany', 'EUR'], ['france', 'EUR'], ['italy', 'EUR'], ['spain', 'EUR'],
+            ['китай', 'CNY'], ['china', 'CNY'],
+            ['япони', 'JPY'], ['japan', 'JPY'],
+            ['турци', 'TRY'], ['turkey', 'TRY'],
+            ['казахстан', 'KZT'], ['kazakhstan', 'KZT'],
+            ['united states', 'USD'], ['сша', 'USD']
+        ];
+        for (let i = 0; i < rules.length; i++) {
+            if (text.indexOf(rules[i][0]) !== -1) return rules[i][1];
+        }
+        return 'KZT';
+    }
+
     function guessViewerCurrency() {
         const lang = (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US';
         if (/kk|kz/i.test(lang)) return 'KZT';
@@ -2670,16 +2656,6 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
                                 locationInfo.innerHTML = '<i class="bi bi-globe"></i><span>Создано в: ' + escapeHtml(cityText + locationData.country) + '</span>';
                             }
                             
-                            // Если страна - Россия, обновляем валюту на рубль
-                            const countryLower = locationData.country.toLowerCase();
-                            if (countryLower.includes('россия') || countryLower.includes('russia') || countryLower.includes('российская')) {
-                                const priceInfo = document.querySelector('#eventDetailContent .event-price-info .event-price-original');
-                                if (priceInfo && event.price) {
-                                    const priceValue = parseFloat(event.price).toLocaleString('ru-RU');
-                                    priceInfo.textContent = priceValue + ' ₽';
-                                }
-                                refreshModalPriceConversion();
-                            }
                         } else {
                             // Если не удалось определить по координатам, используем данные из адреса
                             const locationParts = event.location.split(',').map(p => p.trim()).filter(p => p.length > 0);
@@ -2691,16 +2667,6 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
                                     locationInfo.innerHTML = '<i class="bi bi-globe"></i><span>Создано в: ' + escapeHtml(city) + ', ' + escapeHtml(country) + '</span>';
                                 }
                                 
-                                // Проверяем адрес на наличие России
-                                const countryLower = country.toLowerCase();
-                                if (countryLower.includes('россия') || countryLower.includes('russia') || countryLower.includes('российская')) {
-                                    const priceInfo = document.querySelector('#eventDetailContent .event-price-info .event-price-original');
-                                    if (priceInfo && event.price) {
-                                        const priceValue = parseFloat(event.price).toLocaleString('ru-RU');
-                                        priceInfo.textContent = priceValue + ' ₽';
-                                    }
-                                    refreshModalPriceConversion();
-                                }
                             }
                         }
                     });
@@ -2715,34 +2681,13 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
                         html += '<span>Создано в: ' + escapeHtml(city) + ', ' + escapeHtml(country) + '</span>';
                         html += '</div>';
                         
-                        // Проверяем адрес на наличие России и обновляем валюту
-                        const countryLower = country.toLowerCase();
-                        if ((countryLower.includes('россия') || countryLower.includes('russia') || countryLower.includes('российская')) && event.price) {
-                            setTimeout(function() {
-                                const priceInfo = document.querySelector('#eventDetailContent .event-price-info .event-price-original');
-                                if (priceInfo) {
-                                    const priceValue = parseFloat(event.price).toLocaleString('ru-RU');
-                                    priceInfo.textContent = priceValue + ' ₽';
-                                }
-                                refreshModalPriceConversion();
-                            }, 100);
-                        }
                     }
                 }
             }
             
             // Цена
             if (event.price) {
-                let currencyCode = event.currency_code || 'KZT';
-                
-                // Проверяем адрес на наличие России
-                if (event.location) {
-                    const locationParts = event.location.split(',').map(p => p.trim()).filter(p => p.length > 0);
-                    const countryFromAddress = locationParts.length > 0 ? locationParts[locationParts.length - 1].toLowerCase() : '';
-                    if (countryFromAddress.includes('россия') || countryFromAddress.includes('russia') || countryFromAddress.includes('российская')) {
-                        currencyCode = 'RUB';
-                    }
-                }
+                let currencyCode = currencyCodeForEvent(event);
                 
                 const currencyMap = {
                     'KZT': '₸',

@@ -115,7 +115,7 @@ ob_start();
                                 <?php if (!empty($event['price'])): ?>
                                 <div class="mb-2">
                                     <strong><i class="bi bi-currency-exchange"></i> Цена:</strong><br>
-                                    <?= number_format((float)$event['price'], 0) ?> ₸
+                                    <?= Helper::formatEventPrice($event['price'], $event) ?>
                                 </div>
                                 <?php endif; ?>
                                 <div class="mb-2">

@@ -282,6 +282,7 @@ class EventsController
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'price' => (isset($_POST['price']) && $_POST['price'] !== '' && is_numeric($_POST['price'])) ? (float)$_POST['price'] : 0,
+                'currency_code' => $_POST['currency_code'] ?? null,
                 'photo' => $photoPath,
                 'status' => 'pending' // Новые мероприятия создаются со статусом pending
             ];
@@ -445,6 +446,7 @@ class EventsController
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'price' => (isset($_POST['price']) && $_POST['price'] !== '' && is_numeric($_POST['price'])) ? (float)$_POST['price'] : 0,
+                'currency_code' => $_POST['currency_code'] ?? null,
                 'photo' => $photoPath
             ];
 

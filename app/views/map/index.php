@@ -158,7 +158,7 @@ function formatAddress($location)
                                 <i class="bi bi-calendar"></i>
                                 Дата: <?= date('d.m.Y', strtotime($event['event_date'])) ?> Время: <?= date('H:i', strtotime($event['event_date'])) ?><br>
                                 <i class="bi bi-currency-exchange"></i>
-                                <?= number_format($event['price'], 0) ?> ₸<br>
+                                <?= Helper::formatEventPrice($event['price'], $event) ?><br>
                                 <?php if (Helper::isLoggedIn() && isset($event['distance']) && $event['distance'] > 0): ?>
                                     <i class="bi bi-rulers"></i>
                                     <?= number_format($event['distance'], 1) ?> км
@@ -222,7 +222,7 @@ function formatAddress($location)
             '<strong>' . Helper::escape($event['title']) . '</strong><br>' .
             '📍 Адрес: ' . Helper::escape($formattedLocation) . '<br>' .
             '📅 Дата: ' . date('d.m.Y', strtotime($event['event_date'])) . ' Время: ' . date('H:i', strtotime($event['event_date'])) . '<br>' .
-            '💰 Цена: ' . number_format($event['price'], 0) . ' ₸' . $distanceText .
+            '💰 Цена: ' . Helper::formatEventPrice($event['price'], $event) . $distanceText .
             '<br><br><a href="' . BASE_URL . 'events#event-' . (int)$event['id'] . '" style="display: block; width: 100%; text-align: center; background-color: #0d6efd; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;">Подробнее</a>' .
             '</div>';
         ?>

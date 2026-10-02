@@ -7,9 +7,56 @@
 
 class Event {
     private $db;
+    private static $currencyColumnReady = false;
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
+        $this->ensureCurrencyColumn();
+    }
+
+    /**
+     * Колонка валюты цены и заполнение старых объявлений по стране адреса.
+     */
+    public function ensureCurrencyColumn(): void
+    {
+        if (self::$currencyColumnReady) {
+            return;
+        }
+
+        try {
+            $check = $this->db->query("SHOW COLUMNS FROM events LIKE 'currency_code'");
+            if ($check && $check->rowCount() === 0) {
+                $this->db->exec("ALTER TABLE events ADD COLUMN currency_code CHAR(3) NULL DEFAULT NULL AFTER price");
+            }
+            $this->backfillCurrencyCodes();
+            self::$currencyColumnReady = true;
+        } catch (Exception $e) {
+            error_log('Event::ensureCurrencyColumn error: ' . $e->getMessage());
+        }
+    }
+
+    private function backfillCurrencyCodes(): void
+    {
+        $stmt = $this->db->query("SELECT id, location FROM events WHERE currency_code IS NULL OR currency_code = ''");
+        $rows = $stmt ? $stmt->fetchAll() : [];
+        if (!$rows) {
+            return;
+        }
+
+        $update = $this->db->prepare(
+            "UPDATE events SET currency_code = :code WHERE id = :id AND (currency_code IS NULL OR currency_code = '')"
+        );
+        foreach ($rows as $row) {
+            $update->execute([
+                ':code' => Helper::currencyFromLocation($row['location'] ?? ''),
+                ':id' => $row['id'],
+            ]);
+        }
+    }
+
+    private function currencyCodeFromData(array $data): string
+    {
+        return Helper::resolveEventCurrency($data['currency_code'] ?? null, $data['location'] ?? '');
     }
 
     /**
@@ -17,9 +64,9 @@ class Event {
      */
     public function create($data) {
         $sql = "INSERT INTO events
-                (user_id, title, description, event_date, location, latitude, longitude, price, photo, status, created_at)
+                (user_id, title, description, event_date, location, latitude, longitude, price, currency_code, photo, status, created_at)
                 VALUES
-                (:user_id, :title, :description, :event_date, :location, :latitude, :longitude, :price, :photo, :status, NOW())";
+                (:user_id, :title, :description, :event_date, :location, :latitude, :longitude, :price, :currency_code, :photo, :status, NOW())";
 
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -31,6 +78,7 @@ class Event {
             ':latitude' => $data['latitude'],
             ':longitude' => $data['longitude'],
             ':price' => (isset($data['price']) && $data['price'] !== '' && is_numeric($data['price'])) ? (float)$data['price'] : 0,
+            ':currency_code' => $this->currencyCodeFromData($data),
             ':photo' => $data['photo'] ?? null,
             ':status' => $data['status'] ?? 'pending'
         ]);
@@ -180,6 +228,7 @@ class Event {
                         latitude = :latitude,
                         longitude = :longitude,
                         price = :price,
+                        currency_code = :currency_code,
                         photo = :photo,
                         status = 'pending'
                     WHERE id = :id AND user_id = :user_id";
@@ -195,6 +244,7 @@ class Event {
                 ':latitude' => $data['latitude'],
                 ':longitude' => $data['longitude'],
                 ':price' => (isset($data['price']) && $data['price'] !== '' && is_numeric($data['price'])) ? (float)$data['price'] : 0,
+                ':currency_code' => $this->currencyCodeFromData($data),
                 ':photo' => $data['photo']
             ]);
         } else {
@@ -207,6 +257,7 @@ class Event {
                         latitude = :latitude,
                         longitude = :longitude,
                         price = :price,
+                        currency_code = :currency_code,
                         status = 'pending'
                     WHERE id = :id AND user_id = :user_id";
 
@@ -220,7 +271,8 @@ class Event {
                 ':location' => $data['location'],
                 ':latitude' => $data['latitude'],
                 ':longitude' => $data['longitude'],
-                ':price' => (isset($data['price']) && $data['price'] !== '' && is_numeric($data['price'])) ? (float)$data['price'] : 0
+                ':price' => (isset($data['price']) && $data['price'] !== '' && is_numeric($data['price'])) ? (float)$data['price'] : 0,
+                ':currency_code' => $this->currencyCodeFromData($data)
             ]);
         }
     }

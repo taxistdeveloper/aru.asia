@@ -1063,4 +1063,131 @@ class Helper
 
         return null;
     }
+
+    /**
+     * Символы валют цены мероприятия.
+     */
+    public static function currencySymbols(): array
+    {
+        return [
+            'KZT' => '₸',
+            'RUB' => '₽',
+            'BYN' => 'Br',
+            'UAH' => '₴',
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            'CNY' => '¥',
+            'JPY' => '¥',
+            'TRY' => '₺',
+            'KGS' => 'сом',
+            'UZS' => 'сум',
+        ];
+    }
+
+    /**
+     * Проверяет код валюты. Неизвестный код отбрасывается.
+     */
+    public static function normalizeCurrencyCode(?string $code): ?string
+    {
+        $code = strtoupper(trim((string) $code));
+        if ($code === '' || !isset(self::currencySymbols()[$code])) {
+            return null;
+        }
+        return $code;
+    }
+
+    public static function currencySymbol(?string $code): string
+    {
+        $code = self::normalizeCurrencyCode($code) ?? 'KZT';
+        return self::currencySymbols()[$code];
+    }
+
+    /**
+     * Валюта страны по тексту адреса. Если страна не найдена — тенге.
+     */
+    public static function currencyFromLocation(?string $location): string
+    {
+        $text = mb_strtolower(trim((string) $location), 'UTF-8');
+        if ($text === '') {
+            return 'KZT';
+        }
+
+        $rules = [
+            'беларус' => 'BYN',
+            'belarus' => 'BYN',
+            'белорусс' => 'BYN',
+            'российск' => 'RUB',
+            'россия' => 'RUB',
+            'russia' => 'RUB',
+            'украин' => 'UAH',
+            'ukraine' => 'UAH',
+            'кыргыз' => 'KGS',
+            'киргиз' => 'KGS',
+            'kyrgyz' => 'KGS',
+            'узбек' => 'UZS',
+            'uzbekistan' => 'UZS',
+            'великобритан' => 'GBP',
+            'united kingdom' => 'GBP',
+            'герман' => 'EUR',
+            'франц' => 'EUR',
+            'итали' => 'EUR',
+            'испан' => 'EUR',
+            'germany' => 'EUR',
+            'france' => 'EUR',
+            'italy' => 'EUR',
+            'spain' => 'EUR',
+            'китай' => 'CNY',
+            'china' => 'CNY',
+            'япони' => 'JPY',
+            'japan' => 'JPY',
+            'турци' => 'TRY',
+            'turkey' => 'TRY',
+            'казахстан' => 'KZT',
+            'kazakhstan' => 'KZT',
+            'united states' => 'USD',
+            'сша' => 'USD',
+        ];
+
+        foreach ($rules as $needle => $code) {
+            if (mb_strpos($text, $needle) !== false) {
+                return $code;
+            }
+        }
+
+        return 'KZT';
+    }
+
+    /**
+     * Валюта объявления: сохранённый код, иначе страна из адреса.
+     */
+    public static function eventCurrency(array $event): string
+    {
+        $code = self::normalizeCurrencyCode($event['currency_code'] ?? null);
+        if ($code !== null) {
+            return $code;
+        }
+        return self::currencyFromLocation($event['location'] ?? '');
+    }
+
+    /**
+     * Цена мероприятия с символом его валюты.
+     * Явно выбранная валюта формы важнее адреса, кроме тенге по умолчанию:
+     * скрытое поле изначально KZT, и для другой страны берём страну места.
+     */
+    public static function resolveEventCurrency(?string $postedCode, ?string $location): string
+    {
+        $posted = self::normalizeCurrencyCode($postedCode);
+        $fromLocation = self::currencyFromLocation($location);
+        if ($posted !== null && $posted !== 'KZT') {
+            return $posted;
+        }
+        return $fromLocation;
+    }
+
+    public static function formatEventPrice($amount, array $event): string
+    {
+        $code = self::eventCurrency($event);
+        return number_format((float) $amount, 0, ',', ' ') . ' ' . self::currencySymbol($code);
+    }
 }
