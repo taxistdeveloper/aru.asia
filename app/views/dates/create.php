@@ -410,7 +410,11 @@ ob_start();
                         id="date_time"
                         name="date_time"
                         max="<?= Helper::getMaxPlanningDateTimeLocal() ?>"
+                        aria-describedby="date_time_hint"
                         required>
+                    <small id="date_time_hint" class="form-text text-muted">
+                        Укажите дату в пределах <?= Helper::getMaxPlanningDays() ?> дней от сегодня.
+                    </small>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg btn-free-date">
@@ -421,6 +425,20 @@ ob_start();
     </form>
 </div>
 
+
+<script>
+    const dateTimeInput = document.getElementById('date_time');
+
+    dateTimeInput.addEventListener('invalid', function() {
+        if (this.validity.rangeOverflow) {
+            this.setCustomValidity('Не более <?= Helper::getMaxPlanningDays() ?> дней.\nВыберите другую дату.');
+        }
+    });
+
+    dateTimeInput.addEventListener('input', function() {
+        this.setCustomValidity('');
+    });
+</script>
 
 <?php
 $content = ob_get_clean();

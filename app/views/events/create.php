@@ -3222,7 +3222,7 @@ out skel qt;`;
 
     eventDateInput.addEventListener('invalid', function() {
         if (this.validity.rangeOverflow) {
-            this.setCustomValidity('Не более <?= Helper::getMaxPlanningDays() ?> дней. Выберите другую дату.');
+            this.setCustomValidity('Не более <?= Helper::getMaxPlanningDays() ?> дней.\nВыберите другую дату.');
         }
     });
 
