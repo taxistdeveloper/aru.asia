@@ -1003,7 +1003,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                     <input type="hidden" id="longitude" name="longitude">
                     <div id="locationStatus" class="mt-2"></div>
                     <small class="form-text text-muted d-block mt-2">
-                        Нажмите кнопку для проверки адреса и получения координат. Это необходимо для отображения мероприятия на карте.
+                        При желании проверьте адрес на карте. Если не проверять, координаты будут определены при создании мероприятия.
                     </small>
                 </div>
 
@@ -3190,30 +3190,6 @@ out skel qt;`;
             );
         }
 
-        // Валидация формы перед отправкой
-        const form = document.querySelector('.event-create-form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const latitude = document.getElementById('latitude').value;
-                const longitude = document.getElementById('longitude').value;
-
-                if (!latitude || !longitude) {
-                    e.preventDefault();
-                    document.getElementById('locationStatus').innerHTML =
-                        '<div class="alert alert-danger">' +
-                        '<i class="bi bi-exclamation-triangle"></i> Необходимо найти адрес на карте перед отправкой формы!<br>' +
-                        '<small>Заполните поля адреса (город, улица, номер дома) и нажмите кнопку "Найти адрес на карте"</small>' +
-                        '</div>';
-
-                    // Прокручиваем к сообщению об ошибке
-                    document.getElementById('locationStatus').scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                    return false;
-                }
-            });
-        }
     });
 </script>
 
