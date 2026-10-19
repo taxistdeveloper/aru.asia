@@ -6,8 +6,6 @@
 
 ob_start();
 
-$eventPublishPrice = defined('EVENT_PUBLISH_PRICE_KZT') ? (int) EVENT_PUBLISH_PRICE_KZT : 500;
-$eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PAYMENT_ENABLED;
 ?>
 
 <div class="mobile-page-container">
@@ -2239,14 +2237,6 @@ $eventPublishPaid = defined('EVENT_PUBLISH_PAYMENT_ENABLED') && EVENT_PUBLISH_PA
                         </div>
                     <?php else: ?>
                         <p class="events-modal-text">Вы будете перенаправлены на страницу создания мероприятия.</p>
-                        <p class="events-modal-text mb-1">
-                            Публикация на платформе: <strong><?= number_format($eventPublishPrice, 0, ',', ' ') ?> ₸</strong> за одно мероприятие.
-                        </p>
-                        <?php if (!$eventPublishPaid): ?>
-                            <p class="events-modal-text mb-0" style="color: #047857; font-weight: 600;">
-                                <i class="bi bi-gift"></i> Сейчас без оплаты — тариф на будущее.
-                            </p>
-                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
                 <div class="modal-footer">
