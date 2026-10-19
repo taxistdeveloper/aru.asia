@@ -899,7 +899,11 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         id="event_date"
                         name="event_date"
                         max="<?= Helper::getMaxPlanningDateTimeLocal() ?>"
+                        aria-describedby="event_date_hint"
                         required>
+                    <small id="event_date_hint" class="form-text text-muted">
+                        Укажите дату в пределах <?= Helper::getMaxPlanningDays() ?> дней от сегодня.
+                    </small>
                 </div>
 
                 <div class="mb-3" style="position: relative;">
@@ -3210,6 +3214,20 @@ out skel qt;`;
                 }
             });
         }
+    });
+</script>
+
+<script>
+    const eventDateInput = document.getElementById('event_date');
+
+    eventDateInput.addEventListener('invalid', function() {
+        if (this.validity.rangeOverflow) {
+            this.setCustomValidity('Не более <?= Helper::getMaxPlanningDays() ?> дней. Выберите другую дату.');
+        }
+    });
+
+    eventDateInput.addEventListener('input', function() {
+        this.setCustomValidity('');
     });
 </script>
 

@@ -290,7 +290,7 @@ ob_start();
         </div>
     <?php endif; ?>
 
-    
+
 
     <form method="POST" action="<?= BASE_URL ?>dates/store" class="date-create-form">
         <div class="card">
@@ -414,7 +414,7 @@ ob_start();
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg btn-free-date">
-                    <i class="bi bi-gift"></i> Разместить БЕСПЛАТНО 
+                    <i class="bi bi-gift"></i> Разместить БЕСПЛАТНО
                 </button>
             </div>
         </div>
