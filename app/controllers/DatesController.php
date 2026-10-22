@@ -74,39 +74,23 @@ class DatesController
                 }
             }
 
-            // Получаем свидания противоположного пола
+            // Мужчины видят только свидания девушек, девушки — только свидания мужчин
             if ($userLat && $userLon && $userGender) {
-                // Если есть геолокация - ищем в радиусе
+                // Сначала ищем в радиусе, иначе — все активные противоположного пола
                 $dates = $this->dateModel->getInRadius($userLat, $userLon, $userGender, RADIUS_KM);
-                // Убеждаемся, что это массив
                 $dates = is_array($dates) ? $dates : [];
 
-                // Если не найдено в радиусе, показываем все активные противоположного пола
-                if (empty($dates) && $userGender) {
+                if (empty($dates)) {
                     $dates = $this->dateModel->getAllActiveByGender($userGender);
                     $dates = is_array($dates) ? $dates : [];
                 }
-
-                // Если все еще пусто, показываем ВСЕ активные свидания (для диагностики)
-                if (empty($dates)) {
-                    $dates = $this->dateModel->getAllActive();
-                    $dates = is_array($dates) ? $dates : [];
-                }
             } elseif ($userGender) {
-                // Если нет геолокации, но есть пол - показываем все активные свидания противоположного пола
+                // Нет геолокации — все активные свидания противоположного пола
                 $dates = $this->dateModel->getAllActiveByGender($userGender);
-                // Убеждаемся, что это массив
                 $dates = is_array($dates) ? $dates : [];
-
-                // Если пусто, показываем все активные
-                if (empty($dates)) {
-                    $dates = $this->dateModel->getAllActive();
-                    $dates = is_array($dates) ? $dates : [];
-                }
             } else {
-                // Если нет пола - показываем все активные свидания
+                // Пол не указан — показываем все активные свидания
                 $dates = $this->dateModel->getAllActive();
-                // Убеждаемся, что это массив
                 $dates = is_array($dates) ? $dates : [];
             }
 

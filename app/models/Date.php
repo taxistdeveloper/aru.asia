@@ -54,7 +54,10 @@ class Date
         }
 
         // Мужчины видят женские объявления, женщины - мужские
-        $oppositeGender = $userGender === 'male' ? 'female' : 'male';
+        $oppositeGender = $this->getOppositeGender($userGender);
+        if ($oppositeGender === null) {
+            return [];
+        }
 
         // Используем формулу гаверсинуса для расчета расстояния.
         // Если у свидания нет координат (старые записи / форма без карты) —
@@ -289,7 +292,10 @@ class Date
     public function getAllActiveByGender($userGender)
     {
         // Мужчины видят женские объявления, женщины - мужские
-        $oppositeGender = $userGender === 'male' ? 'female' : 'male';
+        $oppositeGender = $this->getOppositeGender($userGender);
+        if ($oppositeGender === null) {
+            return [];
+        }
 
         $sql = "SELECT d.id, d.user_id, d.title, d.category_id, d.date_time, d.location, d.latitude, d.longitude, d.created_at,
                 u.email, u.age, u.gender,
@@ -435,5 +441,20 @@ class Date
         }
 
         return $result !== false ? $result : [];
+    }
+
+    /**
+     * Возвращает противоположный пол: male → female, female → male
+     */
+    private function getOppositeGender($userGender)
+    {
+        $gender = strtolower(trim((string) $userGender));
+        if ($gender === 'male') {
+            return 'female';
+        }
+        if ($gender === 'female') {
+            return 'male';
+        }
+        return null;
     }
 }
