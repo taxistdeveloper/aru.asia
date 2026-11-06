@@ -35,6 +35,9 @@ class Router
         $this->routes['api/exchange-rates'] = ['controller' => 'Api', 'method' => 'exchangeRates'];
         $this->routes['api/presence'] = ['controller' => 'Api', 'method' => 'presence'];
 
+        // Партнёрская ссылка
+        $this->routes['r'] = ['controller' => 'Partner', 'method' => 'landing'];
+
         // Авторизация и регистрация
         $this->routes['auth/login'] = ['controller' => 'Auth', 'method' => 'login'];
         $this->routes['auth/register'] = ['controller' => 'Auth', 'method' => 'register'];
@@ -53,6 +56,17 @@ class Router
         $this->routes['profile/addPhoto'] = ['controller' => 'Profile', 'method' => 'addPhoto'];
         $this->routes['profile/uploadTempPhoto'] = ['controller' => 'Profile', 'method' => 'uploadTempPhoto'];
         $this->routes['profile/deleteTempPhoto'] = ['controller' => 'Profile', 'method' => 'deleteTempPhoto'];
+
+        // Кабинет заработка партнёра
+        $this->routes['profile/earnings'] = ['controller' => 'Earnings', 'method' => 'index'];
+        $this->routes['profile/earnings/become'] = ['controller' => 'Earnings', 'method' => 'becomePartner'];
+        $this->routes['profile/earnings/instructions'] = ['controller' => 'Earnings', 'method' => 'instructions'];
+        $this->routes['profile/earnings/invite'] = ['controller' => 'Earnings', 'method' => 'invite'];
+        $this->routes['profile/earnings/companies'] = ['controller' => 'Earnings', 'method' => 'companies'];
+        $this->routes['profile/earnings/balance'] = ['controller' => 'Earnings', 'method' => 'balance'];
+        $this->routes['profile/earnings/history'] = ['controller' => 'Earnings', 'method' => 'history'];
+        $this->routes['profile/earnings/payouts'] = ['controller' => 'Earnings', 'method' => 'payouts'];
+        $this->routes['profile/earnings/withdraw'] = ['controller' => 'Earnings', 'method' => 'withdraw'];
 
         // Карта
         $this->routes['map'] = ['controller' => 'Map', 'method' => 'index'];
@@ -146,6 +160,11 @@ class Router
         $this->routes['admin/send-message/submit'] = ['controller' => 'Admin', 'method' => 'submitMessage'];
         $this->routes['admin/logs'] = ['controller' => 'Admin', 'method' => 'logs'];
         $this->routes['admin/activity-logs'] = ['controller' => 'Admin', 'method' => 'activityLogs'];
+        $this->routes['admin/partners'] = ['controller' => 'Admin', 'method' => 'partners'];
+        $this->routes['admin/partners/view'] = ['controller' => 'Admin', 'method' => 'partnerView'];
+        $this->routes['admin/partners/add-earning'] = ['controller' => 'Admin', 'method' => 'partnerAddEarning'];
+        $this->routes['admin/partners/update-company-status'] = ['controller' => 'Admin', 'method' => 'partnerUpdateCompanyStatus'];
+        $this->routes['admin/partners/process-payout'] = ['controller' => 'Admin', 'method' => 'partnerProcessPayout'];
 
         // Панель менеджера
         $this->routes['manager'] = ['controller' => 'Manager', 'method' => 'index'];

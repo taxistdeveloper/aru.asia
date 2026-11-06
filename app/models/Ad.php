@@ -18,10 +18,10 @@ class Ad {
     public function create($data) {
         $sql = "INSERT INTO ads
                 (advertiser_name, advertiser_email, country, city, image_path, video_path,
-                 start_date, end_date, click_url, created_at)
+                 start_date, end_date, click_url, paid_amount, created_at)
                 VALUES
                 (:advertiser_name, :advertiser_email, :country, :city, :image_path, :video_path,
-                 :start_date, :end_date, :click_url, NOW())";
+                 :start_date, :end_date, :click_url, :paid_amount, NOW())";
 
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -33,8 +33,17 @@ class Ad {
             ':video_path' => $data['video_path'] ?? null,
             ':start_date' => $data['start_date'],
             ':end_date' => $data['end_date'],
-            ':click_url' => $data['click_url']
+            ':click_url' => $data['click_url'],
+            ':paid_amount' => (float)($data['paid_amount'] ?? 0),
         ]);
+    }
+
+    /**
+     * Возвращает ID последней созданной рекламы
+     */
+    public function getLastInsertId()
+    {
+        return (int)$this->db->lastInsertId();
     }
 
     /**
@@ -255,7 +264,16 @@ class Ad {
                 WHERE id = :id";
 
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute([':id' => $adId]);
+        $ok = $stmt->execute([':id' => $adId]);
+
+        if ($ok) {
+            $ad = $this->findById($adId);
+            if ($ad) {
+                PartnerReferral::creditFromAd($ad);
+            }
+        }
+
+        return $ok;
     }
 
     /**

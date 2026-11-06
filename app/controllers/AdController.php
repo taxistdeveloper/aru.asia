@@ -239,9 +239,18 @@ class AdController
             return;
         }
 
+        // Сумма оплаты по тарифу (для автокомиссии партнёру 50%)
+        $tariffPeriod = trim((string)($_POST['tariff_period'] ?? ''));
+        if (!in_array($tariffPeriod, ['1', '3', '6'], true)) {
+            $tariffPeriod = PartnerReferral::periodFromDates($startDate, $endDate);
+        }
+        $orderAmount = PartnerReferral::calcTariffAmount($cityCount, $tariffPeriod);
+
         $createdCount = 0;
         $totalToCreate = count($cityValuesToCreate);
+        $isFirst = true;
         foreach ($cityValuesToCreate as $singleCity) {
+            // Полную сумму пишем только в первую запись партии — комиссия один раз
             $result = $this->adModel->create([
                 'advertiser_name' => $advertiserName,
                 'advertiser_email' => $advertiserEmail,
@@ -251,10 +260,28 @@ class AdController
                 'video_path' => null,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'click_url' => $clickUrl
+                'click_url' => $clickUrl,
+                'paid_amount' => $isFirst ? $orderAmount : 0,
             ]);
 
-            if ($result) $createdCount++;
+            if ($result) {
+                $createdCount++;
+            }
+            $isFirst = false;
+        }
+
+        // Закрепляем компанию за партнёром (если предприниматель пришёл по ссылке)
+        if ($createdCount > 0 && Helper::isLoggedIn()) {
+            $u = (new User())->findById(Helper::getUserId());
+            if ($u && !empty($u['referred_by_partner_user_id'])) {
+                PartnerReferral::ensureCompanyForUser($u);
+                $bindKey = PartnerCompany::makeBindKey($advertiserEmail, null);
+                $companyModel = new PartnerCompany();
+                $company = $bindKey ? $companyModel->findByBindKey($bindKey) : null;
+                if ($company && !empty($advertiserName)) {
+                    $companyModel->updateNameIfEmpty((int)$company['id'], $advertiserName);
+                }
+            }
         }
 
         if ($createdCount === $totalToCreate && $totalToCreate > 0) {

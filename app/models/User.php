@@ -27,14 +27,15 @@ class User
     /**
      * Создает нового пользователя
      */
-    public function create($email, $password, $token, $ip = null, $country = null)
+    public function create($email, $password, $token, $ip = null, $country = null, $referredByPartnerUserId = null)
     {
         // Нормализуем email: убираем пробелы и приводим к нижнему регистру
         $email = trim(strtolower($email));
         $aruCode = $this->generateUniqueAruCode();
+        $referredBy = $referredByPartnerUserId ? (int)$referredByPartnerUserId : null;
 
-        $sql = "INSERT INTO users (email, password, verification_token, registration_ip, registration_country, aru_code, created_at)
-                VALUES (:email, :password, :token, :ip, :country, :aru_code, NOW())";
+        $sql = "INSERT INTO users (email, password, verification_token, registration_ip, registration_country, aru_code, referred_by_partner_user_id, created_at)
+                VALUES (:email, :password, :token, :ip, :country, :aru_code, :referred_by, NOW())";
 
         $stmt = $this->db->prepare($sql);
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -46,7 +47,45 @@ class User
             ':ip' => $ip,
             ':country' => $country,
             ':aru_code' => $aruCode,
+            ':referred_by' => $referredBy,
         ]);
+    }
+
+    /**
+     * Навсегда привязывает пользователя к партнёру. Повторная смена запрещена.
+     */
+    public function setReferredByPartner(int $userId, int $partnerUserId): bool
+    {
+        if ($userId <= 0 || $partnerUserId <= 0 || $userId === $partnerUserId) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare(
+            "UPDATE users
+             SET referred_by_partner_user_id = :partner_id, updated_at = NOW()
+             WHERE id = :id
+               AND (referred_by_partner_user_id IS NULL OR referred_by_partner_user_id = 0)"
+        );
+
+        return $stmt->execute([
+            ':partner_id' => $partnerUserId,
+            ':id' => $userId,
+        ]);
+    }
+
+    public function becomePartner(int $userId): bool
+    {
+        $this->ensureAruCode($userId);
+        $stmt = $this->db->prepare(
+            'UPDATE users SET is_partner = 1, updated_at = NOW() WHERE id = :id'
+        );
+        return $stmt->execute([':id' => $userId]);
+    }
+
+    public function isPartner(int $userId): bool
+    {
+        $user = $this->findById($userId);
+        return $user && (int)($user['is_partner'] ?? 0) === 1;
     }
 
     /**

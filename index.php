@@ -99,6 +99,11 @@ if (Helper::isLoggedIn()) {
 // Счётчик заходов по разделам сайта (не админка)
 DailyVisit::trackToday();
 
+// Партнёрский ref из URL (?ref=) — сохраняем в cookie на любых страницах
+if (!empty($_GET['ref']) || !empty($_GET['partner'])) {
+    PartnerReferral::captureFromRequest();
+}
+
 // Создаем и запускаем роутер
 $router = new Router();
 $router->dispatch();

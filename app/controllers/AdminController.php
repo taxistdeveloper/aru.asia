@@ -15,6 +15,10 @@ class AdminController
     private $adminModel;
     private $feedbackModel;
     private $messageModel;
+    private $partnerModel;
+    private $partnerCompanyModel;
+    private $partnerEarningModel;
+    private $partnerPayoutModel;
 
     public function __construct()
     {
@@ -25,6 +29,10 @@ class AdminController
         $this->adminModel = new Admin();
         $this->feedbackModel = new Feedback();
         $this->messageModel = new Message();
+        $this->partnerModel = new Partner();
+        $this->partnerCompanyModel = new PartnerCompany();
+        $this->partnerEarningModel = new PartnerEarning();
+        $this->partnerPayoutModel = new PartnerPayout();
     }
 
     /**
@@ -1383,5 +1391,189 @@ class AdminController
         }
 
         Helper::redirect('admin/users');
+    }
+
+    /**
+     * Список партнёров
+     */
+    public function partners()
+    {
+        Helper::requireAdmin();
+
+        View::render('admin/partners', [
+            'partners' => $this->partnerModel->getPartnersList(),
+            'pendingPayouts' => $this->partnerPayoutModel->getPending(50),
+            'isMobile' => View::isMobile(),
+        ]);
+    }
+
+    /**
+     * Кабинет конкретного партнёра
+     */
+    public function partnerView()
+    {
+        Helper::requireAdmin();
+
+        $partnerUserId = (int)($_GET['id'] ?? 0);
+        $cabinet = $partnerUserId ? $this->partnerModel->getPartnerCabinet($partnerUserId) : null;
+
+        if (!$cabinet) {
+            $_SESSION['error_message'] = 'Партнёр не найден';
+            Helper::redirect('admin/partners');
+            return;
+        }
+
+        View::render('admin/partner_view', [
+            'cabinet' => $cabinet,
+            'isMobile' => View::isMobile(),
+        ]);
+    }
+
+    /**
+     * Начисление вознаграждения партнёру
+     */
+    public function partnerAddEarning()
+    {
+        Helper::requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect('admin/partners');
+            return;
+        }
+
+        $partnerUserId = (int)($_POST['partner_user_id'] ?? 0);
+        $amount = (float)($_POST['amount'] ?? 0);
+        $companyId = (int)($_POST['company_id'] ?? 0);
+        $description = trim((string)($_POST['description'] ?? ''));
+
+        $redirect = 'admin/partners/view?id=' . $partnerUserId;
+
+        if ($partnerUserId <= 0 || $amount <= 0) {
+            $_SESSION['error_message'] = 'Укажите партнёра и сумму';
+            Helper::redirect($redirect ?: 'admin/partners');
+            return;
+        }
+
+        if ($companyId > 0) {
+            $company = $this->partnerCompanyModel->findById($companyId);
+            if (!$company || (int)$company['partner_user_id'] !== $partnerUserId) {
+                $_SESSION['error_message'] = 'Компания не принадлежит этому партнёру (перепривязка запрещена)';
+                Helper::redirect($redirect);
+                return;
+            }
+        }
+
+        $id = $this->partnerEarningModel->create([
+            'partner_user_id' => $partnerUserId,
+            'company_id' => $companyId > 0 ? $companyId : null,
+            'amount' => $amount,
+            'description' => $description,
+            'created_by_admin_id' => Helper::getAdminId(),
+        ]);
+
+        if ($id) {
+            ActivityLogger::info(
+                'admin.partner_earning',
+                'Начисление партнёру',
+                'partner_earning',
+                $id,
+                ['amount' => $amount, 'partner_user_id' => $partnerUserId],
+                $partnerUserId
+            );
+            $_SESSION['success_message'] = 'Начисление добавлено';
+        } else {
+            $_SESSION['error_message'] = 'Ошибка при начислении';
+        }
+
+        Helper::redirect($redirect);
+    }
+
+    /**
+     * Смена статуса компании партнёра (без смены владельца)
+     */
+    public function partnerUpdateCompanyStatus()
+    {
+        Helper::requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect('admin/partners');
+            return;
+        }
+
+        $companyId = (int)($_POST['company_id'] ?? 0);
+        $partnerUserId = (int)($_POST['partner_user_id'] ?? 0);
+        $status = (string)($_POST['status'] ?? '');
+        $redirect = 'admin/partners/view?id=' . $partnerUserId;
+
+        $company = $companyId ? $this->partnerCompanyModel->findById($companyId) : null;
+        if (!$company || (int)$company['partner_user_id'] !== $partnerUserId) {
+            $_SESSION['error_message'] = 'Компания не найдена или чужая (перепривязка запрещена)';
+            Helper::redirect($redirect ?: 'admin/partners');
+            return;
+        }
+
+        if ($this->partnerCompanyModel->updateStatus($companyId, $status)) {
+            ActivityLogger::info(
+                'admin.partner_company_status',
+                'Статус компании партнёра обновлён',
+                'partner_company',
+                $companyId,
+                ['status' => $status],
+                $partnerUserId
+            );
+            $_SESSION['success_message'] = 'Статус компании обновлён';
+        } else {
+            $_SESSION['error_message'] = 'Не удалось обновить статус';
+        }
+
+        Helper::redirect($redirect);
+    }
+
+    /**
+     * Обработка заявки на выплату
+     */
+    public function partnerProcessPayout()
+    {
+        Helper::requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect('admin/partners');
+            return;
+        }
+
+        $payoutId = (int)($_POST['payout_id'] ?? 0);
+        $partnerUserId = (int)($_POST['partner_user_id'] ?? 0);
+        $status = (string)($_POST['status'] ?? '');
+        $adminNote = trim((string)($_POST['admin_note'] ?? ''));
+        $redirect = 'admin/partners/view?id=' . $partnerUserId;
+
+        $payout = $payoutId ? $this->partnerPayoutModel->findById($payoutId) : null;
+        if (!$payout || (int)$payout['partner_user_id'] !== $partnerUserId) {
+            $_SESSION['error_message'] = 'Заявка не найдена';
+            Helper::redirect($redirect ?: 'admin/partners');
+            return;
+        }
+
+        if (!in_array($status, ['paid', 'approved', 'rejected'], true)) {
+            $_SESSION['error_message'] = 'Неверный статус';
+            Helper::redirect($redirect);
+            return;
+        }
+
+        if ($this->partnerPayoutModel->updateStatus($payoutId, $status, Helper::getAdminId(), $adminNote ?: null)) {
+            ActivityLogger::info(
+                'admin.partner_payout',
+                'Выплата партнёру обработана',
+                'partner_payout',
+                $payoutId,
+                ['status' => $status, 'amount' => $payout['amount']],
+                $partnerUserId
+            );
+            $_SESSION['success_message'] = $status === 'rejected' ? 'Заявка отклонена' : 'Выплата отмечена';
+        } else {
+            $_SESSION['error_message'] = 'Ошибка обработки выплаты';
+        }
+
+        Helper::redirect($redirect);
     }
 }

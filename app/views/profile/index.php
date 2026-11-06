@@ -298,6 +298,9 @@ ob_start();
                     <i class="bi bi-speedometer2"></i> Панель менеджера
                 </a>
             <?php endif; ?>
+            <a href="<?= BASE_URL ?>profile/earnings" class="btn btn-success">
+                <i class="bi bi-cash-coin"></i> Мой заработок
+            </a>
             <a href="<?= BASE_URL ?>profile/edit" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Редактировать профиль
             </a>

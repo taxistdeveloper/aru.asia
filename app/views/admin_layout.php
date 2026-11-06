@@ -237,6 +237,7 @@
                                 && strpos($adminUri, '/admin/login') === false
                                 && strpos($adminUri, '/admin/logs') === false
                                 && strpos($adminUri, '/admin/activity-logs') === false
+                                && strpos($adminUri, '/admin/partners') === false
                                 && strpos($adminUri, '/admin/dates') === false);
                             ?>
                             <a class="nav-link <?= $adminDashActive ? 'active' : '' ?>"
@@ -253,6 +254,11 @@
                                href="<?= BASE_URL ?>admin/users">
                                 <i class="bi bi-people"></i>
                                 <span>Пользователи</span>
+                            </a>
+                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/partners') !== false ? 'active' : '' ?>"
+                               href="<?= BASE_URL ?>admin/partners">
+                                <i class="bi bi-handshake"></i>
+                                <span>Партнёры</span>
                             </a>
                             <a class="nav-link d-flex align-items-center <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/logs') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false) ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>admin/logs">
@@ -407,6 +413,11 @@
                        href="<?= BASE_URL ?>admin/users">
                         <i class="bi bi-people"></i>
                         <span>Пользователи</span>
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/partners') !== false ? 'active' : '' ?>"
+                       href="<?= BASE_URL ?>admin/partners">
+                        <i class="bi bi-handshake"></i>
+                        <span>Партнёры</span>
                     </a>
                     <a class="nav-link d-flex align-items-center <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/logs') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false) ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin/logs">

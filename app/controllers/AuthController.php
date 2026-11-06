@@ -121,6 +121,9 @@ class AuthController
             return;
         }
 
+        // Партнёрская ссылка ?ref=...
+        PartnerReferral::captureFromRequest();
+
         // Если форма отправлена
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'] ?? '';
@@ -170,15 +173,21 @@ class AuthController
                 $ip = Helper::getClientIp();
                 $country = Helper::getCountryByIp($ip);
 
+                // Партнёр из cookie (навсегда)
+                $referredBy = PartnerReferral::resolvePartnerUserIdFromCookie();
+
                 // Создаем пользователя
-                if ($this->userModel->create($email, $password, $token, $ip, $country)) {
+                if ($this->userModel->create($email, $password, $token, $ip, $country, $referredBy)) {
                     $newUser = $this->userModel->findByEmail($email);
+                    if ($newUser && !empty($newUser['id'])) {
+                        PartnerReferral::attributeNewUser((int)$newUser['id'], $email);
+                    }
                     ActivityLogger::info(
                         'auth.register',
                         'Регистрация аккаунта',
                         'user',
                         $newUser['id'] ?? null,
-                        null,
+                        $referredBy ? ['referred_by_partner_user_id' => $referredBy] : null,
                         $newUser['id'] ?? null,
                         $email
                     );
@@ -215,8 +224,16 @@ class AuthController
             }
         }
 
+        $partnerRefNotice = null;
+        if (PartnerReferral::getRefCodeFromCookie()) {
+            $partnerRefNotice = $_SESSION['partner_ref_notice']
+                ?? 'Вы регистрируетесь по партнёрской ссылке. Компания закрепится за партнёром навсегда.';
+            unset($_SESSION['partner_ref_notice']);
+        }
+
         View::render('auth/register', [
             'error' => $error ?? null,
+            'partnerRefNotice' => $partnerRefNotice,
             'isMobile' => View::isMobile()
         ]);
     }
