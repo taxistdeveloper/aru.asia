@@ -12,6 +12,7 @@ class PartnerPayout
 
     public function __construct()
     {
+        PartnerSchema::ensure();
         $this->db = Database::getInstance()->getConnection();
     }
 

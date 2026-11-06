@@ -99,6 +99,13 @@ if (Helper::isLoggedIn()) {
 // Счётчик заходов по разделам сайта (не админка)
 DailyVisit::trackToday();
 
+// Таблицы/колонки партнёрской программы (идемпотентно)
+try {
+    PartnerSchema::ensure();
+} catch (Throwable $e) {
+    error_log('PartnerSchema bootstrap: ' . $e->getMessage());
+}
+
 // Партнёрский ref из URL (?ref=) — сохраняем в cookie на любых страницах
 if (!empty($_GET['ref']) || !empty($_GET['partner'])) {
     PartnerReferral::captureFromRequest();

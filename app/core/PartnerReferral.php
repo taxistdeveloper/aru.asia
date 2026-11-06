@@ -60,6 +60,8 @@ class PartnerReferral
 
     public static function captureFromRequest(): void
     {
+        PartnerSchema::ensure();
+
         $ref = trim((string)($_GET['ref'] ?? $_GET['partner'] ?? ''));
         $ref = preg_replace('/\D+/', '', $ref);
         if ($ref === '') {

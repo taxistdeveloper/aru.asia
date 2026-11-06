@@ -15,6 +15,7 @@ class Partner
 
     public function __construct()
     {
+        PartnerSchema::ensure();
         $this->db = Database::getInstance()->getConnection();
         $this->companyModel = new PartnerCompany();
         $this->earningModel = new PartnerEarning();
