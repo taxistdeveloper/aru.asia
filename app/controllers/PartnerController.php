@@ -11,9 +11,6 @@ class PartnerController
         PartnerReferral::captureFromRequest();
 
         $ref = PartnerReferral::getRefCodeFromCookie();
-        if ($ref) {
-            $_SESSION['partner_ref_notice'] = 'Вы перешли по партнёрской ссылке. После регистрации и оплаты рекламы партнёр будет получать 50% автоматически.';
-        }
 
         if (Helper::isLoggedIn()) {
             Helper::redirect('ads/create');

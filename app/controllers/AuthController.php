@@ -224,16 +224,10 @@ class AuthController
             }
         }
 
-        $partnerRefNotice = null;
-        if (PartnerReferral::getRefCodeFromCookie()) {
-            $partnerRefNotice = $_SESSION['partner_ref_notice']
-                ?? 'Вы регистрируетесь по партнёрской ссылке. Компания закрепится за партнёром навсегда.';
-            unset($_SESSION['partner_ref_notice']);
-        }
+        unset($_SESSION['partner_ref_notice']);
 
         View::render('auth/register', [
             'error' => $error ?? null,
-            'partnerRefNotice' => $partnerRefNotice,
             'isMobile' => View::isMobile()
         ]);
     }

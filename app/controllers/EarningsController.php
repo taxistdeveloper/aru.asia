@@ -143,7 +143,7 @@ class EarningsController
     public function balance()
     {
         $this->requireUser();
-        $this->render('balance');
+        Helper::redirect('profile/earnings');
     }
 
     public function history()

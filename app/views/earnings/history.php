@@ -6,13 +6,11 @@ $earnings = $earnings ?? [];
 <div class="container mt-4 mb-5">
     <?php include __DIR__ . '/_nav.php'; ?>
 
-    <h4 class="mb-3">История начислений</h4>
-
     <?php if (empty($earnings)): ?>
-        <div class="alert alert-light border">Начислений пока нет.</div>
+        <div class="earn-empty">Начислений пока нет.</div>
     <?php else: ?>
-        <div class="table-responsive card border-0 shadow-sm">
-            <table class="table table-hover align-middle mb-0">
+        <div class="table-responsive earn-table">
+            <table class="table table-hover align-middle mb-0 bg-white">
                 <thead class="table-light">
                     <tr>
                         <th>Дата</th>

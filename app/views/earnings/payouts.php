@@ -1,23 +1,22 @@
 <?php
 ob_start();
 $payouts = $payouts ?? [];
+$earnAction = [
+    'href' => BASE_URL . 'profile/earnings/withdraw',
+    'label' => 'Вывести',
+    'icon' => 'bi-bank',
+    'class' => 'btn-success',
+];
 ?>
 
 <div class="container mt-4 mb-5">
     <?php include __DIR__ . '/_nav.php'; ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Мои выплаты</h4>
-        <a href="<?= BASE_URL ?>profile/earnings/withdraw" class="btn btn-sm btn-success">
-            <i class="bi bi-plus-lg"></i> Новая заявка
-        </a>
-    </div>
-
     <?php if (empty($payouts)): ?>
-        <div class="alert alert-light border">Заявок на выплату пока нет.</div>
+        <div class="earn-empty">Заявок на выплату пока нет.</div>
     <?php else: ?>
-        <div class="table-responsive card border-0 shadow-sm">
-            <table class="table table-hover align-middle mb-0">
+        <div class="table-responsive earn-table">
+            <table class="table table-hover align-middle mb-0 bg-white">
                 <thead class="table-light">
                     <tr>
                         <th>Дата</th>

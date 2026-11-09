@@ -1,23 +1,22 @@
 <?php
 ob_start();
 $companies = $companies ?? [];
+$earnAction = [
+    'href' => BASE_URL . 'profile/earnings/invite',
+    'label' => 'Пригласить',
+    'icon' => 'bi-plus-lg',
+    'class' => 'btn-primary',
+];
 ?>
 
 <div class="container mt-4 mb-5">
     <?php include __DIR__ . '/_nav.php'; ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Мои компании</h4>
-        <a href="<?= BASE_URL ?>profile/earnings/invite" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-lg"></i> Пригласить
-        </a>
-    </div>
-
     <?php if (empty($companies)): ?>
-        <div class="alert alert-light border">Пока нет компаний. Пригласите первый бизнес.</div>
+        <div class="earn-empty">Пока нет компаний.</div>
     <?php else: ?>
-        <div class="table-responsive card border-0 shadow-sm">
-            <table class="table table-hover align-middle mb-0">
+        <div class="table-responsive earn-table">
+            <table class="table table-hover align-middle mb-0 bg-white">
                 <thead class="table-light">
                     <tr>
                         <th>Компания</th>

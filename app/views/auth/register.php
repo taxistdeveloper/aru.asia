@@ -14,13 +14,6 @@ ob_start();
                 <div class="card-body p-4">
                     <h3 class="card-title text-center mb-4">Регистрация</h3>
 
-                    <?php if (!empty($partnerRefNotice) || !empty($_SESSION['partner_ref_notice'])): ?>
-                        <div class="alert alert-success">
-                            <?= Helper::escape($partnerRefNotice ?? $_SESSION['partner_ref_notice']) ?>
-                        </div>
-                        <?php unset($_SESSION['partner_ref_notice']); ?>
-                    <?php endif; ?>
-
                     <?php if (isset($error)): ?>
                         <div class="alert alert-danger">
                             <?= Helper::escape($error) ?>
