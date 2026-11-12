@@ -135,8 +135,15 @@ class EarningsController
     public function companies()
     {
         $userId = $this->requireUser();
+        $user = $this->userModel->findById($userId);
+        $aruCode = $this->userModel->ensureAruCode($userId);
+        $isPartner = !empty($user['is_partner']);
+
         $this->render('companies', [
             'companies' => $this->companyModel->getByPartner($userId),
+            'user' => $user,
+            'isPartner' => $isPartner,
+            'partnerLink' => $isPartner && $aruCode ? PartnerReferral::buildLink($aruCode) : null,
         ]);
     }
 

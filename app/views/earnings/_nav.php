@@ -152,13 +152,26 @@ $items = [
     <div>
         <h1 class="earn-title">Личный кабинет</h1>
     </div>
-    <?php if (!empty($earnAction['href'])): ?>
-        <a href="<?= $earnAction['href'] ?>" class="btn btn-sm <?= Helper::escape($earnAction['class'] ?? 'btn-primary') ?>">
-            <?php if (!empty($earnAction['icon'])): ?>
-                <i class="bi <?= Helper::escape($earnAction['icon']) ?>"></i>
-            <?php endif; ?>
-            <?= Helper::escape($earnAction['label'] ?? '') ?>
-        </a>
+    <?php if (!empty($earnAction['label'])): ?>
+        <?php
+        $earnBtnClass = 'btn btn-sm ' . Helper::escape($earnAction['class'] ?? 'btn-primary');
+        $earnBtnAttrs = $earnAction['attrs'] ?? '';
+        ?>
+        <?php if (!empty($earnAction['href'])): ?>
+            <a href="<?= $earnAction['href'] ?>" class="<?= $earnBtnClass ?>"<?= $earnBtnAttrs ? ' ' . $earnBtnAttrs : '' ?>>
+                <?php if (!empty($earnAction['icon'])): ?>
+                    <i class="bi <?= Helper::escape($earnAction['icon']) ?>"></i>
+                <?php endif; ?>
+                <?= Helper::escape($earnAction['label']) ?>
+            </a>
+        <?php else: ?>
+            <button type="button" class="<?= $earnBtnClass ?>"<?= $earnBtnAttrs ? ' ' . $earnBtnAttrs : '' ?>>
+                <?php if (!empty($earnAction['icon'])): ?>
+                    <i class="bi <?= Helper::escape($earnAction['icon']) ?>"></i>
+                <?php endif; ?>
+                <?= Helper::escape($earnAction['label']) ?>
+            </button>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 
