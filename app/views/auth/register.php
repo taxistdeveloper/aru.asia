@@ -7,6 +7,125 @@
 ob_start();
 ?>
 
+<style>
+    .consent-block {
+        border: 1px solid #e8ecf4;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+        overflow: hidden;
+    }
+
+    .consent-block-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #4a5568;
+        background: rgba(102, 126, 234, 0.08);
+        border-bottom: 1px solid #e8ecf4;
+    }
+
+    .consent-block-header i {
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    .consent-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid #eef1f7;
+        transition: background-color 0.2s ease;
+    }
+
+    .consent-row:last-child {
+        border-bottom: none;
+    }
+
+    .consent-row:hover {
+        background-color: rgba(102, 126, 234, 0.04);
+    }
+
+    .consent-row .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .consent-row .form-check-input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0;
+        flex-shrink: 0;
+        border-color: #c5cbe0;
+        cursor: pointer;
+    }
+
+    .consent-row .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .consent-row .form-check-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+
+    .consent-row .form-check-label {
+        font-size: 0.9rem;
+        color: #2d3748;
+        cursor: pointer;
+        line-height: 1.3;
+    }
+
+    .consent-read-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        border: none;
+        background: transparent;
+        color: #667eea;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 4px 6px;
+        border-radius: 6px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .consent-read-btn:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #5a67d8;
+    }
+
+    .consent-read-btn i {
+        font-size: 0.75rem;
+    }
+
+    .agreement-text {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: #4a5568;
+    }
+
+    .agreement-list {
+        padding-left: 1.1rem;
+    }
+
+    .agreement-list > li > strong {
+        color: #2d3748;
+        display: inline-block;
+        margin-bottom: 0.35rem;
+    }
+</style>
+
 <div class="mobile-form-container">
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
@@ -71,16 +190,39 @@ ob_start();
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="consent1" name="consent1" required>
-                                <label class="form-check-label" for="consent1">
-                                    Я согласен с условиями пользовательского соглашения
-                                </label>
+                        <div class="consent-block mb-4">
+                            <div class="consent-block-header">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Для регистрации примите условия</span>
                             </div>
-                            <div class="text-center">
-                                <button type="button" class="btn btn-link btn-sm p-2" data-bs-toggle="modal" data-bs-target="#consentModal1" style="text-decoration: none; font-size: 0.875rem;">
-                                    Подробнее
+
+                            <div class="consent-row">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input" type="checkbox" id="consent1" name="consent1" required>
+                                    <label class="form-check-label" for="consent1">Пользовательское соглашение</label>
+                                </div>
+                                <button type="button" class="consent-read-btn" data-bs-toggle="modal" data-bs-target="#consentModal1">
+                                    Читать <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div class="consent-row">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input" type="checkbox" id="consentOffer" name="consent_offer" required>
+                                    <label class="form-check-label" for="consentOffer">Договор оферты</label>
+                                </div>
+                                <button type="button" class="consent-read-btn" data-bs-toggle="modal" data-bs-target="#consentModalOffer">
+                                    Читать <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div class="consent-row">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input" type="checkbox" id="consentPrivacy" name="consent_privacy" required>
+                                    <label class="form-check-label" for="consentPrivacy">Политика конфиденциальности</label>
+                                </div>
+                                <button type="button" class="consent-read-btn" data-bs-toggle="modal" data-bs-target="#consentModal2">
+                                    Читать <i class="bi bi-chevron-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -168,6 +310,65 @@ ob_start();
                             <li>Продолжение использования сайта после внесения изменений означает согласие Пользователя с новыми условиями Договора.</li>
                             <li>Если какое-либо положение настоящего Договора будет признано недействительным или неисполнимым, это не влияет на действительность остальных положений Договора.</li>
                             <li>Настоящий Договор является публичной офертой. Регистрация и использование сайта означает полное и безусловное принятие Пользователем всех условий настоящего Договора.</li>
+                        </ol>
+                    </li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для договора оферты -->
+<div class="modal fade" id="consentModalOffer" tabindex="-1" aria-labelledby="consentModalOfferLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="consentModalOfferLabel">Договор публичной оферты</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body agreement-text">
+                <p class="mb-3">Настоящий документ является официальным предложением (публичной офертой) Администрации сайта заключить договор на изложенных ниже условиях. Регистрация на сайте означает полное и безоговорочное принятие условий настоящей оферты.</p>
+
+                <p class="fw-semibold mb-2">Основные положения:</p>
+                <ol class="agreement-list">
+                    <li class="mb-3">
+                        <strong>Предмет оферты</strong>
+                        <ol type="a">
+                            <li>Администрация предоставляет Пользователю доступ к сервису сайта, включая функции знакомств, общения, размещения объявлений и иной информации.</li>
+                            <li>Акцептом настоящей оферты является регистрация Пользователя на сайте и/или фактическое использование сервиса.</li>
+                        </ol>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Права и обязанности сторон</strong>
+                        <ol type="a">
+                            <li>Пользователь обязуется использовать сервис в соответствии с законодательством и условиями пользовательского соглашения.</li>
+                            <li>Пользователь подтверждает, что ему исполнилось 18 (восемнадцать) лет.</li>
+                            <li>Администрация вправе ограничивать, приостанавливать или прекращать доступ Пользователя к сервису при нарушении условий оферты.</li>
+                        </ol>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Ответственность</strong>
+                        <ol type="a">
+                            <li>Пользователь самостоятельно несёт ответственность за свои действия на сайте, размещаемые материалы и достоверность указанных данных.</li>
+                            <li>Администрация не несёт ответственности за действия Пользователей, содержание размещённой ими информации, а также за последствия встреч и мероприятий, организованных Пользователями.</li>
+                        </ol>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Изменение и действие оферты</strong>
+                        <ol type="a">
+                            <li>Оферта вступает в силу с момента регистрации Пользователя и действует до прекращения использования сайта.</li>
+                            <li>Администрация вправе вносить изменения в условия оферты. Новая редакция вступает в силу с момента её публикации на сайте.</li>
+                            <li>Продолжение использования сайта после публикации изменений означает согласие Пользователя с новой редакцией оферты.</li>
+                        </ol>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Заключительные положения</strong>
+                        <ol type="a">
+                            <li>К отношениям сторон применяется законодательство страны нахождения Пользователя, а также законодательство страны, на территории которой размещается информация Пользователя.</li>
+                            <li>Споры подлежат разрешению путём переговоров, а при недостижении соглашения — в судебном порядке.</li>
                         </ol>
                     </li>
                 </ol>
