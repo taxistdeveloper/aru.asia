@@ -1036,9 +1036,9 @@ ob_start();
                                     <option value="3" <?= (isset($old['city_count']) && (string)$old['city_count'] === '3') ? 'selected' : '' ?>>3 города</option>
                                     <option value="4" <?= (isset($old['city_count']) && (string)$old['city_count'] === '4') ? 'selected' : '' ?>>4 города</option>
                                     <option value="5" <?= (isset($old['city_count']) && (string)$old['city_count'] === '5') ? 'selected' : '' ?>>5 городов</option>
-                                    <option value="all" <?= (isset($old['city_count']) && (string)$old['city_count'] === 'all') ? 'selected' : '' ?>>Все города</option>
+                                    <option value="all" <?= (isset($old['city_count']) && (string)$old['city_count'] === 'all') ? 'selected' : '' ?>>6+ / все города</option>
                                 </select>
-                                <div class="form-text">Сейчас оформление бесплатное. Тарифы отображаются для запуска оплаты.</div>
+                                <div class="form-text">1–5 городов: 2 000 ₸ × город / мес. 6+ или все города: 25 000 ₸ / мес. Сейчас оформление бесплатное — тарифы для запуска оплаты.</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="tariff_period" class="form-label">Период размещения *</label>
@@ -1056,34 +1056,34 @@ ob_start();
                                 <div class="price-grid" id="priceGrid">
                                     <div class="price-card active" data-period="1">
                                         <div class="price-card-period">1 месяц</div>
-                                        <div class="price-card-amount" data-amount-period="1">5 000 тг</div>
+                                        <div class="price-card-amount" data-amount-period="1">2 000 тг</div>
                                         <div class="price-card-old" data-old-period="1"></div>
                                         <div class="price-card-save" data-save-period="1"></div>
-                                        <div class="price-card-monthly" data-monthly-period="1">5 000 тг / мес</div>
+                                        <div class="price-card-monthly" data-monthly-period="1">2 000 тг / мес</div>
                                         <div class="price-card-note">Стартовый тариф</div>
                                     </div>
                                     <div class="price-card recommended" data-period="3">
                                         <div class="price-card-recommend">Рекомендуем</div>
                                         <div class="price-card-period">3 месяца</div>
-                                        <div class="price-card-amount" data-amount-period="3">12 000 тг</div>
-                                        <div class="price-card-old" data-old-period="3">15 000 тг</div>
-                                        <div class="price-card-save" data-save-period="3">Экономия 3 000 тг</div>
-                                        <div class="price-card-monthly" data-monthly-period="3">4 000 тг / мес</div>
+                                        <div class="price-card-amount" data-amount-period="3">4 800 тг</div>
+                                        <div class="price-card-old" data-old-period="3">6 000 тг</div>
+                                        <div class="price-card-save" data-save-period="3">Экономия 1 200 тг</div>
+                                        <div class="price-card-monthly" data-monthly-period="3">1 600 тг / мес</div>
                                         <div class="price-card-note">Экономия 20%</div>
                                     </div>
                                     <div class="price-card" data-period="6">
                                         <div class="price-card-period">6 месяцев</div>
-                                        <div class="price-card-amount" data-amount-period="6">21 000 тг</div>
-                                        <div class="price-card-old" data-old-period="6">30 000 тг</div>
-                                        <div class="price-card-save" data-save-period="6">Экономия 9 000 тг</div>
-                                        <div class="price-card-monthly" data-monthly-period="6">3 500 тг / мес</div>
+                                        <div class="price-card-amount" data-amount-period="6">8 400 тг</div>
+                                        <div class="price-card-old" data-old-period="6">12 000 тг</div>
+                                        <div class="price-card-save" data-save-period="6">Экономия 3 600 тг</div>
+                                        <div class="price-card-monthly" data-monthly-period="6">1 400 тг / мес</div>
                                         <div class="price-card-note">Экономия 30%</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div id="tariffSummary" class="tariff-summary  d-none">
-                            Итоговый тариф: <strong>5 000 тг</strong>
+                            Итоговый тариф: <strong>2 000 тг</strong>
                         </div>
                     </div>
 
@@ -1747,16 +1747,17 @@ ob_start();
         // Запоминаем последние выбранные города (не "ВСЕ ГОРОДА"), чтобы вернуть их при переключении режимов
         let lastNonAllCityValues = [];
 
+        // Синхронизировано с PartnerReferral::tariffs()
         const adTariffs = {
             '1': {
-                '1': 5000,
-                '3': 12000,
-                '6': 21000
+                '1': 2000,
+                '3': 4800,
+                '6': 8400
             },
             '2': {
-                '1': 5500,
-                '3': 13200,
-                '6': 23100
+                '1': 4000,
+                '3': 9600,
+                '6': 16800
             },
             '3': {
                 '1': 6000,
@@ -1764,19 +1765,19 @@ ob_start();
                 '6': 25200
             },
             '4': {
-                '1': 6500,
-                '3': 15600,
-                '6': 27300
+                '1': 8000,
+                '3': 19200,
+                '6': 33600
             },
             '5': {
-                '1': 7000,
-                '3': 16800,
-                '6': 29400
-            },
-            'all': {
                 '1': 10000,
                 '3': 24000,
                 '6': 42000
+            },
+            'all': {
+                '1': 25000,
+                '3': 60000,
+                '6': 105000
             }
         };
 
@@ -2053,7 +2054,7 @@ ob_start();
         }
 
         function getCityLabel(cityCount) {
-            if (cityCount === 'all') return 'все города';
+            if (cityCount === 'all') return '6+ / все города';
             if (cityCount === '1') return '1 город';
             if (cityCount === '2') return '2 города';
             if (cityCount === '3') return '3 города';
