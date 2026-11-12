@@ -24,8 +24,8 @@ $reserved = (float)($balance['reserved'] ?? 0);
         </section>
     <?php else: ?>
         <section class="earn-panel">
-            <h2 class="earn-panel-title">Партнёрская ссылка</h2>
-            <p class="text-muted small mb-2">Отправьте её предпринимателю — компания закрепится за вами.</p>
+            <h2 class="earn-panel-title">Партнёрская ссылка:</h2>
+            <p class="text-muted small mb-2">Отправляйте её новым участникам — они будут закреплены за вами.</p>
             <div class="input-group">
                 <input type="text" class="form-control" id="partnerLinkInput" readonly
                        value="<?= Helper::escape($partnerLink) ?>">
@@ -50,7 +50,7 @@ $reserved = (float)($balance['reserved'] ?? 0);
             <strong><?= Helper::escape(Partner::formatMoney((float)$balance['paid'])) ?></strong>
         </a>
         <a class="earn-stat" href="<?= BASE_URL ?>profile/earnings/companies">
-            <span>Компании</span>
+            <span>Партнёры</span>
             <strong><?= $companiesCount ?></strong>
         </a>
     </section>
@@ -86,6 +86,6 @@ document.getElementById('copyPartnerLinkBtn')?.addEventListener('click', functio
 
 <?php
 $content = ob_get_clean();
-$title = 'Мой заработок';
+$title = 'Личный кабинет';
 include __DIR__ . '/../layout.php';
 ?>

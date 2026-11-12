@@ -1,16 +1,16 @@
 <?php
 /**
  * Шапка кабинета заработка.
- * Разделы не дублируют действия: приглашение живёт в «Компаниях», вывод — в «Выплатах».
+ * Меню — сетка кнопок (как в первом варианте).
  */
 $earnPath = $_SERVER['REQUEST_URI'] ?? '';
 $earnAction = $earnAction ?? null;
 $items = [
     ['url' => 'profile/earnings', 'label' => 'Обзор', 'icon' => 'bi-grid', 'exact' => true],
-    ['url' => 'profile/earnings/companies', 'label' => 'Компании', 'icon' => 'bi-buildings', 'also' => ['profile/earnings/invite']],
-    ['url' => 'profile/earnings/history', 'label' => 'Начисления', 'icon' => 'bi-clock-history'],
     ['url' => 'profile/earnings/payouts', 'label' => 'Выплаты', 'icon' => 'bi-cash-stack', 'also' => ['profile/earnings/withdraw']],
+    ['url' => 'profile/earnings/companies', 'label' => 'Партнёры', 'icon' => 'bi-people', 'also' => ['profile/earnings/invite']],
     ['url' => 'profile/earnings/instructions', 'label' => 'Инструкция', 'icon' => 'bi-book'],
+    ['url' => 'profile/earnings/history', 'label' => 'Начисления', 'icon' => 'bi-clock-history'],
 ];
 ?>
 <style>
@@ -20,50 +20,48 @@ $items = [
     align-items: flex-end;
     gap: 0.75rem 1rem;
     flex-wrap: wrap;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 }
-.earn-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: #6b6b80;
-    text-decoration: none;
-    font-size: 0.85rem;
-}
-.earn-back:hover { color: #4338ca; }
 .earn-title {
     font-size: 1.55rem;
     font-weight: 650;
     letter-spacing: -0.02em;
-    margin: 0.15rem 0 0;
+    margin: 0;
 }
-.earn-tabs {
-    display: flex;
-    gap: 0.15rem;
-    overflow-x: auto;
-    border-bottom: 1px solid #e6e6ef;
+.earn-menu {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
     margin: 0 0 1.25rem;
-    scrollbar-width: none;
 }
-.earn-tabs::-webkit-scrollbar { display: none; }
-.earn-tabs a {
-    flex: 0 0 auto;
-    display: inline-flex;
+.earn-menu a {
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.4rem;
+    min-height: 2.75rem;
     padding: 0.7rem 0.85rem;
-    color: #5c5c70;
+    border-radius: 10px;
+    background: #e9e9ef;
+    color: #1f1f2e;
     text-decoration: none;
-    font-size: 0.92rem;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    white-space: nowrap;
+    font-size: 0.95rem;
+    font-weight: 550;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, color 0.15s ease;
 }
-.earn-tabs a:hover { color: #312e81; }
-.earn-tabs a.active {
-    color: #4338ca;
-    border-bottom-color: #667eea;
-    font-weight: 600;
+.earn-menu a:hover {
+    background: #dddee6;
+    color: #111;
+}
+.earn-menu a.active {
+    background: #4b5563;
+    color: #fff;
+}
+.earn-menu a.active:hover {
+    background: #374151;
+    color: #fff;
 }
 .earn-panel {
     background: #fff;
@@ -129,13 +127,17 @@ $items = [
     overflow: hidden;
 }
 .earn-table .table { margin-bottom: 0; }
+@media (min-width: 768px) {
+    .earn-menu {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
 @media (max-width: 767px) {
     .earn-stats { grid-template-columns: 1fr 1fr; }
     .earn-stat { border-bottom: 1px solid #ececf3; }
     .earn-stat:nth-child(2n) { border-right: 0; }
     .earn-stat:nth-last-child(-n+2) { border-bottom: 0; }
     .earn-title { font-size: 1.35rem; }
-    .earn-tabs a { padding: 0.65rem 0.7rem; font-size: 0.85rem; }
     .earn-panel .input-group { flex-wrap: wrap; }
     .earn-panel .input-group > .form-control,
     .earn-panel .input-group > .btn {
@@ -148,10 +150,7 @@ $items = [
 
 <div class="earn-head">
     <div>
-        <a href="<?= BASE_URL ?>profile" class="earn-back">
-            <i class="bi bi-arrow-left"></i> Личный кабинет
-        </a>
-        <h1 class="earn-title">Мой заработок</h1>
+        <h1 class="earn-title">Личный кабинет</h1>
     </div>
     <?php if (!empty($earnAction['href'])): ?>
         <a href="<?= $earnAction['href'] ?>" class="btn btn-sm <?= Helper::escape($earnAction['class'] ?? 'btn-primary') ?>">
@@ -163,7 +162,7 @@ $items = [
     <?php endif; ?>
 </div>
 
-<nav class="earn-tabs" aria-label="Разделы заработка">
+<nav class="earn-menu" aria-label="Разделы кабинета">
     <?php foreach ($items as $item): ?>
         <?php
         $active = false;

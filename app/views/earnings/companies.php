@@ -13,7 +13,7 @@ $earnAction = [
     <?php include __DIR__ . '/_nav.php'; ?>
 
     <?php if (empty($companies)): ?>
-        <div class="earn-empty">Пока нет компаний.</div>
+        <div class="earn-empty">Пока нет партнёров.</div>
     <?php else: ?>
         <div class="table-responsive earn-table">
             <table class="table table-hover align-middle mb-0 bg-white">
@@ -58,6 +58,6 @@ $earnAction = [
 
 <?php
 $content = ob_get_clean();
-$title = 'Мои компании';
+$title = 'Партнёры';
 include __DIR__ . '/../layout.php';
 ?>
