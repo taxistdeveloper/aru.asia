@@ -109,41 +109,6 @@ ob_start();
         font-size: 0.75rem;
     }
 
-    .consent-doc-btn {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        padding: 12px 14px;
-        border: none;
-        background: transparent;
-        color: #2d3748;
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-align: left;
-        cursor: pointer;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .consent-doc-btn:hover {
-        background: rgba(102, 126, 234, 0.06);
-        color: #5a67d8;
-    }
-
-    .consent-doc-btn i:first-child {
-        color: #667eea;
-        font-size: 1.05rem;
-    }
-
-    .consent-doc-btn span {
-        flex: 1;
-    }
-
-    .consent-doc-btn i:last-child {
-        color: #667eea;
-        font-size: 0.8rem;
-    }
-
     .agreement-text {
         font-size: 0.92rem;
         line-height: 1.55;
@@ -271,11 +236,15 @@ ob_start();
                                 </button>
                             </div>
 
-                            <button type="button" class="consent-doc-btn" data-bs-toggle="modal" data-bs-target="#consentModalOffer">
-                                <i class="bi bi-file-earmark-text"></i>
-                                <span>Договор оферты</span>
-                                <i class="bi bi-chevron-right"></i>
-                            </button>
+                            <div class="consent-row">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input" type="checkbox" id="consentOffer" name="consent_offer" required>
+                                    <label class="form-check-label" for="consentOffer">Договор оферты</label>
+                                </div>
+                                <button type="button" class="consent-read-btn" data-bs-toggle="modal" data-bs-target="#consentModalOffer">
+                                    Читать <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 mb-3">
