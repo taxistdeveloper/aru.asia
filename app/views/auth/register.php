@@ -109,6 +109,41 @@ ob_start();
         font-size: 0.75rem;
     }
 
+    .consent-doc-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 14px;
+        border: none;
+        background: transparent;
+        color: #2d3748;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .consent-doc-btn:hover {
+        background: rgba(102, 126, 234, 0.06);
+        color: #5a67d8;
+    }
+
+    .consent-doc-btn i:first-child {
+        color: #667eea;
+        font-size: 1.05rem;
+    }
+
+    .consent-doc-btn span {
+        flex: 1;
+    }
+
+    .consent-doc-btn i:last-child {
+        color: #667eea;
+        font-size: 0.8rem;
+    }
+
     .agreement-text {
         font-size: 0.92rem;
         line-height: 1.55;
@@ -123,6 +158,36 @@ ob_start();
         color: #2d3748;
         display: inline-block;
         margin-bottom: 0.35rem;
+    }
+
+    #consentModalOffer .modal-dialog {
+        height: calc(100% - 2rem);
+        max-height: calc(100vh - 2rem);
+    }
+
+    #consentModalOffer .modal-content {
+        height: 100%;
+    }
+
+    #consentModalOffer .modal-body {
+        min-height: 0;
+    }
+
+    .offer-pdf-frame {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #f7f8fc;
+    }
+
+    @media (max-width: 576px) {
+        #consentModalOffer .modal-dialog {
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+            height: calc(100% - 1rem);
+            max-height: calc(100vh - 1rem);
+        }
     }
 </style>
 
@@ -206,25 +271,11 @@ ob_start();
                                 </button>
                             </div>
 
-                            <div class="consent-row">
-                                <div class="form-check m-0">
-                                    <input class="form-check-input" type="checkbox" id="consentOffer" name="consent_offer" required>
-                                    <label class="form-check-label" for="consentOffer">Договор оферты</label>
-                                </div>
-                                <button type="button" class="consent-read-btn" data-bs-toggle="modal" data-bs-target="#consentModalOffer">
-                                    Читать <i class="bi bi-chevron-right"></i>
-                                </button>
-                            </div>
-
-                            <div class="consent-row">
-                                <div class="form-check m-0">
-                                    <input class="form-check-input" type="checkbox" id="consentPrivacy" name="consent_privacy" required>
-                                    <label class="form-check-label" for="consentPrivacy">Политика конфиденциальности</label>
-                                </div>
-                                <button type="button" class="consent-read-btn" data-bs-toggle="modal" data-bs-target="#consentModal2">
-                                    Читать <i class="bi bi-chevron-right"></i>
-                                </button>
-                            </div>
+                            <button type="button" class="consent-doc-btn" data-bs-toggle="modal" data-bs-target="#consentModalOffer">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span>Договор оферты</span>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 mb-3">
@@ -312,6 +363,13 @@ ob_start();
                             <li>Настоящий Договор является публичной офертой. Регистрация и использование сайта означает полное и безусловное принятие Пользователем всех условий настоящего Договора.</li>
                         </ol>
                     </li>
+                    <li class="mb-3">
+                        <strong>Политика конфиденциальности</strong>
+                        <ol type="a">
+                            <li>Настоящая политика конфиденциальности описывает, как Администрация собирает, использует и защищает персональные данные Пользователя.</li>
+                            <li>Администрация обязуется защищать конфиденциальность персональных данных Пользователя и использовать их только в целях предоставления услуг сайта.</li>
+                        </ol>
+                    </li>
                 </ol>
             </div>
             <div class="modal-footer">
@@ -323,76 +381,21 @@ ob_start();
 
 <!-- Модальное окно для договора оферты -->
 <div class="modal fade" id="consentModalOffer" tabindex="-1" aria-labelledby="consentModalOfferLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="consentModalOfferLabel">Договор публичной оферты</h5>
+                <h5 class="modal-title" id="consentModalOfferLabel">Договор оферты</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
-            <div class="modal-body agreement-text">
-                <p class="mb-3">Настоящий документ является официальным предложением (публичной офертой) Администрации сайта заключить договор на изложенных ниже условиях. Регистрация на сайте означает полное и безоговорочное принятие условий настоящей оферты.</p>
-
-                <p class="fw-semibold mb-2">Основные положения:</p>
-                <ol class="agreement-list">
-                    <li class="mb-3">
-                        <strong>Предмет оферты</strong>
-                        <ol type="a">
-                            <li>Администрация предоставляет Пользователю доступ к сервису сайта, включая функции знакомств, общения, размещения объявлений и иной информации.</li>
-                            <li>Акцептом настоящей оферты является регистрация Пользователя на сайте и/или фактическое использование сервиса.</li>
-                        </ol>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Права и обязанности сторон</strong>
-                        <ol type="a">
-                            <li>Пользователь обязуется использовать сервис в соответствии с законодательством и условиями пользовательского соглашения.</li>
-                            <li>Пользователь подтверждает, что ему исполнилось 18 (восемнадцать) лет.</li>
-                            <li>Администрация вправе ограничивать, приостанавливать или прекращать доступ Пользователя к сервису при нарушении условий оферты.</li>
-                        </ol>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Ответственность</strong>
-                        <ol type="a">
-                            <li>Пользователь самостоятельно несёт ответственность за свои действия на сайте, размещаемые материалы и достоверность указанных данных.</li>
-                            <li>Администрация не несёт ответственности за действия Пользователей, содержание размещённой ими информации, а также за последствия встреч и мероприятий, организованных Пользователями.</li>
-                        </ol>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Изменение и действие оферты</strong>
-                        <ol type="a">
-                            <li>Оферта вступает в силу с момента регистрации Пользователя и действует до прекращения использования сайта.</li>
-                            <li>Администрация вправе вносить изменения в условия оферты. Новая редакция вступает в силу с момента её публикации на сайте.</li>
-                            <li>Продолжение использования сайта после публикации изменений означает согласие Пользователя с новой редакцией оферты.</li>
-                        </ol>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Заключительные положения</strong>
-                        <ol type="a">
-                            <li>К отношениям сторон применяется законодательство страны нахождения Пользователя, а также законодательство страны, на территории которой размещается информация Пользователя.</li>
-                            <li>Споры подлежат разрешению путём переговоров, а при недостижении соглашения — в судебном порядке.</li>
-                        </ol>
-                    </li>
-                </ol>
+            <div class="modal-body p-0">
+                <iframe
+                    id="offerPdfFrame"
+                    class="offer-pdf-frame"
+                    title="Договор публичной оферты"
+                    data-src="<?= BASE_URL ?>oferta.pdf"></iframe>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Модальное окно для политики конфиденциальности -->
-<div class="modal fade" id="consentModal2" tabindex="-1" aria-labelledby="consentModal2Label" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="consentModal2Label">Политика конфиденциальности</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-            </div>
-            <div class="modal-body agreement-text">
-                <p>Настоящая политика конфиденциальности описывает, как мы собираем, используем и защищаем ваши персональные данные.</p>
-                <p class="mb-0">Мы обязуемся защищать конфиденциальность ваших данных и использовать их только в целях предоставления услуг.</p>
-            </div>
-            <div class="modal-footer">
+                <a class="btn btn-outline-primary" href="<?= BASE_URL ?>oferta.pdf" target="_blank" rel="noopener">Открыть PDF</a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
             </div>
         </div>
@@ -439,6 +442,16 @@ ob_start();
                 } else {
                     toggleConfirmIcon.classList.remove('bi-eye');
                     toggleConfirmIcon.classList.add('bi-eye-slash');
+                }
+            });
+        }
+
+        const offerModal = document.getElementById('consentModalOffer');
+        const offerFrame = document.getElementById('offerPdfFrame');
+        if (offerModal && offerFrame) {
+            offerModal.addEventListener('show.bs.modal', function() {
+                if (!offerFrame.getAttribute('src')) {
+                    offerFrame.src = offerFrame.dataset.src;
                 }
             });
         }
