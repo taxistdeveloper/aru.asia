@@ -134,7 +134,7 @@ $earnAction = [
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
             <div class="modal-body pt-2">
-                <p class="text-muted small mb-3">Отправьте партнёрскую ссылку предпринимателю — он закрепится за вами.</p>
+                <p class="text-muted small mb-3">Отправьте партнёрскую ссылку тем, кого хотите пригласить, — они закрепятся за вами.</p>
                 <div class="partner-share-link mb-3" id="partnerShareLinkText"><?= Helper::escape($partnerLink) ?></div>
                 <div class="partner-share-grid" role="list">
                     <a class="partner-share-item" role="listitem" id="shareWhatsApp" target="_blank" rel="noopener noreferrer">
