@@ -18,7 +18,7 @@ $reserved = (float)($balance['reserved'] ?? 0);
             </p>
             <form method="POST" action="<?= BASE_URL ?>profile/earnings/become">
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-handshake"></i> Получить ссылку
+                    <i class="bi bi-link-45deg"></i> Получить ссылку
                 </button>
             </form>
         </section>

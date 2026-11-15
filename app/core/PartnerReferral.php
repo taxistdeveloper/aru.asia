@@ -107,7 +107,30 @@ class PartnerReferral
             return null;
         }
         $partner = (new User())->findByAruCode($code);
-        return $partner ? (int)$partner['id'] : null;
+        if (!$partner) {
+            return null;
+        }
+
+        return self::walletUserId((int)$partner['id']);
+    }
+
+    /**
+     * Если ссылка неактивного аккаунта уже передана рабочему кошельку,
+     * новые оплаты и регистрации идут туда.
+     */
+    public static function walletUserId(int $partnerUserId): int
+    {
+        if ($partnerUserId <= 0) {
+            return $partnerUserId;
+        }
+
+        $user = (new User())->findById($partnerUserId);
+        $redirect = (int)($user['earnings_redirect_user_id'] ?? 0);
+        if ($redirect > 0 && $redirect !== $partnerUserId) {
+            return $redirect;
+        }
+
+        return $partnerUserId;
     }
 
     /**
@@ -194,7 +217,7 @@ class PartnerReferral
 
         if ($company) {
             return [
-                'partner_user_id' => (int)$company['partner_user_id'],
+                'partner_user_id' => self::walletUserId((int)$company['partner_user_id']),
                 'company_id' => (int)$company['id'],
             ];
         }
@@ -205,7 +228,7 @@ class PartnerReferral
             self::ensureCompanyForUser($user);
             $company = $bindKey ? $companyModel->findByBindKey($bindKey) : null;
             return [
-                'partner_user_id' => (int)$user['referred_by_partner_user_id'],
+                'partner_user_id' => self::walletUserId((int)$user['referred_by_partner_user_id']),
                 'company_id' => $company ? (int)$company['id'] : null,
             ];
         }

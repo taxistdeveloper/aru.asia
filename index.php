@@ -102,6 +102,7 @@ DailyVisit::trackToday();
 // Таблицы/колонки партнёрской программы (идемпотентно)
 try {
     PartnerSchema::ensure();
+    PartnerReclaim::runIfDue();
 } catch (Throwable $e) {
     error_log('PartnerSchema bootstrap: ' . $e->getMessage());
 }

@@ -267,6 +267,9 @@ ob_start();
                 <p class="text-muted mb-0">Главные показатели и последние действия пользователей</p>
             </div>
             <div class="mt-2 mt-md-0 text-md-end">
+                <a href="<?= BASE_URL ?>admin/partners" class="btn btn-primary mb-2">
+                    <i class="bi bi-person-badge"></i> ПАРТНЁРЫ
+                </a>
                 <a href="<?= BASE_URL ?>dev-panel.php" class="btn btn-sm btn-outline-secondary mb-2">
                     <i class="bi bi-tools"></i> Dev panel
                 </a>

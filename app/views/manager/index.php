@@ -173,6 +173,9 @@ ob_start();
             <div class="card">
                 <div class="card-body">
                     <div class="d-grid gap-2">
+                        <a href="<?= BASE_URL ?>admin/partners" class="btn btn-primary">
+                            <i class="bi bi-person-badge"></i> ПАРТНЁРЫ
+                        </a>
                         <a href="<?= BASE_URL ?>manager/users" class="btn btn-primary">
                             <i class="bi bi-people"></i> Просмотр пользователей
                         </a>
@@ -291,7 +294,7 @@ ob_start();
     <div class="alert alert-info mt-3 py-2" style="font-size: 0.85rem;">
         <h6 class="mb-1" style="font-size: 0.9rem;"><i class="bi bi-info-circle"></i> О панели менеджера</h6>
         <p class="mb-0" style="font-size: 0.85rem;">
-            Вы вошли как <strong>менеджер</strong>. У вас есть доступ к статистике, пользователям, модерации мероприятий, рекламе и обратной связи (просмотр, ответ, смена статуса, удаление).
+            Вы вошли как <strong>менеджер</strong>. У вас есть доступ к статистике, пользователям, партнёрам и финансам, модерации мероприятий, рекламе и обратной связи (просмотр, ответ, смена статуса, удаление).
         </p>
     </div>
 </div>

@@ -1394,17 +1394,83 @@ class AdminController
     }
 
     /**
+     * Партнёры доступны администратору и менеджеру.
+     */
+    private function requirePartnerStaff(): void
+    {
+        if (Helper::isManager()) {
+            return;
+        }
+        Helper::redirect(Helper::isLoggedIn() ? 'home' : 'admin/login');
+        exit;
+    }
+
+    /**
      * Список партнёров
      */
     public function partners()
     {
-        Helper::requireAdmin();
+        $this->requirePartnerStaff();
+
+        $reclaimedNow = 0;
+        try {
+            $reclaimedNow = PartnerReclaim::reclaimDormant();
+        } catch (Throwable $e) {
+            error_log('Admin partners reclaim: ' . $e->getMessage());
+        }
+
+        $houseId = 0;
+        try {
+            $houseId = PartnerReclaim::houseUserId();
+        } catch (Throwable $e) {
+            error_log('House wallet: ' . $e->getMessage());
+        }
 
         View::render('admin/partners', [
             'partners' => $this->partnerModel->getPartnersList(),
             'pendingPayouts' => $this->partnerPayoutModel->getPending(50),
+            'finance' => $this->partnerModel->getFinanceBoard(),
+            'houseBalance' => $houseId ? $this->partnerModel->getBalance($houseId) : null,
+            'houseUserId' => $houseId,
+            'reclaimedNow' => $reclaimedNow,
             'isMobile' => View::isMobile(),
         ]);
+    }
+
+    /**
+     * Повторно начислить 50% по рекламе, если оплата есть, а проводки ещё нет.
+     */
+    public function partnerCreditAd()
+    {
+        $this->requirePartnerStaff();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Helper::redirect('admin/partners');
+            return;
+        }
+
+        $adId = (int)($_POST['ad_id'] ?? 0);
+        $ad = $adId ? $this->adModel->findById($adId) : null;
+        if (!$ad) {
+            $_SESSION['error_message'] = 'Реклама не найдена';
+            Helper::redirect('admin/partners');
+            return;
+        }
+
+        $result = PartnerReferral::creditFromAd($ad);
+        if (!empty($result['ok'])) {
+            $_SESSION['success_message'] = 'Начислено ' . Partner::formatMoney((float)$result['amount']);
+        } else {
+            $errors = [
+                'already_credited' => 'По этой рекламе уже начислено',
+                'no_amount' => 'Сумма оплаты не указана',
+                'no_partner' => 'У рекламодателя нет партнёра по ссылке',
+                'self' => 'Нельзя начислить партнёру за свою же оплату',
+            ];
+            $_SESSION['error_message'] = $errors[$result['error'] ?? ''] ?? 'Не удалось начислить';
+        }
+
+        Helper::redirect('admin/partners');
     }
 
     /**
@@ -1412,7 +1478,7 @@ class AdminController
      */
     public function partnerView()
     {
-        Helper::requireAdmin();
+        $this->requirePartnerStaff();
 
         $partnerUserId = (int)($_GET['id'] ?? 0);
         $cabinet = $partnerUserId ? $this->partnerModel->getPartnerCabinet($partnerUserId) : null;
@@ -1434,7 +1500,7 @@ class AdminController
      */
     public function partnerAddEarning()
     {
-        Helper::requireAdmin();
+        $this->requirePartnerStaff();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             Helper::redirect('admin/partners');
@@ -1493,7 +1559,7 @@ class AdminController
      */
     public function partnerUpdateCompanyStatus()
     {
-        Helper::requireAdmin();
+        $this->requirePartnerStaff();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             Helper::redirect('admin/partners');
@@ -1534,7 +1600,7 @@ class AdminController
      */
     public function partnerProcessPayout()
     {
-        Helper::requireAdmin();
+        $this->requirePartnerStaff();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             Helper::redirect('admin/partners');

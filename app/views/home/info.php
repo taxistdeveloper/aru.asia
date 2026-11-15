@@ -8,6 +8,16 @@
 ob_start();
 ?>
 
+<style>
+    .mobile-page-container a.info-earnings-btn,
+    .mobile-page-container a.info-earnings-btn:hover,
+    .mobile-page-container a.info-earnings-btn:focus,
+    .mobile-page-container a.info-earnings-btn:active {
+        color: #fff;
+        text-decoration: none;
+    }
+</style>
+
 <div class="mobile-page-container">
     <div class="text-center py-5">
         <img src="<?= BASE_URL ?>assets/images/logo.jpg" alt="Aru App" style="height: 80px; width: auto; margin-bottom: 30px;">
@@ -24,6 +34,12 @@ ob_start();
             <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#feedbackModal">
                 <i class="bi bi-chat-dots"></i> Сообщение разработчику
             </button>
+
+            <?php if (Helper::isLoggedIn()): ?>
+                <a href="<?= BASE_URL ?>profile/earnings" class="btn btn-success btn-lg info-earnings-btn">
+                    Мой заработок
+                </a>
+            <?php endif; ?>
 
             <!-- Кнопка всегда доступна здесь (в отличие от баннера/FAB), кроме режима уже установленного PWA -->
             <button type="button" class="btn btn-outline-primary btn-lg pwa-install-trigger pwa-install-persistent" id="info-page-pwa-trigger">

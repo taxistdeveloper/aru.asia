@@ -63,7 +63,6 @@ ob_start();
         }
 
         .ad-carousel:hover {
-            transform: translateY(-4px);
             box-shadow:
                 0 20px 40px -15px rgba(102, 126, 234, 0.25),
                 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -72,7 +71,7 @@ ob_start();
 
         .ad-carousel .carousel-inner {
             border-radius: 16px;
-            overflow: visible;
+            overflow: hidden;
             margin: 0;
             background: #fff;
         }
@@ -89,6 +88,7 @@ ob_start();
         .ad-banner-image-wrapper {
             position: relative;
             width: 100%;
+            aspect-ratio: 16 / 7;
             height: auto;
             overflow: hidden;
             background: linear-gradient(135deg, #e0e6ed 0%, #f4f6f9 100%);
@@ -96,17 +96,14 @@ ob_start();
         }
 
         .ad-banner-image {
+            position: absolute;
+            inset: 0;
             width: 100%;
-            height: auto;
+            height: 100%;
             max-height: none;
             object-fit: contain;
-            object-position: center top;
+            object-position: center center;
             display: block;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .ad-carousel-item:hover .ad-banner-image {
-            transform: scale(1.05);
         }
 
         .ad-banner-overlay {
@@ -333,6 +330,8 @@ ob_start();
 
         .ad-banner-footer {
             position: relative;
+            min-height: 52px;
+            box-sizing: border-box;
             padding: 10px 18px 12px;
             background: #ffffff;
             display: flex;
@@ -1276,14 +1275,17 @@ ob_start();
             }
 
             .ad-banner-image-wrapper {
+                aspect-ratio: 16 / 8;
                 height: auto;
             }
 
             .ad-banner-image {
+                position: absolute;
+                inset: 0;
                 width: 100%;
-                height: auto;
+                height: 100%;
                 object-fit: contain;
-                object-position: center top;
+                object-position: center center;
             }
 
             .ad-banner-placeholder {
@@ -1421,14 +1423,17 @@ ob_start();
             }
 
             .ad-banner-image-wrapper {
+                aspect-ratio: 16 / 8;
                 height: auto;
             }
 
             .ad-banner-image {
+                position: absolute;
+                inset: 0;
                 width: 100%;
-                height: auto;
+                height: 100%;
                 object-fit: contain;
-                object-position: center top;
+                object-position: center center;
             }
 
             .ad-banner-placeholder {
@@ -1489,14 +1494,17 @@ ob_start();
             }
 
             .ad-banner-image-wrapper {
+                aspect-ratio: 16 / 7;
                 height: auto;
             }
 
             .ad-banner-image {
+                position: absolute;
+                inset: 0;
                 width: 100%;
-                height: auto;
+                height: 100%;
                 object-fit: contain;
-                object-position: center top;
+                object-position: center center;
             }
 
             .ad-banner-placeholder {
@@ -1881,9 +1889,9 @@ ob_start();
     <?php if (!empty($ads) && is_array($ads) && count($ads) > 0): ?>
         <?php
         // Фильтруем только баннеры с изображениями
-        $validAds = array_filter($ads, function ($ad) {
+        $validAds = array_values(array_filter($ads, function ($ad) {
             return !empty($ad['image_path']);
-        });
+        }));
         ?>
         <?php if (count($validAds) > 0): ?>
             <div class="ad-carousel-container">
@@ -1897,7 +1905,7 @@ ob_start();
                             $clickUrl = !empty($ad['click_url']) ? Helper::escape($ad['click_url']) : '#';
                             $imageAlt = !empty($ad['advertiser_name']) ? Helper::escape($ad['advertiser_name']) : 'Баннер';
                             ?>
-                            <div class="carousel-item ad-carousel-item" data-ad-index="<?= $index ?>">
+                            <div class="carousel-item ad-carousel-item<?= $index === 0 ? ' active' : '' ?>" data-ad-index="<?= $index ?>">
                                 <?php if ($clickUrl !== '#'): ?>
                                     <a href="<?= $clickUrl ?>" target="_blank" rel="noopener noreferrer" class="d-block text-decoration-none">
                                     <?php endif; ?>
@@ -1906,7 +1914,7 @@ ob_start();
                                             <img src="<?= $imageUrl ?>"
                                                 alt="<?= $imageAlt ?>"
                                                 class="ad-banner-image"
-                                                loading="lazy"
+                                                loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"
                                                 onerror="this.parentElement.innerHTML='<div class=\'ad-banner-placeholder\'><i class=\'bi bi-image\'></i></div>';">
                                             <div class="ad-banner-overlay"></div>
 
@@ -2199,9 +2207,6 @@ ob_start();
                     indicator.style.setProperty('--ripple-left', finger.x.toFixed(1) + 'px');
                     indicator.style.setProperty('--ripple-top', finger.y.toFixed(1) + 'px');
 
-                    const spaceBelowFinger = handH - finger.y;
-                    const bottomPad = Math.min(36, Math.max(14, Math.ceil(spaceBelowFinger * 0.35 + HAND_TRAVEL_Y * 0.45)));
-                    cta.style.paddingBottom = bottomPad + 'px';
                 }
 
                 function alignAllHands() {
@@ -2318,14 +2323,6 @@ ob_start();
 
                 adCarousel.addEventListener('mouseleave', function() {
                     carousel.cycle();
-                });
-
-                // Плавная анимация переходов
-                adCarousel.addEventListener('slide.bs.carousel', function() {
-                    const activeItem = this.querySelector('.carousel-item.active');
-                    if (activeItem) {
-                        activeItem.style.transition = 'opacity 0.6s ease-in-out';
-                    }
                 });
 
                 // Обработка клика по слайду (если есть ссылка)

@@ -17,7 +17,21 @@ $pendingPayouts = $pendingPayouts ?? [];
 </style>
 
 <div class="mt-4">
-    <h2 class="mb-4">Партнёры</h2>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="mb-0"><i class="bi bi-person-badge"></i> ПАРТНЁРЫ</h2>
+        <?php if (!empty($houseUserId)): ?>
+            <a href="<?= BASE_URL ?>admin/partners/view?id=<?= (int)$houseUserId ?>" class="btn btn-success">
+                <i class="bi bi-wallet2"></i> Рабочий кошелёк
+                <?php if (!empty($houseBalance)): ?>
+                    · <?= Helper::escape(Partner::formatMoney((float)$houseBalance['available'])) ?>
+                <?php endif; ?>
+            </a>
+        <?php endif; ?>
+    </div>
+    <p class="text-muted">
+        Кто размещает рекламу, кому начислено 50%, кто ещё ждёт начисление.
+        Если партнёр не заходит <?= (int)PartnerReclaim::INACTIVE_MONTHS ?> месяцев, невыведенный остаток и люди с его ссылки переходят на рабочий кошелёк. Заявки на выплату, которые уже поданы, не забираем.
+    </p>
 
     <?php if (!empty($_SESSION['success_message'])): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -34,6 +48,46 @@ $pendingPayouts = $pendingPayouts ?? [];
         </div>
         <?php unset($_SESSION['error_message']); ?>
     <?php endif; ?>
+
+    <?php if (!empty($reclaimedNow)): ?>
+        <div class="alert alert-info">
+            На рабочий кошелёк передано неактивных аккаунтов: <strong><?= (int)$reclaimedNow ?></strong>
+        </div>
+    <?php endif; ?>
+
+    <?php
+    $totals = $finance['totals'] ?? [];
+    $financeAds = $finance['ads'] ?? [];
+    $financeEarnings = $finance['earnings'] ?? [];
+    $financePayouts = $finance['payouts'] ?? [];
+    ?>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">Начислено партнёрам</div>
+                <div class="fs-5 fw-semibold"><?= Helper::escape(Partner::formatMoney((float)($totals['earned'] ?? 0))) ?></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">Выплачено</div>
+                <div class="fs-5 fw-semibold"><?= Helper::escape(Partner::formatMoney((float)($totals['paid'] ?? 0))) ?></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">Ждёт выплаты</div>
+                <div class="fs-5 fw-semibold"><?= Helper::escape(Partner::formatMoney((float)($totals['remaining'] ?? 0))) ?></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-muted">Реклама ждёт 50%</div>
+                <div class="fs-5 fw-semibold"><?= (int)($totals['waiting_ads'] ?? 0) ?></div>
+            </div>
+        </div>
+    </div>
 
     <?php if (!empty($pendingPayouts)): ?>
         <div class="card mb-4 border-warning">
@@ -86,10 +140,11 @@ $pendingPayouts = $pendingPayouts ?? [];
                             <tr>
                                 <th>ID</th>
                                 <th>Партнёр</th>
-                                <th>Компании</th>
+                                <th>Кто с ссылки</th>
                                 <th>Заработано</th>
                                 <th>Выплачено</th>
-                                <th>Осталось</th>
+                                <th>В кошельке</th>
+                                <th>Был на сайте</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -98,13 +153,29 @@ $pendingPayouts = $pendingPayouts ?? [];
                                 <tr>
                                     <td><?= (int)$p['id'] ?></td>
                                     <td>
-                                        <div class="fw-semibold"><?= Helper::escape($p['full_name'] ?: '—') ?></div>
+                                        <div class="fw-semibold">
+                                            <?= Helper::escape($p['full_name'] ?: '—') ?>
+                                            <?php if (!empty($p['is_house_wallet'])): ?>
+                                                <span class="badge bg-success">Кошелёк</span>
+                                            <?php elseif (!empty($p['earnings_redirect_user_id'])): ?>
+                                                <span class="badge bg-secondary">Ссылка передана</span>
+                                            <?php endif; ?>
+                                        </div>
                                         <small class="text-muted"><?= Helper::escape($p['email']) ?></small>
                                     </td>
-                                    <td><span class="badge bg-secondary"><?= (int)$p['companies_count'] ?></span></td>
+                                    <td><?= (int)($p['referrals_count'] ?? 0) ?></td>
                                     <td><?= Helper::escape(Partner::formatMoney((float)$p['earned'])) ?></td>
                                     <td><?= Helper::escape(Partner::formatMoney((float)$p['paid'])) ?></td>
-                                    <td class="fw-semibold"><?= Helper::escape(Partner::formatMoney((float)$p['remaining'])) ?></td>
+                                    <td class="fw-semibold"><?= Helper::escape(Partner::formatMoney((float)($p['available'] ?? $p['remaining']))) ?></td>
+                                    <td>
+                                        <small>
+                                            <?php if (!empty($p['last_activity_at'])): ?>
+                                                <?= Helper::escape(date('d.m.Y', strtotime($p['last_activity_at']))) ?>
+                                            <?php else: ?>
+                                                нет входов
+                                            <?php endif; ?>
+                                        </small>
+                                    </td>
                                     <td>
                                         <a href="<?= BASE_URL ?>admin/partners/view?id=<?= (int)$p['id'] ?>"
                                            class="btn btn-sm btn-primary">
@@ -123,13 +194,123 @@ $pendingPayouts = $pendingPayouts ?? [];
                             <div class="fw-semibold"><?= Helper::escape($p['full_name'] ?: $p['email']) ?></div>
                             <div class="small text-muted mb-2"><?= Helper::escape($p['email']) ?></div>
                             <div class="small mb-2">
-                                Компании: <strong><?= (int)$p['companies_count'] ?></strong> ·
-                                Заработано: <strong><?= Helper::escape(Partner::formatMoney((float)$p['earned'])) ?></strong> ·
-                                Осталось: <strong><?= Helper::escape(Partner::formatMoney((float)$p['remaining'])) ?></strong>
+                                С ссылки: <strong><?= (int)($p['referrals_count'] ?? 0) ?></strong> ·
+                                В кошельке: <strong><?= Helper::escape(Partner::formatMoney((float)($p['available'] ?? $p['remaining']))) ?></strong>
+                                <?php if (!empty($p['is_house_wallet'])): ?>
+                                    · <span class="badge bg-success">Кошелёк</span>
+                                <?php elseif (!empty($p['earnings_redirect_user_id'])): ?>
+                                    · <span class="badge bg-secondary">Ссылка передана</span>
+                                <?php endif; ?>
                             </div>
                             <a href="<?= BASE_URL ?>admin/partners/view?id=<?= (int)$p['id'] ?>" class="btn btn-sm btn-primary">Кабинет</a>
                         </div>
                     <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header"><strong>Реклама и 50%</strong></div>
+        <div class="card-body p-0">
+            <?php if (empty($financeAds)): ?>
+                <div class="p-3 text-muted">Заявок на рекламу пока нет.</div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Кто даёт рекламу</th>
+                                <th>Оплата</th>
+                                <th>Кому 50%</th>
+                                <th>Начисление</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($financeAds as $ad): ?>
+                                <?php
+                                $state = $ad['commission_state'] ?? 'unpaid';
+                                $receiver = $ad['credited_partner_name'] ?: $ad['credited_partner_email']
+                                    ?: $ad['link_partner_name'] ?: $ad['link_partner_email'] ?: '';
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold"><?= Helper::escape($ad['advertiser_name'] ?: '—') ?></div>
+                                        <small class="text-muted"><?= Helper::escape($ad['advertiser_email']) ?></small>
+                                    </td>
+                                    <td><?= Helper::escape(Partner::formatMoney((float)$ad['paid_amount'])) ?></td>
+                                    <td>
+                                        <?php if ($receiver !== ''): ?>
+                                            <?= Helper::escape($receiver) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">нет партнёра</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($state === 'credited'): ?>
+                                            <span class="badge bg-success">Начислено <?= Helper::escape(Partner::formatMoney((float)$ad['commission'])) ?></span>
+                                        <?php elseif ($state === 'waiting'): ?>
+                                            <form method="POST" action="<?= BASE_URL ?>admin/partners/credit-ad" class="d-inline">
+                                                <input type="hidden" name="ad_id" value="<?= (int)$ad['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-warning">Начислить 50%</button>
+                                            </form>
+                                        <?php elseif ($state === 'no_partner'): ?>
+                                            <span class="badge bg-secondary">Нет партнёра</span>
+                                        <?php else: ?>
+                                            <span class="text-muted">Оплата не отмечена</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header"><strong>Движение денег</strong></div>
+        <div class="card-body p-0">
+            <?php if (empty($financeEarnings) && empty($financePayouts)): ?>
+                <div class="p-3 text-muted">Проводок пока нет.</div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Кому</th>
+                                <th>Операция</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($financeEarnings as $row): ?>
+                                <tr>
+                                    <td><small><?= Helper::escape(date('d.m.Y H:i', strtotime($row['created_at']))) ?></small></td>
+                                    <td>
+                                        <?= Helper::escape($row['full_name'] ?: $row['email']) ?>
+                                        <?php if (!empty($row['is_house_wallet'])): ?>
+                                            <span class="badge bg-success">Кошелёк</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><small><?= Helper::escape($row['description'] ?: 'Начисление') ?></small></td>
+                                    <td class="<?= (float)$row['amount'] < 0 ? 'text-danger' : 'text-success' ?>">
+                                        <?= Helper::escape(Partner::formatMoney((float)$row['amount'])) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <?php foreach ($financePayouts as $row): ?>
+                                <tr>
+                                    <td><small><?= Helper::escape(date('d.m.Y H:i', strtotime($row['created_at']))) ?></small></td>
+                                    <td><?= Helper::escape($row['full_name'] ?: $row['email']) ?></td>
+                                    <td><small>Выплата · <?= Helper::escape(Partner::statusLabel($row['status'])) ?></small></td>
+                                    <td class="text-danger">−<?= Helper::escape(Partner::formatMoney((float)$row['amount'])) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             <?php endif; ?>
         </div>

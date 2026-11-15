@@ -102,6 +102,22 @@ class PartnerSchema
                 $db->exec("ALTER TABLE ads ADD COLUMN paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0");
             }
 
+            if (!self::columnExists($db, 'users', 'is_house_wallet')) {
+                $db->exec("ALTER TABLE users ADD COLUMN is_house_wallet TINYINT(1) NOT NULL DEFAULT 0");
+            }
+
+            if (!self::columnExists($db, 'users', 'partner_reclaimed_at')) {
+                $db->exec("ALTER TABLE users ADD COLUMN partner_reclaimed_at DATETIME NULL DEFAULT NULL");
+            }
+
+            if (!self::columnExists($db, 'users', 'earnings_redirect_user_id')) {
+                $db->exec("ALTER TABLE users ADD COLUMN earnings_redirect_user_id INT UNSIGNED NULL DEFAULT NULL");
+                try {
+                    $db->exec("ALTER TABLE users ADD INDEX idx_users_earnings_redirect (earnings_redirect_user_id)");
+                } catch (Throwable $e) {
+                }
+            }
+
             self::$ready = true;
         } catch (Throwable $e) {
             error_log('PartnerSchema::ensure failed: ' . $e->getMessage());

@@ -257,8 +257,8 @@
                             </a>
                             <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/partners') !== false ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>admin/partners">
-                                <i class="bi bi-handshake"></i>
-                                <span>Партнёры</span>
+                                <i class="bi bi-person-badge"></i>
+                                <span>ПАРТНЁРЫ</span>
                             </a>
                             <a class="nav-link d-flex align-items-center <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/logs') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false) ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>admin/logs">
@@ -332,6 +332,11 @@
                                href="<?= BASE_URL ?>manager/users">
                                 <i class="bi bi-people"></i>
                                 <span>Пользователи</span>
+                            </a>
+                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/partners') !== false ? 'active' : '' ?>"
+                               href="<?= BASE_URL ?>admin/partners">
+                                <i class="bi bi-person-badge"></i>
+                                <span>ПАРТНЁРЫ</span>
                             </a>
                             <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/manager/categories') !== false ? 'active' : '' ?>"
                                href="<?= BASE_URL ?>manager/categories">
@@ -416,8 +421,8 @@
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/partners') !== false ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin/partners">
-                        <i class="bi bi-handshake"></i>
-                        <span>Партнёры</span>
+                        <i class="bi bi-person-badge"></i>
+                        <span>ПАРТНЁРЫ</span>
                     </a>
                     <a class="nav-link d-flex align-items-center <?= (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/logs') !== false || strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/activity-logs') !== false) ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin/logs">
@@ -484,6 +489,11 @@
                        href="<?= BASE_URL ?>manager/users">
                         <i class="bi bi-people"></i>
                         <span>Пользователи</span>
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/partners') !== false ? 'active' : '' ?>"
+                       href="<?= BASE_URL ?>admin/partners">
+                        <i class="bi bi-person-badge"></i>
+                        <span>ПАРТНЁРЫ</span>
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/manager/categories') !== false ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>manager/categories">

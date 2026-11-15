@@ -1,11 +1,20 @@
 <?php
 ob_start();
+$partnerLink = $partnerLink ?? null;
+$shareText = $shareText ?? 'Присоединяйтесь к Aru — размещайте рекламу и мероприятия. Моя ссылка:';
 ?>
+
+<style>
+    .earn-invite-wrap { margin-top: 0.15rem; }
+    @media (max-width: 767px) {
+        .earn-invite-wrap { margin-bottom: 96px; }
+    }
+</style>
 
 <div class="container mt-4 mb-5">
     <?php include __DIR__ . '/_nav.php'; ?>
 
-    <section class="earn-panel mb-0">
+    <section class="earn-panel">
         <ol class="mb-0" style="line-height: 1.7;">
             <li class="mb-2">На обзоре ваша партнёрская ссылка.</li>
             <li class="mb-2">Делитесь ссылкой с предпринимателями, самозанятыми и всеми, кто ведёт своё дело.</li>
@@ -25,7 +34,21 @@ ob_start();
             </li>
         </ol>
     </section>
+
+    <div class="earn-invite-wrap">
+        <?php if (!empty($partnerLink)): ?>
+            <button type="button" class="btn btn-primary btn-lg w-100" data-bs-toggle="modal" data-bs-target="#partnerShareModal">
+                Пригласить
+            </button>
+        <?php else: ?>
+            <a href="<?= BASE_URL ?>profile/earnings" class="btn btn-primary btn-lg w-100">
+                Пригласить
+            </a>
+        <?php endif; ?>
+    </div>
 </div>
+
+<?php include __DIR__ . '/_share_modal.php'; ?>
 
 <?php
 $content = ob_get_clean();

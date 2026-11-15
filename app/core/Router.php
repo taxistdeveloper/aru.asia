@@ -165,6 +165,7 @@ class Router
         $this->routes['admin/partners/add-earning'] = ['controller' => 'Admin', 'method' => 'partnerAddEarning'];
         $this->routes['admin/partners/update-company-status'] = ['controller' => 'Admin', 'method' => 'partnerUpdateCompanyStatus'];
         $this->routes['admin/partners/process-payout'] = ['controller' => 'Admin', 'method' => 'partnerProcessPayout'];
+        $this->routes['admin/partners/credit-ad'] = ['controller' => 'Admin', 'method' => 'partnerCreditAd'];
 
         // Панель менеджера
         $this->routes['manager'] = ['controller' => 'Manager', 'method' => 'index'];

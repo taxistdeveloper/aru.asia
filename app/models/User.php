@@ -73,6 +73,31 @@ class User
         ]);
     }
 
+    /**
+     * Передаёт всех приглашённых по ссылке другому кошельку.
+     * Используется только когда аккаунт неактивен 12 месяцев.
+     */
+    public function reassignReferrals(int $fromUserId, int $toUserId): int
+    {
+        if ($fromUserId <= 0 || $toUserId <= 0 || $fromUserId === $toUserId) {
+            return 0;
+        }
+
+        $stmt = $this->db->prepare(
+            "UPDATE users
+             SET referred_by_partner_user_id = :to_id, updated_at = NOW()
+             WHERE referred_by_partner_user_id = :from_id
+               AND id <> :not_id"
+        );
+        $stmt->execute([
+            ':to_id' => $toUserId,
+            ':from_id' => $fromUserId,
+            ':not_id' => $toUserId,
+        ]);
+
+        return $stmt->rowCount();
+    }
+
     public function becomePartner(int $userId): bool
     {
         $this->ensureAruCode($userId);
@@ -286,6 +311,7 @@ class User
                 FROM users u
                 WHERE u.email_verified = 1
                 AND u.deleted_at IS NULL
+                AND COALESCE(u.is_house_wallet, 0) = 0
                 AND (u.marital_status IS NULL OR u.marital_status != 'married')
                 AND (u.profile_blocked IS NULL OR u.profile_blocked = 0)";
 
@@ -374,6 +400,7 @@ class User
                 FROM users
                 WHERE email_verified = 1
                 AND deleted_at IS NULL
+                AND COALESCE(is_house_wallet, 0) = 0
                 AND latitude IS NOT NULL
                 AND longitude IS NOT NULL
                 AND (marital_status IS NULL OR marital_status != 'married')

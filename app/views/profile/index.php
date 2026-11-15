@@ -280,6 +280,18 @@ ob_start();
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
     }
+
+    .profile-header-actions a.btn-info,
+    .profile-header-actions a.btn-success,
+    .profile-header-actions a.btn-info:hover,
+    .profile-header-actions a.btn-info:focus,
+    .profile-header-actions a.btn-info:active,
+    .profile-header-actions a.btn-success:hover,
+    .profile-header-actions a.btn-success:focus,
+    .profile-header-actions a.btn-success:active {
+        color: #fff;
+        text-decoration: none;
+    }
 </style>
 
 <div class="mobile-page-container mt-3 mt-md-4">

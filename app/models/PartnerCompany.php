@@ -164,6 +164,28 @@ class PartnerCompany
     }
 
     /**
+     * Передаёт все компании неактивного партнёра на рабочий кошелёк.
+     */
+    public function reassignAll(int $fromUserId, int $toUserId): int
+    {
+        if ($fromUserId <= 0 || $toUserId <= 0 || $fromUserId === $toUserId) {
+            return 0;
+        }
+
+        $stmt = $this->db->prepare(
+            'UPDATE partner_companies
+             SET partner_user_id = :to_id, updated_at = NOW()
+             WHERE partner_user_id = :from_id'
+        );
+        $stmt->execute([
+            ':to_id' => $toUserId,
+            ':from_id' => $fromUserId,
+        ]);
+
+        return $stmt->rowCount();
+    }
+
+    /**
      * Обновляет название, если оно пустое или выглядит как заглушка.
      */
     public function updateNameIfEmpty(int $id, string $name): bool
