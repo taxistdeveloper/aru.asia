@@ -1607,7 +1607,7 @@ ob_start();
                                     autocomplete="off"
                                     rows="1"
                                     style="min-height: 38px; max-height: 150px; resize: none; word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word;"
-                                    required></textarea>
+                                    required><?= Helper::escape($messageDraft ?? '') ?></textarea>
                                 <button type="submit" class="btn btn-primary ms-2">
                                     <i class="bi bi-send" style="display: inline-block;"></i>
                                 </button>
@@ -1919,7 +1919,7 @@ ob_start();
                                         autocomplete="off"
                                         rows="1"
                                         style="min-height: 38px; max-height: 150px; resize: none; word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word;"
-                                        required></textarea>
+                                        required><?= Helper::escape($messageDraft ?? '') ?></textarea>
                                     <button type="submit" class="btn btn-primary ms-2">
                                         <i class="bi bi-send" style="display: inline-block;"></i>
                                     </button>

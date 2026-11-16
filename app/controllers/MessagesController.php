@@ -66,6 +66,16 @@ class MessagesController
 
         $conversations = $this->messageModel->getConversations($userId);
 
+        $messageDraft = '';
+        if ($selectedUserId && isset($_GET['draft'])) {
+            $messageDraft = trim((string)$_GET['draft']);
+            if (function_exists('mb_substr')) {
+                $messageDraft = mb_substr($messageDraft, 0, 300);
+            } else {
+                $messageDraft = substr($messageDraft, 0, 300);
+            }
+        }
+
         // Получаем уведомления (новые входящие сообщения)
         $notifications = $this->messageModel->getNewMessages($userId);
         $unreadCount = $this->messageModel->getUnreadCount($userId);
@@ -86,7 +96,8 @@ class MessagesController
             'isMobile' => View::isMobile(),
             'isBlockedByMe' => $isBlockedByMe,
             'isBlockedByOther' => $isBlockedByOther,
-            'isSupportChatClosed' => $isSupportChatClosed
+            'isSupportChatClosed' => $isSupportChatClosed,
+            'messageDraft' => $messageDraft,
         ]);
     }
 

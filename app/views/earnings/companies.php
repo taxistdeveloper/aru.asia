@@ -54,6 +54,13 @@ $earnAction = [
     object-fit: cover;
     display: block;
 }
+.earn-person-body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.28rem;
+}
 .earn-person-name {
     color: #1f1f2e;
     text-decoration: none;
@@ -62,6 +69,39 @@ $earnAction = [
 }
 .earn-person-name:hover {
     color: #4338ca;
+}
+.earn-person-flag {
+    display: inline-block;
+    background: #f59e0b;
+    color: #1f1403;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+    border-radius: 999px;
+    padding: 0.22rem 0.55rem;
+}
+.earn-person-email {
+    color: #374151;
+    font-size: 0.86rem;
+    line-height: 1.3;
+    word-break: break-all;
+}
+.earn-person-write {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.1rem;
+    background: #4f46e5;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 650;
+    border-radius: 8px;
+    padding: 0.38rem 0.7rem;
+}
+.earn-person-write:hover {
+    color: #fff;
+    background: #4338ca;
 }
 .earn-person-status {
     color: #1f1f2e;
@@ -81,18 +121,20 @@ $earnAction = [
                 <?php
                 $personId = (int)($person['id'] ?? 0);
                 $personName = trim((string)($person['full_name'] ?? ''));
-                if ($personName === '') {
-                    $personName = 'Без имени';
-                }
                 $personAge = (int)($person['age'] ?? 0);
-                $personLabel = 'Имя пользователя: ' . $personName;
-                if ($personAge > 0) {
-                    $personLabel .= ' ' . $personAge . ' лет';
+                $personEmail = trim((string)($person['email'] ?? ''));
+                $photoFile = trim((string)($person['main_photo'] ?? ''));
+                $profileIncomplete = $personName === '' || $photoFile === '';
+                $personLabel = '';
+                if ($personName !== '') {
+                    $personLabel = 'Имя пользователя: ' . $personName;
+                    if ($personAge > 0) {
+                        $personLabel .= ' ' . $personAge . ' лет';
+                    }
                 }
                 $personActive = (int)($person['profile_blocked'] ?? 0) !== 1;
                 $personStatus = $personActive ? 'Активен' : 'Заблокирован';
                 $profileUrl = BASE_URL . 'profile/view?id=' . $personId . '&from=partners';
-                $photoFile = trim((string)($person['main_photo'] ?? ''));
                 ?>
                 <article class="earn-person">
                     <a class="earn-person-photo" href="<?= $profileUrl ?>" aria-label="Открыть профиль">
@@ -102,7 +144,24 @@ $earnAction = [
                             <span>Фото<br>пользователя</span>
                         <?php endif; ?>
                     </a>
-                    <a class="earn-person-name" href="<?= $profileUrl ?>"><?= Helper::escape($personLabel) ?></a>
+                    <div class="earn-person-body">
+                        <?php if ($profileIncomplete): ?>
+                            <span class="earn-person-flag">Профиль не заполнен</span>
+                            <?php if ($personEmail !== ''): ?>
+                                <span class="earn-person-email"><?= Helper::escape($personEmail) ?></span>
+                            <?php endif; ?>
+                            <?php
+                            $draftText = 'Здравствуйте! Заполните, пожалуйста, профиль: укажите имя и добавьте фото.';
+                            $messageUrl = BASE_URL . 'messages?user_id=' . $personId . '&draft=' . rawurlencode($draftText);
+                            ?>
+                            <a class="earn-person-write" href="<?= Helper::escape($messageUrl) ?>">
+                                <i class="bi bi-envelope"></i> Написать сообщение
+                            </a>
+                        <?php endif; ?>
+                        <?php if ($personLabel !== ''): ?>
+                            <a class="earn-person-name" href="<?= $profileUrl ?>"><?= Helper::escape($personLabel) ?></a>
+                        <?php endif; ?>
+                    </div>
                     <span class="earn-person-status"><?= Helper::escape($personStatus) ?></span>
                 </article>
             <?php endforeach; ?>
