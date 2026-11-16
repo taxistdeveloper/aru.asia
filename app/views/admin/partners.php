@@ -28,11 +28,7 @@ $pendingPayouts = $pendingPayouts ?? [];
             </a>
         <?php endif; ?>
     </div>
-    <p class="text-muted">
-        Кто размещает рекламу, кому начислено 50%, кто ещё ждёт начисление.
-        Если партнёр не заходит <?= (int)PartnerReclaim::INACTIVE_MONTHS ?> месяцев, невыведенный остаток и люди с его ссылки переходят на рабочий кошелёк. Заявки на выплату, которые уже поданы, не забираем.
-    </p>
-
+   
     <?php if (!empty($_SESSION['success_message'])): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <?= Helper::escape($_SESSION['success_message']) ?>
