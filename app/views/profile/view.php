@@ -44,9 +44,18 @@ ob_start();
     <div class="mb-4">
         <h2 class="mb-3">Профиль пользователя</h2>
         <div class="d-flex flex-column flex-md-row gap-2">
+            <?php if (!empty($backToPartners)): ?>
+                <a href="<?= BASE_URL ?>profile/earnings/companies" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Назад
+                </a>
+            <?php endif; ?>
             <?php if (!empty($backToChatUrl)): ?>
                 <a href="<?= Helper::escape($backToChatUrl) ?>" class="btn btn-primary">
                     <i class="bi bi-chat-dots"></i> <?= Helper::escape($backToChatLabel ?? 'Вернуться в чат') ?>
+                </a>
+            <?php elseif (!empty($backToPartners) && $currentUserId): ?>
+                <a href="<?= BASE_URL ?>messages?user_id=<?= (int)$user['id'] ?>" class="btn btn-primary">
+                    <i class="bi bi-envelope"></i> Написать сообщение
                 </a>
             <?php elseif (isset($isAdmin) && $isAdmin): ?>
                 <a href="<?= BASE_URL ?>admin/users" class="btn btn-secondary">
@@ -64,7 +73,7 @@ ob_start();
                     <i class="bi bi-box-arrow-in-right"></i> Войти для общения
                 </a>
             <?php endif; ?>
-            <?php if (empty($backToChatUrl) && (!isset($isAdmin) || !$isAdmin)): ?>
+            <?php if (empty($backToPartners) && empty($backToChatUrl) && (!isset($isAdmin) || !$isAdmin)): ?>
                 <button type="button" onclick="history.back()" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Назад
                 </button>

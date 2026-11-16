@@ -139,8 +139,25 @@ class EarningsController
         $aruCode = $this->userModel->ensureAruCode($userId);
         $isPartner = !empty($user['is_partner']);
 
+        $people = $this->userModel->getPartnerPeople($userId);
+        $knownEmails = [];
+        foreach ($people as $person) {
+            $email = strtolower(trim((string)($person['email'] ?? '')));
+            if ($email !== '') {
+                $knownEmails[$email] = true;
+            }
+        }
+        $companiesWithoutAccount = [];
+        foreach ($this->companyModel->getByPartner($userId) as $company) {
+            $email = strtolower(trim((string)($company['contact_email'] ?? '')));
+            if ($email === '' || !isset($knownEmails[$email])) {
+                $companiesWithoutAccount[] = $company;
+            }
+        }
+
         $this->render('companies', [
-            'companies' => $this->companyModel->getByPartner($userId),
+            'people' => $people,
+            'companiesWithoutAccount' => $companiesWithoutAccount,
             'user' => $user,
             'isPartner' => $isPartner,
             'partnerLink' => $isPartner && $aruCode ? PartnerReferral::buildLink($aruCode) : null,

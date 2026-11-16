@@ -114,6 +114,51 @@ class User
     }
 
     /**
+     * Люди партнёра: пришли по ссылке или совпали с контактом его компании.
+     */
+    public function getPartnerPeople(int $partnerUserId): array
+    {
+        if ($partnerUserId <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT DISTINCT
+                    u.id,
+                    u.full_name,
+                    u.email,
+                    u.age,
+                    u.profile_blocked,
+                    u.created_at,
+                    (SELECT photo FROM user_photos
+                     WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> ''
+                     ORDER BY created_at ASC LIMIT 1) AS main_photo
+                FROM users u
+                WHERE (u.deleted_at IS NULL)
+                  AND COALESCE(u.is_house_wallet, 0) = 0
+                  AND u.id <> :self_id
+                  AND (
+                        u.referred_by_partner_user_id = :ref_id
+                     OR EXISTS (
+                            SELECT 1 FROM partner_companies c
+                            WHERE c.partner_user_id = :company_partner_id
+                              AND c.contact_email IS NOT NULL
+                              AND TRIM(c.contact_email) <> ''
+                              AND LOWER(TRIM(c.contact_email)) = LOWER(TRIM(u.email))
+                        )
+                  )
+                ORDER BY u.created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':self_id' => $partnerUserId,
+            ':ref_id' => $partnerUserId,
+            ':company_partner_id' => $partnerUserId,
+        ]);
+
+        return $stmt->fetchAll() ?: [];
+    }
+
+    /**
      * Находит пользователя по email
      */
     public function findByEmail($email)

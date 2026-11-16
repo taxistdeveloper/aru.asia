@@ -245,6 +245,8 @@ class ProfileController
             $backToChatUrl = BASE_URL . 'messages?user_id=' . (int)$viewUserId;
         }
 
+        $backToPartners = $from === 'partners';
+
         View::render('profile/view', [
             'user' => $viewUser,
             'photos' => $photos,
@@ -258,6 +260,7 @@ class ProfileController
             'userActivityLogs' => $userActivityLogs,
             'backToChatUrl' => $backToChatUrl,
             'backToChatLabel' => $backToChatLabel,
+            'backToPartners' => $backToPartners,
             'isMobile' => View::isMobile()
         ]);
     }
