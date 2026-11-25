@@ -128,11 +128,6 @@ class MessagesController
             $message = trim($_POST['message'] ?? '');
             $dateId = !empty($_POST['date_id']) ? (int)$_POST['date_id'] : null;
             $eventId = !empty($_POST['event_id']) ? (int)$_POST['event_id'] : null;
-            if ($eventId && DemoEvents::isDemo($this->eventModel->getById($eventId))) {
-                $_SESSION['error_message'] = 'Это пример мероприятия от разработчиков — чат у примеров недоступен.';
-                Helper::redirect('events');
-                return;
-            }
 
             // Если это чат свидания или мероприятия, определяем получателя
             if ($dateId) {
@@ -882,11 +877,6 @@ class MessagesController
 
         $event = $this->eventModel->getById($eventId);
         if (!$event) {
-            Helper::redirect('events');
-            return;
-        }
-        if (DemoEvents::isDemo($event)) {
-            $_SESSION['error_message'] = 'Это пример мероприятия от разработчиков — чат у примеров недоступен.';
             Helper::redirect('events');
             return;
         }

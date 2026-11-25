@@ -1,20 +1,19 @@
 <?php
 
 /**
- * ПРИМЕРЫ МЕРОПРИЯТИЙ ОТ РАЗРАБОТЧИКОВ
+ * ПОСТОЯННЫЕ МЕРОПРИЯТИЯ (наполнение площадки)
  *
- * Пять одинаковых демонстрационных мероприятий в каждой стране: Казахстан, Кыргызстан, Узбекистан, Россия, Беларусь.
- * Они помечены events.is_demo = 1, показываются отдельным блоком «Пример от разработчиков»,
- * не участвуют в поиске по радиусу и статистике, чат у них закрыт.
- * Дата сама переносится на неделю вперёд, когда проходит, — поэтому примеры стоят весь год.
+ * Пять одинаковых мероприятий в каждой стране: Казахстан, Кыргызстан, Узбекистан, Россия, Беларусь.
+ * Помечены events.is_demo = 1 (только для служебных целей): показываются в общем списке и на карте как обычные
+ * для страны пользователя, но не считаются в статистике и не удаляются как прошедшие.
+ * Дата сама переносится на неделю вперёд, когда проходит, — поэтому они стоят весь год.
  *
  * Создание/обновление: php scripts/seed_demo_events.php (повторный запуск ничего не дублирует).
  */
 class DemoEvents
 {
     public const DEMO_EMAIL = 'demo-events@aru.asia';
-    public const DEMO_NAME = 'Aru — пример от разработчиков';
-    public const NOTICE = 'Это пример от разработчиков Aru — не настоящее мероприятие. Он показывает, как будет выглядеть ваше мероприятие на сайте.';
+    public const DEMO_NAME = 'Aru';
 
     private static $schemaReady = false;
     private static $refreshed = false;
@@ -201,14 +200,14 @@ class DemoEvents
         }
         $db->prepare("UPDATE users SET full_name = ? WHERE id = ?")->execute([self::DEMO_NAME, $ownerId]);
 
-        $find = $db->prepare("SELECT id FROM events WHERE is_demo = 1 AND user_id = :uid AND title = :title AND location = :location LIMIT 1");
+        $find = $db->prepare("SELECT id FROM events WHERE is_demo = 1 AND user_id = :uid AND title = :title AND location LIKE :city LIMIT 1");
         $insert = $db->prepare("
             INSERT INTO events (user_id, title, description, event_date, location, latitude, longitude, price, currency_code, photo, status, is_demo, created_at)
             VALUES (:uid, :title, :description, :event_date, :location, :lat, :lon, :price, :currency, NULL, 'approved', 1, NOW())
         ");
         $update = $db->prepare("
             UPDATE events SET description = :description, price = :price, currency_code = :currency,
-                              latitude = :lat, longitude = :lon, status = 'approved'
+                              latitude = :lat, longitude = :lon, location = :location, status = 'approved'
             WHERE id = :id
         ");
 
@@ -220,7 +219,7 @@ class DemoEvents
                 $t = $templates[$i % count($templates)];
                 // Мероприятия разнесены по дням недели: 1-е через 2 дня, 2-е через 3 и т.д.
                 $date = date('Y-m-d', strtotime('+' . (2 + $i) . ' days')) . sprintf(' %02d:00:00', $t['hour']);
-                $location = 'Пример адреса, ' . $city . ', ' . $country;
+                $location = 'Центр города, ' . $city . ', ' . $country;
                 $params = [
                     ':description' => $t['description'],
                     ':price' => $t['price'][$info['currency']],
@@ -228,10 +227,10 @@ class DemoEvents
                     ':lat' => $lat,
                     ':lon' => $lon,
                 ];
-                $find->execute([':uid' => $ownerId, ':title' => $t['title'], ':location' => $location]);
+                $find->execute([':uid' => $ownerId, ':title' => $t['title'], ':city' => '%, ' . $city . ', ' . $country]);
                 $id = (int)$find->fetchColumn();
                 if ($id) {
-                    $update->execute($params + [':id' => $id]);
+                    $update->execute($params + [':id' => $id, ':location' => $location]);
                     $updated++;
                 } else {
                     $insert->execute($params + [

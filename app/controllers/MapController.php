@@ -71,7 +71,7 @@ class MapController
         $mapCenterLon = $userLon ?? $defaultLon;
 
         // Если есть мероприятия с координатами, центрируем карту по среднему арифметическому
-        // (примеры от разработчиков в расчёт не берём — они разбросаны по всей стране)
+        // (постоянные мероприятия добавляются ниже и в расчёт центра не входят)
         if (!empty($events)) {
             $avgLat = array_sum(array_column($events, 'latitude')) / count($events);
             $avgLon = array_sum(array_column($events, 'longitude')) / count($events);
@@ -79,7 +79,7 @@ class MapController
             $mapCenterLon = $avgLon;
         }
 
-        // Примеры мероприятий от разработчиков — отдельными метками с пометкой «Пример»
+        // Постоянные мероприятия своей страны — обычными метками
         try {
             foreach (DemoEvents::forCountry(DemoEvents::viewerCountry($mapUser)) as $demo) {
                 $events[] = $demo;

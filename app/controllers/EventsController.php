@@ -102,17 +102,20 @@ class EventsController
             $myEventChats = [];
         }
 
-        // Примеры мероприятий от разработчиков — по стране пользователя (из профиля или по IP)
-        $demoEvents = [];
+        // Постоянные мероприятия своей страны (стоят весь год) — в общем списке, как обычные
         try {
-            $demoEvents = DemoEvents::forCountry(DemoEvents::viewerCountry(isset($user) ? $user : null));
+            foreach (DemoEvents::forCountry(DemoEvents::viewerCountry(isset($user) ? $user : null)) as $demo) {
+                if ($currentUserId) {
+                    $demo['unread_count'] = $this->messageModel->getUnreadCountForEvent($demo['id'], $currentUserId);
+                }
+                $events[] = $demo;
+            }
         } catch (Throwable $e) {
             error_log('EventsController demo events: ' . $e->getMessage());
         }
 
         View::render('events/index', [
             'events' => $events,
-            'demoEvents' => $demoEvents,
             'myEvents' => $myEvents ?? [],
             'myEventChats' => $myEventChats ?? [],
             'currentUserId' => $currentUserId,
