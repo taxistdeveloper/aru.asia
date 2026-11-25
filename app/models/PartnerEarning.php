@@ -85,6 +85,39 @@ class PartnerEarning
         return $stmt->fetchAll() ?: [];
     }
 
+    /**
+     * Все начисления партнёра с пользователем, за которого начислено
+     * (по email рекламодателя, иначе — по email контакта компании).
+     */
+    public function getByPartnerWithPeople(int $partnerUserId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT e.*,
+                    c.company_name,
+                    a.advertiser_name AS ad_advertiser_name,
+                    u.id AS person_id,
+                    u.full_name AS person_name,
+                    u.age AS person_age,
+                    u.email AS person_email,
+                    (SELECT photo FROM user_photos
+                      WHERE user_id = u.id AND photo IS NOT NULL AND TRIM(photo) <> ''
+                      ORDER BY created_at ASC LIMIT 1) AS person_photo
+             FROM partner_earnings e
+             LEFT JOIN partner_companies c ON c.id = e.company_id
+             LEFT JOIN ads a ON a.id = e.ad_id
+             LEFT JOIN users u ON u.id = (
+                    SELECT u2.id FROM users u2
+                    WHERE u2.deleted_at IS NULL
+                      AND LOWER(TRIM(u2.email)) = LOWER(TRIM(COALESCE(NULLIF(TRIM(a.advertiser_email), ''), c.contact_email)))
+                    ORDER BY u2.id ASC LIMIT 1
+             )
+             WHERE e.partner_user_id = :uid
+             ORDER BY e.created_at DESC"
+        );
+        $stmt->execute([':uid' => $partnerUserId]);
+        return $stmt->fetchAll() ?: [];
+    }
+
     public function sumByPartner(int $partnerUserId): float
     {
         $stmt = $this->db->prepare(

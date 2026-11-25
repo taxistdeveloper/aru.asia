@@ -12,6 +12,7 @@ class Event {
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
         $this->ensureCurrencyColumn();
+        DemoEvents::ensureSchema($this->db);
     }
 
     /**
@@ -97,6 +98,7 @@ class Event {
                 JOIN users u ON e.user_id = u.id
                 WHERE e.event_date >= NOW()
                 AND e.status = 'approved'
+                AND e.is_demo = 0
                 AND e.latitude IS NOT NULL
                 AND e.longitude IS NOT NULL
                 HAVING distance <= :radius
@@ -327,6 +329,7 @@ class Event {
                 JOIN users u ON e.user_id = u.id
                 WHERE e.event_date >= NOW()
                 AND e.status = 'approved'
+                AND e.is_demo = 0
                 ORDER BY e.event_date";
 
         $stmt = $this->db->prepare($sql);
@@ -339,7 +342,7 @@ class Event {
      * Не удаляет pending — они должны пройти модерацию
      */
     public function deleteExpired() {
-        $sql = "DELETE FROM events WHERE event_date < NOW() AND status IN ('approved', 'rejected')";
+        $sql = "DELETE FROM events WHERE event_date < NOW() AND status IN ('approved', 'rejected') AND is_demo = 0";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute();
     }
@@ -349,7 +352,7 @@ class Event {
      */
     public function getActiveCount() {
         $sql = "SELECT COUNT(*) as total FROM events 
-                WHERE event_date >= NOW() AND status = 'approved'";
+                WHERE event_date >= NOW() AND status = 'approved' AND is_demo = 0";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch();
@@ -360,7 +363,7 @@ class Event {
      * Получает общее количество всех мероприятий (включая прошедшие)
      */
     public function getTotalCount() {
-        $sql = "SELECT COUNT(*) as total FROM events WHERE status = 'approved'";
+        $sql = "SELECT COUNT(*) as total FROM events WHERE status = 'approved' AND is_demo = 0";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch();

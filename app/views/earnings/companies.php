@@ -108,6 +108,72 @@ $earnAction = [
     font-size: 0.95rem;
     white-space: nowrap;
 }
+.earn-pubs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    width: 96px;
+}
+.earn-pub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+    text-align: center;
+}
+.earn-pub-type {
+    font-size: 0.9rem;
+    font-weight: 650;
+    color: #1f1f2e;
+    line-height: 1.15;
+}
+.earn-pub-thumb {
+    width: 88px;
+    height: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #e5e7eb;
+    color: #6b7280;
+    font-size: 0.66rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #22c55e;
+}
+.earn-pub-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.earn-pub-state {
+    font-size: 0.68rem;
+    line-height: 1.2;
+    color: #15803d;
+    font-weight: 600;
+}
+.earn-pub.is-pending .earn-pub-thumb { border-color: #f59e0b; }
+.earn-pub.is-pending .earn-pub-state { color: #b45309; }
+.earn-pub.is-finished .earn-pub-thumb { border-color: #d1d5db; filter: grayscale(1); opacity: .65; }
+.earn-pub.is-finished .earn-pub-state,
+.earn-pub.is-finished .earn-pub-type { color: #9ca3af; }
+.earn-none {
+    color: #9ca3af;
+    font-size: 0.8rem;
+    text-align: center;
+    width: 96px;
+}
+.earn-person.is-inactive { background: #fafafb; }
+.earn-group-title {
+    font-size: 0.85rem;
+    font-weight: 650;
+    color: #6b6b80;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin: 0.6rem 0 -0.2rem;
+}
 </style>
 
 <div class="container mt-4 mb-5">
@@ -117,7 +183,17 @@ $earnAction = [
         <div class="earn-empty">Пока нет партнёров.</div>
     <?php else: ?>
         <div class="earn-people">
+            <?php $shownInactiveTitle = false; $shownActiveTitle = false; ?>
             <?php foreach ($people as $person): ?>
+                <?php
+                $pubs = $person['publications'] ?? [];
+                $isLive = !empty($pubs) && in_array($pubs[0]['state'], ['live', 'scheduled'], true);
+                ?>
+                <?php if ($isLive && !$shownActiveTitle): $shownActiveTitle = true; ?>
+                    <div class="earn-group-title">Активные</div>
+                <?php elseif (!$isLive && !$shownInactiveTitle): $shownInactiveTitle = true; ?>
+                    <div class="earn-group-title">Неактивные</div>
+                <?php endif; ?>
                 <?php
                 $personId = (int)($person['id'] ?? 0);
                 $personName = trim((string)($person['full_name'] ?? ''));
@@ -132,11 +208,11 @@ $earnAction = [
                         $personLabel .= ' ' . $personAge . ' лет';
                     }
                 }
-                $personActive = (int)($person['profile_blocked'] ?? 0) !== 1;
-                $personStatus = $personActive ? 'Активен' : 'Заблокирован';
+                $personBlocked = (int)($person['profile_blocked'] ?? 0) === 1;
+                $stateLabels = ['live' => 'Идёт', 'scheduled' => 'Скоро старт', 'pending' => 'На модерации', 'finished' => 'Завершено'];
                 $profileUrl = BASE_URL . 'profile/view?id=' . $personId . '&from=partners';
                 ?>
-                <article class="earn-person">
+                <article class="earn-person <?= $isLive ? '' : 'is-inactive' ?>">
                     <a class="earn-person-photo" href="<?= $profileUrl ?>" aria-label="Открыть профиль">
                         <?php if ($photoFile !== ''): ?>
                             <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . rawurlencode($photoFile) ?>" alt="">
@@ -162,7 +238,35 @@ $earnAction = [
                             <a class="earn-person-name" href="<?= $profileUrl ?>"><?= Helper::escape($personLabel) ?></a>
                         <?php endif; ?>
                     </div>
-                    <span class="earn-person-status"><?= Helper::escape($personStatus) ?></span>
+                    <?php if (!empty($pubs)): ?>
+                        <div class="earn-pubs">
+                            <?php foreach ($pubs as $pub): ?>
+                                <?php
+                                $until = !empty($pub['until']) ? date('d.m.Y', strtotime($pub['until'])) : '';
+                                $stateText = $stateLabels[$pub['state']] ?? '';
+                                if ($until !== '' && in_array($pub['state'], ['live', 'scheduled'], true)) {
+                                    $stateText .= ' до ' . $until;
+                                } elseif ($until !== '' && $pub['state'] === 'finished') {
+                                    $stateText .= ' ' . $until;
+                                }
+                                ?>
+                                <div class="earn-pub is-<?= Helper::escape($pub['state']) ?>">
+                                    <span class="earn-pub-type"><?= Helper::escape($pub['type']) ?></span>
+                                    <span class="earn-pub-thumb">
+                                        <?php if (!empty($pub['image'])): ?>
+                                            <img src="<?= BASE_URL . Helper::escape($pub['image']) ?>" alt="<?= Helper::escape($pub['type']) ?>" loading="lazy">
+                                        <?php else: ?>
+                                            Нет фото
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="earn-pub-state"><?= Helper::escape($stateText) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php if ($personBlocked): ?><span class="earn-pub-state text-danger">Заблокирован</span><?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <span class="earn-none">Нет рекламы и мероприятий<?= $personBlocked ? '<br><span class="text-danger">Заблокирован</span>' : '' ?></span>
+                    <?php endif; ?>
                 </article>
             <?php endforeach; ?>
             <?php foreach ($companiesWithoutAccount as $company): ?>

@@ -39,6 +39,8 @@ class MapController
             $userLon = $user['longitude'] ?? null;
         }
 
+        $mapUser = $user ?? null;
+
         // Если есть геолокация, получаем мероприятия в радиусе
         if ($userLat && $userLon) {
             $events = $this->eventModel->getInRadius($userLat, $userLon, RADIUS_KM);
@@ -69,11 +71,21 @@ class MapController
         $mapCenterLon = $userLon ?? $defaultLon;
 
         // Если есть мероприятия с координатами, центрируем карту по среднему арифметическому
+        // (примеры от разработчиков в расчёт не берём — они разбросаны по всей стране)
         if (!empty($events)) {
             $avgLat = array_sum(array_column($events, 'latitude')) / count($events);
             $avgLon = array_sum(array_column($events, 'longitude')) / count($events);
             $mapCenterLat = $avgLat;
             $mapCenterLon = $avgLon;
+        }
+
+        // Примеры мероприятий от разработчиков — отдельными метками с пометкой «Пример»
+        try {
+            foreach (DemoEvents::forCountry(DemoEvents::viewerCountry($mapUser)) as $demo) {
+                $events[] = $demo;
+            }
+        } catch (Throwable $e) {
+            error_log('MapController demo events: ' . $e->getMessage());
         }
 
         View::render('map/index', [

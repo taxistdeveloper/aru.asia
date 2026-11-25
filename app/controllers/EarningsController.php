@@ -155,6 +155,8 @@ class EarningsController
             }
         }
 
+        $people = $this->attachPublications($people);
+
         $this->render('companies', [
             'people' => $people,
             'companiesWithoutAccount' => $companiesWithoutAccount,
@@ -174,8 +176,133 @@ class EarningsController
     {
         $userId = $this->requireUser();
         $this->render('history', [
-            'earnings' => $this->earningModel->getByPartner($userId),
+            'tree' => $this->buildEarningsTree($this->earningModel->getByPartnerWithPeople($userId)),
         ]);
+    }
+
+    /**
+     * Для каждого человека находит его рекламу и мероприятие (последние, кроме отклонённых)
+     * и сортирует: сначала с активной публикацией, затем на модерации, затем завершённые, затем без публикаций.
+     */
+    private function attachPublications(array $people): array
+    {
+        if (empty($people)) {
+            return $people;
+        }
+        $db = Database::getInstance()->getConnection();
+        $adStmt = $db->prepare("
+            SELECT id, image_path, status, start_date, end_date,
+                   (status = 'active' AND end_date >= NOW()) AS is_live
+            FROM ads
+            WHERE LOWER(TRIM(advertiser_email)) = LOWER(TRIM(:email))
+              AND status IN ('active', 'pending', 'expired')
+            ORDER BY is_live DESC, end_date DESC
+            LIMIT 1
+        ");
+        $eventStmt = $db->prepare("
+            SELECT id, title, photo, status, event_date,
+                   (status = 'approved' AND event_date >= NOW()) AS is_live
+            FROM events
+            WHERE user_id = :uid AND status IN ('approved', 'pending')
+            ORDER BY is_live DESC, event_date DESC
+            LIMIT 1
+        ");
+
+        $now = time();
+        foreach ($people as $i => $person) {
+            $pubs = [];
+            $email = trim((string)($person['email'] ?? ''));
+            if ($email !== '') {
+                $adStmt->execute([':email' => $email]);
+                if ($ad = $adStmt->fetch()) {
+                    $pubs[] = [
+                        'type' => 'Реклама',
+                        'image' => !empty($ad['image_path']) ? UPLOAD_DIR . 'ads/' . $ad['image_path'] : null,
+                        'state' => (int)$ad['is_live'] === 1
+                            ? (strtotime($ad['start_date']) > $now ? 'scheduled' : 'live')
+                            : ($ad['status'] === 'pending' ? 'pending' : 'finished'),
+                        'until' => $ad['end_date'],
+                    ];
+                }
+            }
+            $eventStmt->execute([':uid' => (int)$person['id']]);
+            if ($ev = $eventStmt->fetch()) {
+                $pubs[] = [
+                    'type' => 'Мероприятие',
+                    'image' => !empty($ev['photo']) ? UPLOAD_DIR . 'photos/' . $ev['photo'] : null,
+                    'state' => (int)$ev['is_live'] === 1 ? 'live' : ($ev['status'] === 'pending' ? 'pending' : 'finished'),
+                    'until' => $ev['event_date'],
+                ];
+            }
+
+            // Активные — первыми в карточке
+            $stateRank = ['live' => 0, 'scheduled' => 1, 'pending' => 2, 'finished' => 3];
+            usort($pubs, function ($a, $b) use ($stateRank) {
+                return $stateRank[$a['state']] <=> $stateRank[$b['state']];
+            });
+
+            $people[$i]['publications'] = $pubs;
+            $people[$i]['_rank'] = empty($pubs) ? 4 : $stateRank[$pubs[0]['state']];
+            $people[$i]['_order'] = $i;
+        }
+
+        usort($people, function ($a, $b) {
+            return [$a['_rank'], $a['_order']] <=> [$b['_rank'], $b['_order']];
+        });
+        return $people;
+    }
+
+    /**
+     * Начисления по папкам: [год => [месяц => ['total'=>.., 'people'=>[...]]]].
+     * Года — новые сверху, месяцы — по порядку. Новый год появляется автоматически с первым начислением.
+     */
+    private function buildEarningsTree(array $earnings): array
+    {
+        $tree = [];
+        foreach ($earnings as $e) {
+            $ts = strtotime((string)$e['created_at']);
+            $y = (int)date('Y', $ts);
+            $m = (int)date('n', $ts);
+            if (!isset($tree[$y][$m])) {
+                $tree[$y][$m] = ['total' => 0.0, 'people' => []];
+            }
+            $amount = (float)$e['amount'];
+            $tree[$y][$m]['total'] += $amount;
+
+            if (!empty($e['person_id'])) {
+                $key = 'u' . (int)$e['person_id'];
+            } elseif (!empty($e['company_id'])) {
+                $key = 'c' . (int)$e['company_id'];
+            } else {
+                $key = 'other';
+            }
+            if (!isset($tree[$y][$m]['people'][$key])) {
+                $tree[$y][$m]['people'][$key] = [
+                    'id' => !empty($e['person_id']) ? (int)$e['person_id'] : null,
+                    'name' => trim((string)($e['person_name'] ?? '')) ?: (trim((string)($e['company_name'] ?? '')) ?: (trim((string)($e['ad_advertiser_name'] ?? '')) ?: 'Прочие начисления')),
+                    'age' => (int)($e['person_age'] ?? 0),
+                    'email' => $e['person_email'] ?? null,
+                    'photo' => $e['person_photo'] ?? null,
+                    'sum' => 0.0,
+                    'count' => 0,
+                ];
+            }
+            $tree[$y][$m]['people'][$key]['sum'] += $amount;
+            $tree[$y][$m]['people'][$key]['count']++;
+        }
+
+        krsort($tree);
+        foreach ($tree as $y => $months) {
+            ksort($months);
+            foreach ($months as $m => $data) {
+                uasort($data['people'], function ($a, $b) {
+                    return $b['sum'] <=> $a['sum'];
+                });
+                $months[$m] = $data;
+            }
+            $tree[$y] = $months;
+        }
+        return $tree;
     }
 
     public function payouts()

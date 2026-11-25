@@ -286,6 +286,11 @@
                                 <i class="bi bi-megaphone"></i>
                                 <span>Реклама</span>
                             </a>
+                            <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/payments') !== false ? 'active' : '' ?>"
+                               href="<?= BASE_URL ?>admin/payments">
+                                <i class="bi bi-receipt"></i>
+                                <span>Оплаты и чеки</span>
+                            </a>
                             <?php
                             $feedbackBadge = '';
                             if (class_exists('Feedback')) {
@@ -449,6 +454,11 @@
                        href="<?= BASE_URL ?>admin/ads">
                         <i class="bi bi-megaphone"></i>
                         <span>Реклама</span>
+                    </a>
+                    <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/payments') !== false ? 'active' : '' ?>"
+                       href="<?= BASE_URL ?>admin/payments">
+                        <i class="bi bi-receipt"></i>
+                        <span>Оплаты и чеки</span>
                     </a>
                     <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/feedback') !== false ? 'active' : '' ?>"
                        href="<?= BASE_URL ?>admin/feedback">

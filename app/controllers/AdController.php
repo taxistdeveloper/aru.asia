@@ -205,6 +205,10 @@ class AdController
             $errors[] = 'Дата окончания показа не может быть позже 31 декабря ' . date('Y') . ' года';
         }
 
+        if (($_POST['payment_agree'] ?? '') !== '1') {
+            $errors[] = 'Для размещения рекламы подтвердите оплату: нажмите «СОГЛАСЕН ОПЛАТИТЬ».';
+        }
+
         $imageCroppedBase64 = trim($_POST['image_cropped_base64'] ?? '');
         $hasFile = !empty($_FILES['image']['name']);
         if (empty($imageCroppedBase64) && !$hasFile) {
@@ -249,6 +253,7 @@ class AdController
         $createdCount = 0;
         $totalToCreate = count($cityValuesToCreate);
         $isFirst = true;
+        $firstAdId = null;
         foreach ($cityValuesToCreate as $singleCity) {
             // Полную сумму пишем только в первую запись партии — комиссия один раз
             $result = $this->adModel->create([
@@ -266,6 +271,9 @@ class AdController
 
             if ($result) {
                 $createdCount++;
+                if ($firstAdId === null) {
+                    $firstAdId = $this->adModel->getLastInsertId();
+                }
             }
             $isFirst = false;
         }
@@ -284,9 +292,23 @@ class AdController
             }
         }
 
+        // Фиксируем согласие на оплату — чек выдаётся после подтверждения оплаты администратором
+        if ($createdCount > 0 && $firstAdId) {
+            PaymentService::createPending([
+                'kind' => 'ad',
+                'ad_id' => $firstAdId,
+                'user_id' => Helper::isLoggedIn() ? Helper::getUserId() : null,
+                'payer_email' => $advertiserEmail,
+                'payer_name' => $advertiserName,
+                'description' => 'Баннерная реклама: ' . implode(', ', $cityValuesToCreate) . ', '
+                    . date('d.m.Y', strtotime($startDate)) . '–' . date('d.m.Y', strtotime($endDate)),
+                'amount' => $orderAmount,
+            ]);
+        }
+
         if ($createdCount === $totalToCreate && $totalToCreate > 0) {
             ActivityLogger::info('ad.create', 'Заявка на рекламу отправлена', 'ad', null, ['count' => $createdCount, 'country' => $country]);
-            $_SESSION['success_message'] = 'Ваша реклама отправлена на модерацию. После проверки она будет опубликована.';
+            $_SESSION['success_message'] = 'Ваша реклама отправлена на модерацию. После подтверждения оплаты чек придёт на ваш email и в «Сообщения».';
             Helper::redirect('profile');
         } else {
             View::render('ads/create', [

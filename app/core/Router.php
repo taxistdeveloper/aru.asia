@@ -166,6 +166,12 @@ class Router
         $this->routes['admin/partners/update-company-status'] = ['controller' => 'Admin', 'method' => 'partnerUpdateCompanyStatus'];
         $this->routes['admin/partners/process-payout'] = ['controller' => 'Admin', 'method' => 'partnerProcessPayout'];
         $this->routes['admin/partners/credit-ad'] = ['controller' => 'Admin', 'method' => 'partnerCreditAd'];
+        // Оплаты и чеки
+        $this->routes['admin/payments'] = ['controller' => 'Payments', 'method' => 'adminIndex'];
+        $this->routes['admin/payments/confirm'] = ['controller' => 'Payments', 'method' => 'adminConfirm'];
+        $this->routes['admin/payments/cancel'] = ['controller' => 'Payments', 'method' => 'adminCancel'];
+        $this->routes['admin/receipts/view'] = ['controller' => 'Payments', 'method' => 'adminReceipt'];
+        $this->routes['receipts/view'] = ['controller' => 'Payments', 'method' => 'userReceipt'];
 
         // Панель менеджера
         $this->routes['manager'] = ['controller' => 'Manager', 'method' => 'index'];

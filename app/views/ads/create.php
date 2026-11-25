@@ -1038,7 +1038,7 @@ ob_start();
                                     <option value="5" <?= (isset($old['city_count']) && (string)$old['city_count'] === '5') ? 'selected' : '' ?>>5 городов</option>
                                     <option value="all" <?= (isset($old['city_count']) && (string)$old['city_count'] === 'all') ? 'selected' : '' ?>>6+ / все города</option>
                                 </select>
-                                <div class="form-text">1–5 городов: 2 000 ₸ × город / мес. 6+ или все города: 25 000 ₸ / мес. Сейчас оформление бесплатное — тарифы для запуска оплаты.</div>
+                                <div class="form-text">1–5 городов: 2 000 ₸ × город / мес. 6+ или все города: 25 000 ₸ / мес. Оплата подтверждается администрацией, чек приходит на email и в сообщения.</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="tariff_period" class="form-label">Период размещения *</label>
@@ -1230,7 +1230,7 @@ ob_start();
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary cta-free-submit">
-                            <i class="bi bi-gift"></i> Разместить рекламу
+                            <i class="bi bi-credit-card"></i> Оплатить и разместить рекламу
                         </button>
                     </div>
                 </div>
@@ -2512,6 +2512,23 @@ ob_start();
         }
     });
 </script>
+
+<script>
+    // Сумма к оплате для окна «ОПЛАТИТЬ» — тот же расчёт, что и на сервере (PartnerReferral::tariffs())
+    window.aruPaymentAmount = function () {
+        const tariffs = <?= json_encode(PartnerReferral::tariffs()) ?>;
+        const cc = (document.getElementById('city_count') || {}).value || '1';
+        const period = (document.getElementById('tariff_period') || {}).value || '1';
+        return (tariffs[cc] && tariffs[cc][period]) ? tariffs[cc][period] : tariffs['1']['1'];
+    };
+</script>
+<?php
+$paymentFormSelector = '.ad-create-form';
+$paymentTitle = 'Баннерная реклама';
+$paymentAmountKzt = null;
+$paymentRefundText = 'После оплаты и выхода рекламы средства не возвращаются.';
+include __DIR__ . '/../partials/payment_consent_modal.php';
+?>
 
 <?php
 $content = ob_get_clean();

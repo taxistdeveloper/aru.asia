@@ -1008,7 +1008,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" id="event-create-submit-btn">
-                    <i class="bi bi-check-circle"></i> Создать мероприятие
+                    <i class="bi bi-credit-card"></i> Оплатить и создать мероприятие
                 </button>
                 <a href="<?= BASE_URL ?>events" class="btn btn-outline-secondary btn-lg">
                     Отмена
@@ -3206,6 +3206,14 @@ out skel qt;`;
         this.setCustomValidity('');
     });
 </script>
+
+<?php
+$paymentFormSelector = '.event-create-form';
+$paymentTitle = 'Размещение мероприятия';
+$paymentAmountKzt = $eventPublishPrice;
+$paymentRefundText = 'После оплаты и выхода мероприятия средства не возвращаются.';
+include __DIR__ . '/../partials/payment_consent_modal.php';
+?>
 
 <?php
 $content = ob_get_clean();

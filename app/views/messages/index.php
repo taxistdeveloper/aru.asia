@@ -1663,7 +1663,7 @@ ob_start();
                                                     <h6 class="mb-1">
                                                         <span class="badge <?= $badgeClass ?> me-2"><?= $badgeText ?></span>
                                                     </h6>
-                                                    <p class="mb-1"><?= nl2br(Helper::escape($notification['message'])) ?></p>
+                                                    <p class="mb-1"><?= nl2br(preg_replace('~(https?://[^\s<]+)~u', '<a href="$1" target="_blank" rel="noopener">$1</a>', Helper::escape($notification['message']))) ?></p>
                                                     <small class="text-muted">
                                                         <?= date('d.m.Y H:i', strtotime($notification['created_at'])) ?>
                                                     </small>

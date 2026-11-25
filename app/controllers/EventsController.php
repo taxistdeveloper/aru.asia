@@ -102,8 +102,17 @@ class EventsController
             $myEventChats = [];
         }
 
+        // Примеры мероприятий от разработчиков — по стране пользователя (из профиля или по IP)
+        $demoEvents = [];
+        try {
+            $demoEvents = DemoEvents::forCountry(DemoEvents::viewerCountry(isset($user) ? $user : null));
+        } catch (Throwable $e) {
+            error_log('EventsController demo events: ' . $e->getMessage());
+        }
+
         View::render('events/index', [
             'events' => $events,
+            'demoEvents' => $demoEvents,
             'myEvents' => $myEvents ?? [],
             'myEventChats' => $myEventChats ?? [],
             'currentUserId' => $currentUserId,
@@ -170,7 +179,12 @@ class EventsController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Оплата публикации: при EVENT_PUBLISH_PAYMENT_ENABLED === true сюда встраивается проверка оплаты на EVENT_PUBLISH_PRICE_KZT; пока флаг false — создание бесплатное.
+            // Оплата публикации: без согласия «СОГЛАСЕН ОПЛАТИТЬ» мероприятие не создаётся
+            if (($_POST['payment_agree'] ?? '') !== '1') {
+                $_SESSION['error_message'] = 'Для создания мероприятия подтвердите оплату: нажмите «СОГЛАСЕН ОПЛАТИТЬ».';
+                Helper::redirect('events/create');
+                return;
+            }
 
             // Формируем полный адрес из отдельных полей
             $city = trim($_POST['city'] ?? '');
@@ -288,8 +302,19 @@ class EventsController
             ];
 
             if ($this->eventModel->create($data)) {
-                ActivityLogger::info('event.create', 'Мероприятие отправлено на модерацию', 'event', ActivityLog::lastInsertId() ?: null);
-                $_SESSION['success_message'] = 'Ваше мероприятие отправлено на модерацию. Вы получите уведомление после проверки.';
+                $newEventId = (int)Database::getInstance()->getConnection()->lastInsertId();
+                ActivityLogger::info('event.create', 'Мероприятие отправлено на модерацию', 'event', $newEventId ?: null);
+                $payer = (new User())->findById($userId);
+                PaymentService::createPending([
+                    'kind' => 'event',
+                    'event_id' => $newEventId ?: null,
+                    'user_id' => $userId,
+                    'payer_email' => $payer['email'] ?? '',
+                    'payer_name' => $payer['full_name'] ?? null,
+                    'description' => 'Размещение мероприятия «' . $title . '»',
+                    'amount' => defined('EVENT_PUBLISH_PRICE_KZT') ? (int)EVENT_PUBLISH_PRICE_KZT : 500,
+                ]);
+                $_SESSION['success_message'] = 'Ваше мероприятие отправлено на модерацию. После подтверждения оплаты чек придёт на ваш email и в «Сообщения».';
                 Helper::redirect('events');
             } else {
                 $_SESSION['error_message'] = 'Ошибка при создании мероприятия. Попробуйте еще раз.';
