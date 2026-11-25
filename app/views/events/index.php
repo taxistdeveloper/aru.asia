@@ -49,13 +49,6 @@ ob_start();
         </div>
         <?php unset($_SESSION['success_message']); ?>
     <?php endif; ?>
-    <?php if (isset($_SESSION['error_message'])): ?>
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <?= Helper::escape($_SESSION['error_message']) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php unset($_SESSION['error_message']); ?>
-    <?php endif; ?>
 
     <?php if (Helper::isLoggedIn() && !empty($myEvents)): ?>
         <h3 class="events-section-title">Мои мероприятия</h3>
@@ -265,92 +258,7 @@ ob_start();
             </div>
         <?php endif; ?>
     <?php endif; ?>
-
-    <?php if (!empty($demoEvents)): ?>
-        <h3 class="events-section-title demo-section-title">
-            Примеры мероприятий <span class="demo-badge">ПРИМЕР ОТ РАЗРАБОТЧИКОВ</span>
-        </h3>
-        <div class="demo-notice">
-            <i class="bi bi-info-circle-fill"></i>
-            <div>
-                <strong>Это не настоящие мероприятия.</strong>
-                Их разместили разработчики Aru, чтобы показать, как работает раздел «Мероприятия»:
-                так будет выглядеть ваша карточка с датой, адресом и ценой. Записаться на них нельзя.
-                <a href="<?= BASE_URL ?>events/create">Создать своё мероприятие</a>
-            </div>
-        </div>
-        <div class="events-list">
-            <?php foreach ($demoEvents as $event): ?>
-                <?php
-                $event['currency_code'] = Helper::eventCurrency($event);
-                $locParts = array_values(array_filter(array_map('trim', explode(',', (string)$event['location']))));
-                $demoPlace = count($locParts) >= 2 ? $locParts[count($locParts) - 2] . ', ' . end($locParts) : (string)$event['location'];
-                ?>
-                <div class="event-item-compact event-item-demo"
-                     id="event-<?= (int)$event['id'] ?>"
-                     data-event='<?= htmlspecialchars(json_encode($event), ENT_QUOTES, 'UTF-8') ?>'
-                     data-is-mine="false"
-                     style="cursor: pointer;">
-                    <div class="event-banner-placeholder demo-banner">
-                        <span class="demo-ribbon">ПРИМЕР</span>
-                        <i class="bi bi-stars"></i>
-                    </div>
-                    <div class="event-compact-content">
-                        <h4 class="event-compact-title"><?= Helper::escape($event['title']) ?></h4>
-                        <div class="event-compact-time">
-                            <i class="bi bi-calendar3"></i>
-                            <span><?= date('d.m.Y', strtotime($event['event_date'])) ?> в <?= date('H:i', strtotime($event['event_date'])) ?></span>
-                        </div>
-                        <div class="event-compact-location">
-                            <i class="bi bi-geo-alt"></i>
-                            <span class="location-text"><?= Helper::escape($demoPlace) ?></span>
-                        </div>
-                        <?php if (!empty($event['price']) && $event['price'] > 0): ?>
-                            <div class="event-compact-price"
-                                 data-amount="<?= htmlspecialchars((string) (float) $event['price'], ENT_QUOTES, 'UTF-8') ?>"
-                                 data-currency="<?= Helper::escape($event['currency_code']) ?>">
-                                <i class="bi bi-currency-exchange"></i>
-                                <div class="event-compact-price-main">
-                                    <span><?= Helper::formatEventPrice($event['price'], $event) ?></span>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        <div class="demo-card-note">Пример от разработчиков · не настоящее мероприятие</div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
 </div>
-
-<style>
-    .demo-section-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 28px; }
-    .demo-badge {
-        display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
-        border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 3px 10px;
-    }
-    .demo-notice {
-        display: flex; gap: 10px; align-items: flex-start;
-        background: #fffbeb; border: 1px dashed #f59e0b; color: #78350f;
-        border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.45; margin-bottom: 14px;
-    }
-    .demo-notice i { color: #f59e0b; font-size: 18px; margin-top: 1px; }
-    .demo-notice a { color: #b45309; font-weight: 600; }
-    .event-item-demo { border: 1px dashed #f59e0b !important; background: #fffdf7 !important; }
-    .event-item-demo .demo-banner {
-        position: relative; background: linear-gradient(135deg, #fde68a, #fbcfe8) !important; color: #92400e !important;
-    }
-    .demo-ribbon {
-        position: absolute; top: 6px; left: 6px; background: #f59e0b; color: #fff;
-        font-size: 10px; font-weight: 800; letter-spacing: .06em; border-radius: 6px; padding: 2px 6px;
-    }
-    .demo-card-note { margin-top: 6px; font-size: 12px; font-weight: 600; color: #b45309; }
-    .event-modal-demo-notice {
-        background: #fffbeb; border: 1px dashed #f59e0b; color: #78350f; border-radius: 12px;
-        padding: 10px 12px; font-size: 14px; margin: 10px 20px;
-    }
-    .event-modal-body > .demo-badge { margin: 14px 20px 0; }
-</style>
 
 <style>
     /* Минималистичный дизайн для мобильных устройств */
@@ -2677,15 +2585,7 @@ ob_start();
             }
             
             // Заголовок
-            const isDemo = String(event.is_demo || '0') === '1';
-            if (isDemo) {
-                html += '<span class="demo-badge">ПРИМЕР ОТ РАЗРАБОТЧИКОВ</span>';
-            }
             html += '<h4 class="event-modal-title">' + escapeHtml(event.title) + '</h4>';
-            if (isDemo) {
-                html += '<div class="event-modal-demo-notice"><i class="bi bi-info-circle-fill"></i> '
-                    + 'Это пример от разработчиков Aru — не настоящее мероприятие. Он показывает, как будет выглядеть ваше мероприятие на сайте.</div>';
-            }
             
             // Статус
             if (isMine) {
@@ -2843,12 +2743,7 @@ ob_start();
             
             // Кнопки действий
             html += '<div class="event-modal-actions">';
-            if (isDemo) {
-                html += '<a href="' + BASE_URL + 'events/create" class="event-modal-btn event-modal-btn-chat event-modal-btn-full">';
-                html += '<i class="bi bi-plus-circle"></i>';
-                html += '<span>Создать своё мероприятие</span>';
-                html += '</a>';
-            } else if (isMine) {
+            if (isMine) {
                 const unreadCount = event.unread_count || 0;
                 html += '<a href="' + BASE_URL + 'messages/event?event_id=' + event.id + '" class="event-modal-btn event-modal-btn-chat">';
                 html += '<i class="bi bi-chat"></i>';

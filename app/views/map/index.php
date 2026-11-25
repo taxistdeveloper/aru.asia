@@ -211,26 +211,18 @@ function formatAddress($location)
     <?php endif; ?>
 
     // Маркеры мероприятий — координаты как в Nominatim (lat, lon)
-    <?php $hasRealEvents = count(array_filter($events, function ($e) { return empty($e['is_demo']); })) > 0; ?>
     <?php foreach ($events as $event): ?>
         <?php
-        $isDemoEvent = !empty($event['is_demo']);
         $formattedLocation = formatAddress($event['location']);
         $distanceText = '';
         if (Helper::isLoggedIn() && isset($event['distance']) && $event['distance'] > 0) {
             $distanceText = '<br>📏 Расстояние: ' . number_format($event['distance'], 1) . ' км';
         }
-        $demoHeader = $isDemoEvent
-            ? '<div style="display:inline-block;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px;margin-bottom:4px;">ПРИМЕР ОТ РАЗРАБОТЧИКОВ</div><br>'
-            : '';
-        $demoFooter = $isDemoEvent
-            ? '<br><small style="color:#b45309;">Это не настоящее мероприятие — пример того, как оно будет выглядеть на сайте.</small>'
-            : '';
-        $popupContent = '<div style="min-width: 200px;">' . $demoHeader .
+        $popupContent = '<div style="min-width: 200px;">' .
             '<strong>' . Helper::escape($event['title']) . '</strong><br>' .
             '📍 Адрес: ' . Helper::escape($formattedLocation) . '<br>' .
             '📅 Дата: ' . date('d.m.Y', strtotime($event['event_date'])) . ' Время: ' . date('H:i', strtotime($event['event_date'])) . '<br>' .
-            '💰 Цена: ' . Helper::formatEventPrice($event['price'], $event) . $distanceText . $demoFooter .
+            '💰 Цена: ' . Helper::formatEventPrice($event['price'], $event) . $distanceText .
             '<br><br><a href="' . BASE_URL . 'events#event-' . (int)$event['id'] . '" style="display: block; width: 100%; text-align: center; background-color: #0d6efd; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;">Подробнее</a>' .
             '</div>';
         ?>
@@ -238,10 +230,8 @@ function formatAddress($location)
             var lat = <?= jsCoord($event['latitude']) ?>;
             var lon = <?= jsCoord($event['longitude']) ?>;
             var point = latLng(lat, lon);
-            <?php if (!$isDemoEvent || !$hasRealEvents): ?>
             bounds.extend(point);
-            <?php endif; ?>
-            L.marker(point<?= $isDemoEvent ? ', { opacity: 0.75, title: "Пример от разработчиков" }' : '' ?>)
+            L.marker(point)
                 .addTo(map)
                 .bindPopup(<?= json_encode($popupContent, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
         })();
