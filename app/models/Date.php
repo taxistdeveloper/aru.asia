@@ -13,6 +13,7 @@ class Date
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
+        DemoDates::ensureSchema($this->db);
     }
 
     /**
@@ -85,6 +86,7 @@ class Date
                 LEFT JOIN date_categories dc ON d.category_id = dc.id
                 WHERE u.gender = :gender
                 AND d.date_time >= NOW()
+                AND d.is_demo = 0
                 AND COALESCE(d.latitude, u.latitude) IS NOT NULL
                 AND COALESCE(d.longitude, u.longitude) IS NOT NULL
                 AND CAST(COALESCE(d.latitude, u.latitude) AS DECIMAL(10,8)) BETWEEN -90 AND 90
@@ -258,6 +260,7 @@ class Date
                 JOIN users u ON d.user_id = u.id
                 LEFT JOIN date_categories dc ON d.category_id = dc.id
                 WHERE d.date_time >= NOW()
+                AND d.is_demo = 0
                 ORDER BY d.date_time";
 
         try {
@@ -307,6 +310,7 @@ class Date
                 LEFT JOIN date_categories dc ON d.category_id = dc.id
                 WHERE u.gender = :gender
                 AND d.date_time >= NOW()
+                AND d.is_demo = 0
                 ORDER BY d.date_time";
 
         try {
@@ -346,7 +350,7 @@ class Date
     public function deleteExpired()
     {
         try {
-            $sql = "DELETE FROM dates WHERE date_time < NOW()";
+            $sql = "DELETE FROM dates WHERE date_time < NOW() AND is_demo = 0";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
 
@@ -368,7 +372,7 @@ class Date
      */
     public function getActiveCount()
     {
-        $sql = "SELECT COUNT(*) as total FROM dates WHERE date_time >= NOW()";
+        $sql = "SELECT COUNT(*) as total FROM dates WHERE date_time >= NOW() AND is_demo = 0";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch();
@@ -380,7 +384,7 @@ class Date
      */
     public function getTotalCount()
     {
-        $sql = "SELECT COUNT(*) as total FROM dates";
+        $sql = "SELECT COUNT(*) as total FROM dates WHERE is_demo = 0";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch();

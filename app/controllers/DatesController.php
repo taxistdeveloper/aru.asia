@@ -121,6 +121,16 @@ class DatesController
             $myDateChats = [];
         }
 
+        // Примеры свиданий своей страны (с пометкой «Пример», без чата) — в конце списка
+        try {
+            $viewer = isset($user) ? $user : null;
+            foreach (DemoDates::forViewer(DemoEvents::viewerCountry($viewer), $viewer['gender'] ?? null) as $demo) {
+                $dates[] = $demo;
+            }
+        } catch (Throwable $e) {
+            error_log('DatesController demo dates: ' . $e->getMessage());
+        }
+
         View::render('dates/index', [
             'dates' => $dates,
             'myDates' => $myDates,

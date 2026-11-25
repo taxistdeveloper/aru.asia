@@ -243,6 +243,9 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             <div class="dates-list">
                 <?php foreach ($otherDates as $date): ?>
                     <div class="date-item-compact" onclick="openDateModal(<?= htmlspecialchars(json_encode($date), ENT_QUOTES, 'UTF-8') ?>, false)">
+                        <?php if (!empty($date['is_demo'])): ?>
+                            <span class="date-demo-chip">Пример</span>
+                        <?php endif; ?>
                         <?php if (!empty($date['photo'])): ?>
                             <div class="date-banner">
                                 <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $date['photo'] ?>" alt="Фото">
@@ -615,7 +618,11 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             }
 
             // Заголовок
+            const isDemo = String(date.is_demo || '0') === '1';
             html += '<h4 class="date-modal-title">' + escapeHtml(date.title) + '</h4>';
+            if (isDemo) {
+                html += '<div class="date-modal-demo-note">Пример — так выглядит объявление о свидании. Создайте своё, и его увидят люди рядом.</div>';
+            }
 
             // Категория
             if (date.category_name) {
@@ -696,7 +703,12 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
 
             // Кнопки действий
             html += '<div class="date-modal-actions">';
-            if (isMine) {
+            if (isDemo) {
+                html += '<a href="' + BASE_URL + 'dates/create" class="date-modal-btn date-modal-btn-chat date-modal-btn-full">';
+                html += '<i class="bi bi-plus-circle"></i>';
+                html += '<span>Создать своё свидание</span>';
+                html += '</a>';
+            } else if (isMine) {
                 // Для своих свиданий
                 const unreadCount = date.unread_count || 0;
                 html += '<a href="' + BASE_URL + 'messages/date?date_id=' + date.id + '" class="date-modal-btn date-modal-btn-chat">';
@@ -792,6 +804,15 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
     }
 </script>
 
+<style>
+    .date-item-compact { position: relative; }
+    .date-demo-chip {
+        position: absolute; top: 8px; right: 8px; z-index: 2;
+        background: rgba(255, 255, 255, .92); color: #6b7280; border: 1px solid #e5e7eb;
+        border-radius: 999px; font-size: 11px; font-weight: 600; padding: 2px 8px;
+    }
+    .date-modal-demo-note { color: #6b7280; font-size: 13px; text-align: center; margin: 4px 20px 10px; }
+</style>
 <style>
     /* Минималистичный дизайн для мобильных устройств */
     @media (max-width: 767px) {

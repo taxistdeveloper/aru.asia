@@ -130,6 +130,10 @@ class MessagesController
             $eventId = !empty($_POST['event_id']) ? (int)$_POST['event_id'] : null;
 
             // Если это чат свидания или мероприятия, определяем получателя
+            if ($dateId && DemoDates::isDemo($this->dateModel->getById($dateId))) {
+                Helper::redirect('dates');
+                return;
+            }
             if ($dateId) {
                 $date = $this->dateModel->getById($dateId);
                 if ($date) {
@@ -793,6 +797,10 @@ class MessagesController
 
         $date = $this->dateModel->getById($dateId);
         if (!$date) {
+            Helper::redirect('dates');
+            return;
+        }
+        if (DemoDates::isDemo($date)) {
             Helper::redirect('dates');
             return;
         }
