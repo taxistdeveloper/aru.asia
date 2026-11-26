@@ -24,35 +24,64 @@ class DemoEvents
         return [
             [
                 'title' => 'Гончарный мастер-класс',
+                'slug' => 'pottery',
                 'description' => 'Лепка чашек, тарелок и ваз своими руками. Мастер покажет работу на гончарном круге, глина и инструменты включены. Готовые изделия обжигаем и отдаём через неделю.',
                 'hour' => 12,
                 'price' => ['KZT' => 12000, 'KGS' => 2000, 'UZS' => 300000, 'RUB' => 2500, 'BYN' => 80],
             ],
             [
                 'title' => 'Арт-вечер: рисуем картину акрилом',
+                'slug' => 'art',
                 'description' => 'Рисование картины акрилом под руководством художника — даже если вы никогда не рисовали. Холст, краски и фартуки выдаём, картину забираете с собой.',
                 'hour' => 19,
                 'price' => ['KZT' => 10000, 'KGS' => 1700, 'UZS' => 250000, 'RUB' => 2000, 'BYN' => 65],
             ],
             [
                 'title' => 'Кондитерский мастер-класс',
+                'slug' => 'baking',
                 'description' => 'Готовим капкейки, макаронс и небольшой торт. Все ингредиенты включены, десерты забираете домой в красивой упаковке.',
                 'hour' => 15,
                 'price' => ['KZT' => 15000, 'KGS' => 2500, 'UZS' => 350000, 'RUB' => 3000, 'BYN' => 95],
             ],
             [
                 'title' => 'Танцевальный мастер-класс',
+                'slug' => 'dance',
                 'description' => 'Латина, бачата, сальса и женские танцы для начинающих. Пара не обязательна — партнёров подберём на месте. Удобная обувь и хорошее настроение.',
                 'hour' => 18,
                 'price' => ['KZT' => 5000, 'KGS' => 850, 'UZS' => 120000, 'RUB' => 1000, 'BYN' => 35],
             ],
             [
                 'title' => 'Speed Dating — вечер знакомств',
+                'slug' => 'speed-dating',
                 'description' => 'Быстрые свидания по 7 минут, общение, игры и музыка. Ведущий поможет начать разговор, а в конце вечера вы узнаете о взаимных симпатиях.',
                 'hour' => 20,
                 'price' => ['KZT' => 7000, 'KGS' => 1200, 'UZS' => 170000, 'RUB' => 1500, 'BYN' => 45],
             ],
         ];
+    }
+
+    /** Возвращает относительный путь к картинке мероприятия-примера (в assets/images/demo-events). */
+    public static function photoFor(string $title): ?string
+    {
+        $slug = null;
+        foreach (self::templates() as $t) {
+            if ($t['title'] === $title) {
+                $slug = $t['slug'];
+                break;
+            }
+        }
+        if ($slug === null) {
+            $templates = self::templates();
+            $slug = $templates[abs(crc32($title)) % count($templates)]['slug'];
+        }
+        $base = dirname(__DIR__, 2);
+        foreach (['jpg', 'jpeg', 'png', 'webp', 'svg'] as $ext) {
+            $rel = 'assets/images/demo-events/' . $slug . '.' . $ext;
+            if (is_file($base . '/' . $rel)) {
+                return $rel;
+            }
+        }
+        return null;
     }
 
     /** Страны и по пять городов в каждой (одно мероприятие-пример на город). */
@@ -154,7 +183,12 @@ class DemoEvents
             ORDER BY e.event_date
         ");
         $stmt->execute([':country' => '%' . $name]);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$row) {
+            $row['photo_url'] = self::photoFor((string)($row['title'] ?? ''));
+        }
+        unset($row);
+        return $rows;
     }
 
     /** Страна для показа примеров: из профиля, иначе по IP (кэш в сессии). */
@@ -207,7 +241,7 @@ class DemoEvents
         ");
         $update = $db->prepare("
             UPDATE events SET description = :description, price = :price, currency_code = :currency,
-                              latitude = :lat, longitude = :lon, location = :location, status = 'approved'
+                              latitude = :lat, longitude = :lon, location = :location, photo = NULL, status = 'approved'
             WHERE id = :id
         ");
 

@@ -60,9 +60,14 @@ ob_start();
                      data-event='<?= htmlspecialchars(json_encode($event), ENT_QUOTES, 'UTF-8') ?>'
                      data-is-mine="true"
                      style="cursor: pointer;">
-                    <?php if (!empty($event['photo'])): ?>
+                    <?php
+                    $myEventPhotoUrl = !empty($event['photo_url'])
+                        ? BASE_URL . ltrim($event['photo_url'], '/')
+                        : (!empty($event['photo']) ? BASE_URL . UPLOAD_DIR . 'photos/' . $event['photo'] : '');
+                    ?>
+                    <?php if ($myEventPhotoUrl !== ''): ?>
                         <div class="event-banner">
-                            <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $event['photo'] ?>" alt="Баннер">
+                            <img src="<?= Helper::escape($myEventPhotoUrl) ?>" alt="Баннер" loading="lazy">
                                     </div>
                     <?php else: ?>
                         <div class="event-banner-placeholder">
@@ -182,9 +187,14 @@ ob_start();
                          data-event='<?= htmlspecialchars(json_encode($event), ENT_QUOTES, 'UTF-8') ?>'
                          data-is-mine="false"
                          style="cursor: pointer;">
-                        <?php if (!empty($event['photo'])): ?>
+                        <?php
+                        $eventPhotoUrl = !empty($event['photo_url'])
+                            ? BASE_URL . ltrim($event['photo_url'], '/')
+                            : (!empty($event['photo']) ? BASE_URL . UPLOAD_DIR . 'photos/' . $event['photo'] : '');
+                        ?>
+                        <?php if ($eventPhotoUrl !== ''): ?>
                             <div class="event-banner">
-                                <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $event['photo'] ?>" alt="Баннер">
+                                <img src="<?= Helper::escape($eventPhotoUrl) ?>" alt="Баннер" loading="lazy">
                                         </div>
                         <?php else: ?>
                             <div class="event-banner-placeholder">
@@ -2573,10 +2583,12 @@ ob_start();
             let html = '';
             
             // Баннер
-            if (event.photo) {
-                const photoUrl = BASE_URL + UPLOAD_DIR + 'photos/' + event.photo;
-                html += '<div class="event-modal-banner" onclick="openPhotoModal(\'' + photoUrl + '\')">';
-                html += '<img src="' + photoUrl + '" alt="Баннер">';
+            const photoUrl = event.photo_url
+                ? (BASE_URL + String(event.photo_url).replace(/^\/+/, ''))
+                : (event.photo ? (BASE_URL + UPLOAD_DIR + 'photos/' + event.photo) : '');
+            if (photoUrl) {
+                html += '<div class="event-modal-banner" data-photo-url="' + escapeHtml(photoUrl).replace(/"/g, '&quot;') + '" onclick="openPhotoModal(this.dataset.photoUrl)">';
+                html += '<img src="' + escapeHtml(photoUrl) + '" alt="Баннер">';
                 html += '</div>';
             } else {
                 html += '<div class="event-modal-banner-placeholder">';

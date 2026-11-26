@@ -64,32 +64,58 @@ function wrapText(string $text, int $maxChars = 28): array
     return array_slice($lines, 0, 3);
 }
 
+function findCyrillicFont(): ?string
+{
+    $candidates = [
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+        '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf',
+        '/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf',
+        '/System/Library/Fonts/Supplemental/Arial.ttf',
+        '/System/Library/Fonts/Helvetica.ttc',
+    ];
+    foreach ($candidates as $path) {
+        if (is_file($path)) {
+            return $path;
+        }
+    }
+    return null;
+}
+
 function createEventBanner(string $path, string $title, int $seed): bool
 {
     $w = 800;
-    $h = 400;
+    $h = 480;
     $img = imagecreatetruecolor($w, $h);
     if (!$img) {
         return false;
     }
+    imagealphablending($img, true);
 
     drawGradient($img, $w, $h, colorFromSeed($seed, 0), colorFromSeed($seed, 3));
 
+    // Декоративные мягкие круги вместо плоского фона
+    $glow1 = imagecolorallocatealpha($img, 255, 255, 255, 108);
+    $glow2 = imagecolorallocatealpha($img, 255, 235, 180, 112);
+    imagefilledellipse($img, (int)($w * 0.82), (int)($h * 0.24), 260, 260, $glow1);
+    imagefilledellipse($img, (int)($w * 0.18), (int)($h * 0.78), 220, 220, $glow2);
+
     $white = imagecolorallocate($img, 255, 255, 255);
-    $shadow = imagecolorallocatealpha($img, 0, 0, 0, 60);
+    $shadow = imagecolorallocatealpha($img, 0, 0, 0, 75);
     $accent = imagecolorallocate($img, 255, 230, 120);
 
     imagefilledrectangle($img, 0, $h - 8, $w, $h, $accent);
 
-    $lines = wrapText($title);
-    $y = 120;
-    foreach ($lines as $line) {
-        imagestring($img, 5, 42, $y + 2, $line, $shadow);
-        imagestring($img, 5, 40, $y, $line, $white);
-        $y += 28;
+    $font = findCyrillicFont();
+    if ($font !== null && function_exists('imagettftext')) {
+        $lines = wrapText($title, 26);
+        $y = 180;
+        foreach ($lines as $line) {
+            imagettftext($img, 26, 0, 46, $y + 2, $shadow, $font, $line);
+            imagettftext($img, 26, 0, 44, $y, $white, $font, $line);
+            $y += 42;
+        }
     }
-
-    imagestring($img, 3, 40, $h - 36, 'Karaganda Event', $white);
 
     $ok = imagejpeg($img, $path, 88);
     imagedestroy($img);
@@ -125,16 +151,17 @@ function createUserPhoto(string $path, int $seed): bool
     return $ok;
 }
 
-// --- Мероприятия: баннер + запись в БД ---
-$events = $db->query("SELECT id, title, photo FROM events ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+// --- Мероприятия (кроме демо): баннер + запись в БД ---
+$events = $db->query("SELECT id, title, photo FROM events WHERE is_demo = 0 ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
 $updateEvent = $db->prepare("UPDATE events SET photo = :photo WHERE id = :id");
 $eventsDone = 0;
 
 foreach ($events as $event) {
     $filename = !empty($event['photo']) ? $event['photo'] : ('seed_event_' . $event['id'] . '.jpg');
     $filepath = $photosDir . $filename;
+    $isSeedBanner = strpos($filename, 'seed_event_') === 0;
 
-    if (!file_exists($filepath)) {
+    if (!file_exists($filepath) || $isSeedBanner) {
         if (!createEventBanner($filepath, (string)$event['title'], (int)$event['id'])) {
             echo "[ошибка] баннер мероприятия #{$event['id']}\n";
             continue;

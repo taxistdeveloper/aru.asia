@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" width="960" height="720">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1438"/>
+      <stop offset="50%" stop-color="#4c2a6b"/>
+      <stop offset="100%" stop-color="#b83b72"/>
+    </linearGradient>
+    <radialGradient id="spot1" cx="35%" cy="18%" r="60%">
+      <stop offset="0%" stop-color="#ff9ebb" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#ff9ebb" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="spot2" cx="72%" cy="22%" r="55%">
+      <stop offset="0%" stop-color="#ffd166" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="floor" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4e2e3b"/>
+      <stop offset="100%" stop-color="#221324"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="720" fill="url(#bg)"/>
+  <rect width="960" height="720" fill="url(#spot1)"/>
+  <rect width="960" height="720" fill="url(#spot2)"/>
+  <!-- Studio wooden floor -->
+  <path d="M0 540 L960 540 L960 720 L0 720 Z" fill="url(#floor)"/>
+  <ellipse cx="480" cy="590" rx="280" ry="38" fill="#ffb3c6" opacity="0.18"/>
+  <!-- Flowing dance motion ribbons -->
+  <path d="M90 420 Q280 280 480 380 T880 240" stroke="#ffd166" stroke-width="5" fill="none" opacity="0.45" stroke-linecap="round"/>
+  <path d="M60 470 Q310 340 520 430 T910 310" stroke="#ff7eb6" stroke-width="4" fill="none" opacity="0.4" stroke-linecap="round"/>
+  <!-- Dancing couple silhouettes -->
+  <!-- Partner 1 (left) -->
+  <circle cx="405" cy="215" r="34" fill="#171128"/>
+  <path d="M375 262 Q405 248 432 272 L452 400 L422 570 L392 570 L402 415 L368 565 L336 558 L372 390 Z" fill="#171128"/>
+  <path d="M418 274 Q475 265 512 292" stroke="#171128" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <path d="M380 278 Q335 245 318 205" stroke="#171128" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <!-- Partner 2 (right, flowing dress) -->
+  <circle cx="535" cy="230" r="31" fill="#231438"/>
+  <path d="M510 270 Q536 260 558 282 L582 365 Q645 450 670 505 Q570 525 480 500 Q495 420 510 355 Z" fill="#ff5d8f" opacity="0.9"/>
+  <path d="M512 272 Q534 262 555 280 L562 350 L512 350 Z" fill="#231438"/>
+  <path d="M525 495 L510 572 M562 498 L585 570" stroke="#231438" stroke-width="16" stroke-linecap="round"/>
+  <path d="M548 280 Q595 245 635 215" stroke="#231438" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <path d="M514 280 Q468 258 435 280" stroke="#231438" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <!-- Musical notes -->
+  <g fill="#ffd166" opacity="0.85">
+    <circle cx="215" cy="185" r="12"/>
+    <rect x="223" y="128" width="6" height="58" rx="3"/>
+    <path d="M223 128 L262 118 L262 132 L223 142 Z"/>
+    <circle cx="745" cy="175" r="11"/>
+    <rect x="752" y="120" width="6" height="55" rx="3"/>
+    <path d="M752 120 L784 130 L784 142 L752 132 Z"/>
+  </g>
+</svg>

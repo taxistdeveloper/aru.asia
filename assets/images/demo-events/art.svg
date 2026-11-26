@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" width="960" height="720">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2b1e3e"/>
+      <stop offset="55%" stop-color="#5a3468"/>
+      <stop offset="100%" stop-color="#d97b59"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="72%" cy="24%" r="55%">
+      <stop offset="0%" stop-color="#ffd584" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ffd584" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="canvasGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8ef"/>
+      <stop offset="100%" stop-color="#f5e6d3"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="720" fill="url(#bg)"/>
+  <rect width="960" height="720" fill="url(#glow)"/>
+  <!-- Bokeh fairy lights -->
+  <circle cx="150" cy="110" r="18" fill="#ffe29a" opacity="0.25"/>
+  <circle cx="230" cy="80" r="10" fill="#ffe29a" opacity="0.35"/>
+  <circle cx="770" cy="120" r="22" fill="#ffe29a" opacity="0.28"/>
+  <circle cx="840" cy="180" r="12" fill="#ffd0a6" opacity="0.3"/>
+  <circle cx="110" cy="240" r="14" fill="#ffb88c" opacity="0.2"/>
+  <!-- Easel legs -->
+  <line x1="480" y1="90" x2="340" y2="690" stroke="#7a4e2d" stroke-width="18" stroke-linecap="round"/>
+  <line x1="480" y1="90" x2="620" y2="690" stroke="#7a4e2d" stroke-width="18" stroke-linecap="round"/>
+  <line x1="480" y1="110" x2="480" y2="690" stroke="#5d3a20" stroke-width="14" stroke-linecap="round"/>
+  <!-- Canvas frame -->
+  <rect x="305" y="140" width="350" height="390" rx="10" fill="#3a2618" opacity="0.35" transform="translate(8,10)"/>
+  <rect x="305" y="140" width="350" height="390" rx="10" fill="url(#canvasGrad)" stroke="#d8c3aa" stroke-width="6"/>
+  <!-- Abstract acrylic painting on canvas -->
+  <path d="M325 460 Q410 340 500 390 T635 320 L635 510 L325 510 Z" fill="#e07a5f" opacity="0.85"/>
+  <path d="M325 390 Q420 270 520 330 T635 250 L635 420 Q510 380 325 440 Z" fill="#3d405b" opacity="0.75"/>
+  <circle cx="535" cy="235" r="46" fill="#f2cc8f"/>
+  <path d="M345 310 Q425 220 510 275" stroke="#81b29a" stroke-width="22" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <path d="M365 445 Q475 405 605 465" stroke="#f4f1de" stroke-width="14" stroke-linecap="round" fill="none" opacity="0.75"/>
+  <!-- Easel shelf -->
+  <rect x="275" y="522" width="410" height="22" rx="6" fill="#8d5b36"/>
+  <!-- Artist palette -->
+  <g transform="translate(155, 450) rotate(-14)">
+    <ellipse cx="95" cy="70" rx="95" ry="66" fill="#e6c39c" stroke="#b3885d" stroke-width="4"/>
+    <circle cx="48" cy="48" r="14" fill="#e63946"/>
+    <circle cx="88" cy="34" r="14" fill="#f4a261"/>
+    <circle cx="130" cy="44" r="14" fill="#e9c46a"/>
+    <circle cx="145" cy="82" r="14" fill="#2a9d8f"/>
+    <circle cx="105" cy="105" r="14" fill="#457b9d"/>
+    <circle cx="44" cy="86" r="15" fill="#2b1e3e" opacity="0.85"/>
+  </g>
+  <!-- Paintbrushes -->
+  <g transform="translate(720, 420) rotate(18)">
+    <rect x="0" y="50" width="12" height="145" rx="6" fill="#a66e46"/>
+    <rect x="-1" y="34" width="14" height="20" fill="#c0c7d1"/>
+    <path d="M-2 34 Q6 0 14 34 Z" fill="#e07a5f"/>
+  </g>
+  <g transform="translate(758, 435) rotate(28)">
+    <rect x="0" y="50" width="10" height="140" rx="5" fill="#4a5568"/>
+    <rect x="-1" y="36" width="12" height="18" fill="#cbd5e1"/>
+    <path d="M-2 36 Q5 6 12 36 Z" fill="#2a9d8f"/>
+  </g>
+</svg>
