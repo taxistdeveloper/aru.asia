@@ -1111,7 +1111,7 @@ ob_start();
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <span class="form-label d-block">Дата окончания показа *</span>
+                            <span class="form-label d-block">Дата окончания показа</span>
                             <input type="date"
                                 class="form-control"
                                 id="end_date"
@@ -1120,7 +1120,7 @@ ob_start();
                                 tabindex="-1"
                                 aria-readonly="true"
                                 value="<?= isset($old['end_date']) ? Helper::escape($old['end_date']) : '' ?>"
-                                required>
+                                >
                             <div class="form-text" id="endDateHint">Сначала выберите дату начала показа — дата окончания рассчитается по выбранному периоду.</div>
                         </div>
                     </div>
