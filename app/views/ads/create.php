@@ -1025,7 +1025,7 @@ ob_start();
                         </div>
                     </div>
 
-                    <div class="tariff-box d-none" aria-hidden="true"><!-- временно скрыто -->
+                    <div class="tariff-box">
                         <h6><i class="bi bi-cash-stack"></i> Тариф размещения рекламы</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -1082,7 +1082,7 @@ ob_start();
                                 </div>
                             </div>
                         </div>
-                        <div id="tariffSummary" class="tariff-summary  d-none">
+                        <div id="tariffSummary" class="tariff-summary">
                             Итоговый тариф: <strong>2 000 тг</strong>
                         </div>
                     </div>
@@ -2118,16 +2118,17 @@ ob_start();
             return citiesByCountry[countrySelect.value] || [];
         }
 
-        // Текущие выбранные значения в селектах городов (без пустых)
+        // Текущие выбранные значения в селектах городов (без пустых и без "ВСЕ ГОРОДА")
         function getSelectedCityValues() {
             if (!citySelectorsContainer) return [];
             return Array.from(citySelectorsContainer.querySelectorAll('select.js-city-select'))
                 .map((s) => s.value)
-                .filter((v) => v && v !== '');
+                .filter((v) => v && v !== '' && v !== 'ВСЕ ГОРОДА');
         }
 
         function buildCitySelect(name, selectedValue, index) {
             const cities = getCurrentCityList();
+            const allowAllOption = !cityCountSelect || cityCountSelect.value === '1';
             const select = document.createElement('select');
             select.className = 'form-select js-city-select' + (index > 0 ? ' mt-2' : '');
             select.name = name;
@@ -2142,6 +2143,7 @@ ob_start();
             select.appendChild(placeholder);
 
             cities.forEach((city) => {
+                if (!allowAllOption && city === 'ВСЕ ГОРОДА') return;
                 const option = document.createElement('option');
                 option.value = city;
                 option.textContent = city;
@@ -2421,6 +2423,18 @@ ob_start();
             cityCountSelect.addEventListener('change', updateTariffSummary);
             tariffPeriodSelect.addEventListener('change', updateTariffSummary);
             updateTariffSummary();
+        }
+
+        // Если в селекте города выбрано "ВСЕ ГОРОДА", переключаем тариф на "all"
+        if (citySelectorsContainer && cityCountSelect) {
+            citySelectorsContainer.addEventListener('change', function(e) {
+                const target = e.target;
+                if (!target || !target.classList || !target.classList.contains('js-city-select')) return;
+                if (target.value === 'ВСЕ ГОРОДА') {
+                    cityCountSelect.value = 'all';
+                    updateTariffSummary();
+                }
+            });
         }
 
         if (startDateInput) {
