@@ -761,6 +761,19 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
         transform: translateY(1px);
         box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
+
+    .event-create-form .form-control.is-invalid,
+    .event-create-form .form-select.is-invalid {
+        border-color: #dc3545 !important;
+        background-color: #fff5f5;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+    }
+
+    .event-create-form .invalid-feedback {
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 6px;
+    }
 </style>
 
 <div class="event-create-container mt-4">
@@ -802,7 +815,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
         <?php unset($_SESSION['error_message']); ?>
     <?php endif; ?>
 
-    <form method="POST" action="<?= BASE_URL ?>events/store" class="event-create-form" enctype="multipart/form-data">
+    <form method="POST" action="<?= BASE_URL ?>events/store" class="event-create-form" enctype="multipart/form-data" novalidate>
         <div class="card">
             <div class="card-body">
                 <div class="mb-3">
@@ -811,8 +824,12 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         class="form-control"
                         id="title"
                         name="title"
+                        aria-describedby="title_error"
                         required
                         placeholder="Например: Концерт в парке">
+                    <div id="title_error" class="invalid-feedback" role="alert">
+                        Укажите название мероприятия.
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -821,8 +838,12 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         id="description"
                         name="description"
                         rows="5"
+                        aria-describedby="description_error"
                         required
                         placeholder="Опишите ваше мероприятие..."></textarea>
+                    <div id="description_error" class="invalid-feedback" role="alert">
+                        Добавьте описание мероприятия.
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -832,7 +853,11 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         id="photo"
                         name="photo"
                         accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        aria-describedby="photo_error"
                         required>
+                    <div id="photo_error" class="invalid-feedback" role="alert">
+                        Загрузите баннер мероприятия и нажмите «Применить» в редакторе обрезки.
+                    </div>
                     <input type="hidden" name="photo_cropped_base64" id="photo_cropped_base64" value="">
 
                     <div id="photo-preview" class="mt-3">
@@ -918,8 +943,12 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                             id="city"
                             name="city"
                             required
+                            aria-describedby="city_error"
                             autocomplete="off"
                             placeholder="Начните вводить название города...">
+                        <div id="city_error" class="invalid-feedback" role="alert">
+                            Укажите город проведения мероприятия.
+                        </div>
                         <button type="button"
                             class="btn btn-outline-primary city-location-btn"
                             id="detectLocationBtn"
@@ -954,9 +983,13 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         id="street"
                         name="street"
                         required
+                        aria-describedby="street_error"
                         autocomplete="off"
                         placeholder="Сначала выберите город, затем выберите улицу из списка"
                         readonly>
+                    <div id="street_error" class="invalid-feedback" role="alert">
+                        Выберите улицу из списка после указания города.
+                    </div>
                     <div id="street-suggestions" class="list-group" style="position: absolute; z-index: 1000; max-height: 300px; overflow-y: auto; display: none; margin-top: 2px; width: 100%;"></div>
                     <small class="form-text text-muted d-block mt-2">
                         Сначала выберите город. После выбора города появится список всех улиц для выбора.
@@ -969,8 +1002,12 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         class="form-control"
                         id="house_number"
                         name="house_number"
+                        aria-describedby="house_number_error"
                         required
                         placeholder="Например: 150">
+                    <div id="house_number_error" class="invalid-feedback" role="alert">
+                        Укажите номер дома.
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -1677,6 +1714,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                             if (cityName && cityInput) {
                                 // Заполняем поле города
                                 cityInput.value = cityName;
+                                cityInput.classList.remove('is-invalid');
                                 selectedCity = cityName;
 
                                 // Создаем объект с данными о городе
@@ -1933,6 +1971,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                     `;
                     item.addEventListener('click', function() {
                         cityInput.value = city.name;
+                        cityInput.classList.remove('is-invalid');
                         selectedCity = city.name;
                         selectedCityData = city;
                         citySuggestions.style.display = 'none';
@@ -2318,6 +2357,7 @@ out skel qt;`;
             item.innerHTML = `<span class="suggestion-text">${street}</span>`;
             item.addEventListener('click', function() {
                 streetInput.value = street;
+                streetInput.classList.remove('is-invalid');
                 streetSuggestions.style.display = 'none';
             });
             streetSuggestions.appendChild(item);
@@ -2979,6 +3019,8 @@ out skel qt;`;
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(croppedFile);
                 photoInput.files = dataTransfer.files;
+                photoInput.classList.remove('is-invalid');
+                photoInput.setCustomValidity('');
 
                 syncEventLiveDemoFromDataUrl(dataUrl);
 
@@ -3123,6 +3165,7 @@ out skel qt;`;
                                 if (cityName && cityInput && !cityInput.value) {
                                     // Заполняем поле города
                                     cityInput.value = cityName;
+                                    cityInput.classList.remove('is-invalid');
                                     selectedCity = cityName;
 
                                     // Создаем объект с данными о городе
@@ -3199,11 +3242,13 @@ out skel qt;`;
 
 <script>
     const eventDateInput = document.getElementById('event_date');
+    const eventDateErrorEl = document.getElementById('event_date_error');
     const eventCreateForm = document.querySelector('.event-create-form');
     const maxEventDateTime = <?= json_encode(Helper::getMaxPlanningDateTimeLocal()) ?>;
     const maxEventDateTimeDisplay = <?= json_encode(date('d.m.Y H:i', Helper::getMaxPlanningTimestamp())) ?>;
     const maxEventPlanningDays = <?= (int) Helper::getMaxPlanningDays() ?>;
     const eventDateOverflowMsg = 'Нельзя указать дату позже ' + maxEventDateTimeDisplay + ' (не более ' + maxEventPlanningDays + ' дней от сегодня).';
+    const eventDateRequiredMsg = 'Укажите дату и время проведения мероприятия.';
 
     function isEventDateOverflow() {
         if (!eventDateInput) return false;
@@ -3211,14 +3256,26 @@ out skel qt;`;
         return Boolean((val && maxEventDateTime && val > maxEventDateTime) || eventDateInput.validity.rangeOverflow);
     }
 
-    function validateEventDateRange(showPopup) {
+    function validateEventDateRange(showPopup, requireNonEmpty) {
         if (!eventDateInput) return true;
+        const val = (eventDateInput.value || '').trim();
         if (isEventDateOverflow()) {
+            if (eventDateErrorEl) {
+                eventDateErrorEl.textContent = eventDateOverflowMsg;
+            }
             eventDateInput.classList.add('is-invalid');
             eventDateInput.setCustomValidity(eventDateOverflowMsg);
             if (showPopup && typeof eventDateInput.reportValidity === 'function') {
                 eventDateInput.reportValidity();
             }
+            return false;
+        }
+        if (requireNonEmpty && !val) {
+            if (eventDateErrorEl) {
+                eventDateErrorEl.textContent = eventDateRequiredMsg;
+            }
+            eventDateInput.classList.add('is-invalid');
+            eventDateInput.setCustomValidity(eventDateRequiredMsg);
             return false;
         }
         eventDateInput.classList.remove('is-invalid');
@@ -3229,36 +3286,106 @@ out skel qt;`;
     if (eventDateInput) {
         eventDateInput.addEventListener('invalid', function() {
             if (isEventDateOverflow()) {
+                if (eventDateErrorEl) {
+                    eventDateErrorEl.textContent = eventDateOverflowMsg;
+                }
                 this.classList.add('is-invalid');
                 this.setCustomValidity(eventDateOverflowMsg);
             }
         });
 
         eventDateInput.addEventListener('input', function() {
-            validateEventDateRange(false);
+            validateEventDateRange(false, false);
         });
 
         eventDateInput.addEventListener('change', function() {
-            validateEventDateRange(true);
+            validateEventDateRange(true, false);
         });
     }
 
+    ['title', 'description', 'city', 'street', 'house_number'].forEach(function(fieldId) {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        const clearInvalid = function() {
+            if ((el.value || '').trim() !== '') {
+                el.classList.remove('is-invalid');
+            }
+        };
+        el.addEventListener('input', clearInvalid);
+        el.addEventListener('change', clearInvalid);
+    });
+
     if (eventCreateForm) {
         eventCreateForm.addEventListener('submit', function(e) {
+            let firstInvalid = null;
+            const markInvalid = function(el) {
+                if (!el) return;
+                el.classList.add('is-invalid');
+                if (!firstInvalid) {
+                    firstInvalid = el;
+                }
+            };
+
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
             const photoInput = document.getElementById('photo');
             const photoBase64Input = document.getElementById('photo_cropped_base64');
+            const cityInput = document.getElementById('city');
+            const streetInput = document.getElementById('street');
+            const houseInput = document.getElementById('house_number');
+
+            if (titleInput && !(titleInput.value || '').trim()) {
+                markInvalid(titleInput);
+            } else if (titleInput) {
+                titleInput.classList.remove('is-invalid');
+            }
+
+            if (descriptionInput && !(descriptionInput.value || '').trim()) {
+                markInvalid(descriptionInput);
+            } else if (descriptionInput) {
+                descriptionInput.classList.remove('is-invalid');
+            }
+
             const hasPhotoFile = photoInput && photoInput.files && photoInput.files.length > 0;
             const hasCroppedPhoto = photoBase64Input && photoBase64Input.value && photoBase64Input.value.startsWith('data:image/');
             if (!hasCroppedPhoto && !hasPhotoFile) {
-                e.preventDefault();
-                alert('Пожалуйста, загрузите баннер мероприятия и нажмите «Применить» в редакторе обрезки.');
-                if (photoInput) photoInput.focus();
-                return false;
+                markInvalid(photoInput);
+            } else if (photoInput) {
+                photoInput.classList.remove('is-invalid');
             }
 
-            if (!validateEventDateRange(true)) {
+            if (!validateEventDateRange(false, true)) {
+                markInvalid(eventDateInput);
+            }
+
+            if (cityInput && !(cityInput.value || '').trim()) {
+                markInvalid(cityInput);
+            } else if (cityInput) {
+                cityInput.classList.remove('is-invalid');
+            }
+
+            if (streetInput && !(streetInput.value || '').trim()) {
+                markInvalid(streetInput);
+            } else if (streetInput) {
+                streetInput.classList.remove('is-invalid');
+            }
+
+            if (houseInput && !(houseInput.value || '').trim()) {
+                markInvalid(houseInput);
+            } else if (houseInput) {
+                houseInput.classList.remove('is-invalid');
+            }
+
+            if (firstInvalid) {
                 e.preventDefault();
-                if (eventDateInput) eventDateInput.focus();
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!firstInvalid.readOnly) {
+                    try {
+                        firstInvalid.focus({ preventScroll: true });
+                    } catch (err) {
+                        firstInvalid.focus();
+                    }
+                }
                 return false;
             }
         });
