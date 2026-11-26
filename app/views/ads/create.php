@@ -44,6 +44,17 @@ ob_start();
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
+    #end_date {
+        pointer-events: none;
+        background-color: #f3f4f6;
+        color: #4b5563;
+        user-select: none;
+    }
+
+    #end_date::-webkit-calendar-picker-indicator {
+        display: none;
+    }
+
     .ad-create-form .btn-primary {
         background: #667eea;
         border: none;
@@ -1097,12 +1108,14 @@ ob_start();
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="end_date" class="form-label">Дата окончания показа *</label>
+                            <span class="form-label d-block">Дата окончания показа *</span>
                             <input type="date"
                                 class="form-control"
                                 id="end_date"
                                 name="end_date"
                                 readonly
+                                tabindex="-1"
+                                aria-readonly="true"
                                 value="<?= isset($old['end_date']) ? Helper::escape($old['end_date']) : '' ?>"
                                 required>
                             <div class="form-text" id="endDateHint">Сначала выберите дату начала показа — дата окончания рассчитается по выбранному периоду.</div>
@@ -2386,14 +2399,6 @@ ob_start();
         if (startDateInput) {
             startDateInput.addEventListener('change', computeEndDate);
             startDateInput.addEventListener('input', computeEndDate);
-        }
-
-        if (endDateInput && startDateInput) {
-            endDateInput.addEventListener('click', function() {
-                if (!startDateInput.value) {
-                    startDateInput.focus();
-                }
-            });
         }
 
         // Один раз посчитаем сразу при открытии страницы
