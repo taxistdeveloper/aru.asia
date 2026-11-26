@@ -1038,7 +1038,7 @@ ob_start();
                     <div class="tariff-box<?= empty($old['country']) ? ' d-none' : '' ?>" id="tariffBox">
                         <h6><i class="bi bi-cash-stack"></i> Тариф размещения рекламы</h6>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3" id="cityCountCol">
                                 <label for="city_count" class="form-label">Количество городов показа *</label>
                                 <select class="form-select" id="city_count" name="city_count">
                                     <option value="1" <?= (isset($old['city_count']) && (string)$old['city_count'] === '1') ? 'selected' : '' ?>>1 город</option>
@@ -1049,7 +1049,7 @@ ob_start();
                                 </select>
                                
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3" id="tariffPeriodCol">
                                 <label for="tariff_period" class="form-label">Период размещения *</label>
                                 <select class="form-select d-none" id="tariff_period" name="tariff_period">
                                     <option value="1" <?= (isset($old['tariff_period']) && (string)$old['tariff_period'] === '1') ? 'selected' : '' ?>>1 месяц</option>
@@ -2142,10 +2142,19 @@ ob_start();
 
         function syncCityHintVisibility() {
             const allSelected = isAllCitiesSelected();
+            const cityCountCol = document.getElementById('cityCountCol');
+            const tariffPeriodCol = document.getElementById('tariffPeriodCol');
             if (cityAllText) cityAllText.style.display = allSelected ? '' : 'none';
             if (cityHint) cityHint.style.display = allSelected ? 'none' : '';
             if (cityFieldLabel && (!cityCountSelect || cityCountSelect.value === '1')) {
                 cityFieldLabel.textContent = allSelected ? 'Города' : 'Город *';
+            }
+            if (cityCountCol) {
+                cityCountCol.classList.toggle('d-none', allSelected);
+            }
+            if (tariffPeriodCol) {
+                tariffPeriodCol.classList.toggle('col-md-12', allSelected);
+                tariffPeriodCol.classList.toggle('col-md-6', !allSelected);
             }
         }
 
@@ -2200,6 +2209,7 @@ ob_start();
                     citySelectorsContainer.appendChild(select);
                 }
             }
+            syncCityHintVisibility();
         }
 
         function updateTariffSummary() {
