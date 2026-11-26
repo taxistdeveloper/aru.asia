@@ -275,6 +275,16 @@ class EventsController
                     Helper::redirect('events/create');
                     return;
                 }
+            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $_SESSION['error_message'] = 'Ошибка загрузки фото. Проверьте размер файла (максимум 10MB).';
+                Helper::redirect('events/create');
+                return;
+            }
+
+            if (empty($photoPath)) {
+                $_SESSION['error_message'] = 'Загрузите баннер мероприятия';
+                Helper::redirect('events/create');
+                return;
             }
 
             $title = trim($_POST['title'] ?? '');

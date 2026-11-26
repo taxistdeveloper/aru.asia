@@ -826,12 +826,13 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                 </div>
 
                 <div class="mb-3">
-                    <label for="photo" class="form-label">Баннер мероприятия</label>
+                    <label for="photo" class="form-label">Баннер мероприятия *</label>
                     <input type="file"
                         class="form-control"
                         id="photo"
                         name="photo"
-                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        required>
                     <input type="hidden" name="photo_cropped_base64" id="photo_cropped_base64" value="">
 
                     <div id="photo-preview" class="mt-3">
@@ -3244,6 +3245,17 @@ out skel qt;`;
 
     if (eventCreateForm) {
         eventCreateForm.addEventListener('submit', function(e) {
+            const photoInput = document.getElementById('photo');
+            const photoBase64Input = document.getElementById('photo_cropped_base64');
+            const hasPhotoFile = photoInput && photoInput.files && photoInput.files.length > 0;
+            const hasCroppedPhoto = photoBase64Input && photoBase64Input.value && photoBase64Input.value.startsWith('data:image/');
+            if (!hasCroppedPhoto && !hasPhotoFile) {
+                e.preventDefault();
+                alert('Пожалуйста, загрузите баннер мероприятия и нажмите «Применить» в редакторе обрезки.');
+                if (photoInput) photoInput.focus();
+                return false;
+            }
+
             if (!validateEventDateRange(true)) {
                 e.preventDefault();
                 if (eventDateInput) eventDateInput.focus();
