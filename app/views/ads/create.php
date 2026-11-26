@@ -1046,7 +1046,6 @@ ob_start();
                                     <option value="3" <?= (isset($old['city_count']) && (string)$old['city_count'] === '3') ? 'selected' : '' ?>>3 города</option>
                                     <option value="4" <?= (isset($old['city_count']) && (string)$old['city_count'] === '4') ? 'selected' : '' ?>>4 города</option>
                                     <option value="5" <?= (isset($old['city_count']) && (string)$old['city_count'] === '5') ? 'selected' : '' ?>>5 городов</option>
-                                    <option value="all" <?= (isset($old['city_count']) && (string)$old['city_count'] === 'all') ? 'selected' : '' ?>>6+ / все города</option>
                                 </select>
                                
                             </div>
@@ -1763,9 +1762,9 @@ ob_start();
                 '6': 60000
             },
             'all': {
-                '1': 25000,
-                '3': 75000,
-                '6': 150000
+                '1': 10000,
+                '3': 30000,
+                '6': 60000
             }
         };
 
@@ -2042,7 +2041,7 @@ ob_start();
         }
 
         function getCityLabel(cityCount) {
-            if (cityCount === 'all') return '6+ / все города';
+            if (cityCount === 'all') return 'все города';
             if (cityCount === '1') return '1 город';
             if (cityCount === '2') return '2 города';
             if (cityCount === '3') return '3 города';
@@ -2149,6 +2148,21 @@ ob_start();
             return select;
         }
 
+        function isAllCitiesSelected() {
+            if (!cityCountSelect || cityCountSelect.value !== '1' || !citySelectorsContainer) return false;
+            const cityEl = citySelectorsContainer.querySelector('select.js-city-select[name="city"]');
+            return Boolean(cityEl && cityEl.value === 'ВСЕ ГОРОДА');
+        }
+
+        function syncCityHintVisibility() {
+            const allSelected = isAllCitiesSelected();
+            if (cityAllText) cityAllText.style.display = allSelected ? '' : 'none';
+            if (cityHint) cityHint.style.display = allSelected ? 'none' : '';
+            if (cityFieldLabel && (!cityCountSelect || cityCountSelect.value === '1')) {
+                cityFieldLabel.textContent = allSelected ? 'Города' : 'Город *';
+            }
+        }
+
         // Перерисовать список селектов городов в зависимости от city_count и country
         function renderCitySelectors() {
             if (!citySelectorsContainer || !cityCountSelect) return;
@@ -2159,37 +2173,22 @@ ob_start();
             let previousValues;
             if (firstCityRender) {
                 const fromOldCities = Array.isArray(oldCitiesValue) ? oldCitiesValue.slice() : [];
-                const fromOldCity = (oldCityValue && oldCityValue !== 'ВСЕ ГОРОДА') ? [oldCityValue] : [];
+                const fromOldCity = oldCityValue ? [oldCityValue] : [];
                 previousValues = fromOldCities.length > 0 ? fromOldCities : fromOldCity;
                 firstCityRender = false;
             } else {
                 const liveValues = getSelectedCityValues();
-                // Если в DOM сейчас режим "all" (живых селектов нет) — берём последние сохранённые
                 previousValues = liveValues.length > 0 ? liveValues : lastNonAllCityValues.slice();
             }
 
-            // Запоминаем последние "нормальные" города, чтобы не потерять их при переключении в "Все города" и обратно
-            if (previousValues.length > 0) {
-                lastNonAllCityValues = previousValues.slice();
+            // Запоминаем последние выбранные города (кроме "ВСЕ ГОРОДА"), чтобы не потерять их при смене режимов
+            const nonAllPrevious = previousValues.filter((v) => v && v !== 'ВСЕ ГОРОДА');
+            if (nonAllPrevious.length > 0) {
+                lastNonAllCityValues = nonAllPrevious.slice();
             }
 
             citySelectorsContainer.innerHTML = '';
 
-            if (cityCount === 'all') {
-                if (cityAllText) cityAllText.style.display = '';
-                if (cityHint) cityHint.style.display = 'none';
-                if (cityFieldLabel) cityFieldLabel.textContent = 'Города';
-
-                // Скрытое поле, чтобы при отправке всегда было city=ВСЕ ГОРОДА
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = 'city';
-                hidden.value = 'ВСЕ ГОРОДА';
-                citySelectorsContainer.appendChild(hidden);
-                return;
-            }
-
-            if (cityAllText) cityAllText.style.display = 'none';
             if (cityHint) {
                 cityHint.style.display = '';
                 if (cityCount === '1') {
@@ -2200,17 +2199,18 @@ ob_start();
             }
 
             if (cityCount === '1') {
-                if (cityFieldLabel) cityFieldLabel.textContent = 'Город *';
                 const select = buildCitySelect('city', previousValues[0] || '', 0);
                 citySelectorsContainer.appendChild(select);
+                syncCityHintVisibility();
                 return;
             }
 
+            if (cityAllText) cityAllText.style.display = 'none';
             if (cityCount === '2' || cityCount === '3' || cityCount === '4' || cityCount === '5') {
                 const count = Number(cityCount);
                 if (cityFieldLabel) cityFieldLabel.textContent = 'Города (' + count + ') *';
                 for (let i = 0; i < count; i++) {
-                    const select = buildCitySelect('cities[]', previousValues[i] || '', i);
+                    const select = buildCitySelect('cities[]', nonAllPrevious[i] || '', i);
                     citySelectorsContainer.appendChild(select);
                 }
             }
@@ -2218,7 +2218,7 @@ ob_start();
 
         function updateTariffSummary() {
             if (!cityCountSelect || !tariffPeriodSelect || !tariffSummary) return;
-            const cityCount = cityCountSelect.value;
+            const cityCount = isAllCitiesSelected() ? 'all' : cityCountSelect.value;
             const period = tariffPeriodSelect.value;
             const amount = adTariffs[cityCount] ? adTariffs[cityCount][period] : 0;
             const baseOneMonth = adTariffs[cityCount] ? adTariffs[cityCount]['1'] : 0;
@@ -2295,9 +2295,6 @@ ob_start();
 
             // Поддерживаем “связку”: end_date зависит от периода показа
             computeEndDate();
-
-            // Перерисовываем селекты городов под актуальный режим (1/2/3/все)
-            renderCitySelectors();
         }
 
         // Функция для автоматического добавления https:// к URL
@@ -2425,20 +2422,21 @@ ob_start();
         syncAdLiveDemo();
 
         if (cityCountSelect && tariffPeriodSelect) {
-            cityCountSelect.addEventListener('change', updateTariffSummary);
+            cityCountSelect.addEventListener('change', function() {
+                renderCitySelectors();
+                updateTariffSummary();
+            });
             tariffPeriodSelect.addEventListener('change', updateTariffSummary);
             updateTariffSummary();
         }
 
-        // Если в селекте города выбрано "ВСЕ ГОРОДА", переключаем тариф на "all"
-        if (citySelectorsContainer && cityCountSelect) {
+        // Если в селекте города выбрано "ВСЕ ГОРОДА", пересчитываем тариф по цене 5 городов
+        if (citySelectorsContainer) {
             citySelectorsContainer.addEventListener('change', function(e) {
                 const target = e.target;
                 if (!target || !target.classList || !target.classList.contains('js-city-select')) return;
-                if (target.value === 'ВСЕ ГОРОДА') {
-                    cityCountSelect.value = 'all';
-                    updateTariffSummary();
-                }
+                syncCityHintVisibility();
+                updateTariffSummary();
             });
         }
 
@@ -2545,7 +2543,10 @@ ob_start();
     // Сумма к оплате для окна «ОПЛАТИТЬ» — тот же расчёт, что и на сервере (PartnerReferral::tariffs())
     window.aruPaymentAmount = function () {
         const tariffs = <?= json_encode(PartnerReferral::tariffs()) ?>;
-        const cc = (document.getElementById('city_count') || {}).value || '1';
+        const cityEl = document.querySelector('#citySelectorsContainer select[name="city"]');
+        const cc = (cityEl && cityEl.value === 'ВСЕ ГОРОДА')
+            ? 'all'
+            : ((document.getElementById('city_count') || {}).value || '1');
         const period = (document.getElementById('tariff_period') || {}).value || '1';
         return (tariffs[cc] && tariffs[cc][period]) ? tariffs[cc][period] : tariffs['1']['1'];
     };

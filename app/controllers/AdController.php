@@ -136,7 +136,7 @@ class AdController
             if ($cityCount === 'all') {
                 $cityValuesToCreate = ['ВСЕ ГОРОДА'];
             } elseif ($cityCount === '1') {
-                if (empty($city) || $city === 'ВСЕ ГОРОДА') {
+                if (empty($city)) {
                     $errors[] = 'Укажите город';
                 } else {
                     $cityValuesToCreate = [$city];
@@ -240,7 +240,8 @@ class AdController
         if (!in_array($tariffPeriod, ['1', '3', '6'], true)) {
             $tariffPeriod = PartnerReferral::periodFromDates($startDate, $endDate);
         }
-        $orderAmount = PartnerReferral::calcTariffAmount($cityCount, $tariffPeriod);
+        $effectiveCityCount = ($cityValuesToCreate === ['ВСЕ ГОРОДА']) ? 'all' : $cityCount;
+        $orderAmount = PartnerReferral::calcTariffAmount($effectiveCityCount, $tariffPeriod);
 
         $createdCount = 0;
         $totalToCreate = count($cityValuesToCreate);
