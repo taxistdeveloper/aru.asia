@@ -46,8 +46,11 @@ ob_start();
 
     #end_date {
         pointer-events: none;
-        background-color: #f3f4f6;
-        color: #4b5563;
+        background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 55%, #eef2ff 100%);
+        border: 1px solid #c7d2fe;
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.12);
+        color: #312e81;
+        font-weight: 700;
         user-select: none;
     }
 
