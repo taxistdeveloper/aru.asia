@@ -993,7 +993,17 @@ ob_start();
                             </div> -->
                         <?php endif; ?>
                     </div>
-
+                    <div class="mb-3">
+                        <label for="click_url" class="form-label">URL для перехода *</label>
+                        <input type="url"
+                            class="form-control"
+                            id="click_url"
+                            name="click_url"
+                            value="<?= isset($old['click_url']) ? Helper::escape($old['click_url']) : '' ?>"
+                            required
+                            placeholder="example.com (https:// добавится автоматически)">
+                        <div class="form-text">Ссылка, на которую будет переходить пользователь при клике на рекламу.</div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="country" class="form-label">Страна *</label>
@@ -1025,7 +1035,7 @@ ob_start();
                         </div>
                     </div>
 
-                    <div class="tariff-box">
+                    <div class="tariff-box<?= empty($old['country']) ? ' d-none' : '' ?>" id="tariffBox">
                         <h6><i class="bi bi-cash-stack"></i> Тариф размещения рекламы</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -1038,14 +1048,14 @@ ob_start();
                                     <option value="5" <?= (isset($old['city_count']) && (string)$old['city_count'] === '5') ? 'selected' : '' ?>>5 городов</option>
                                     <option value="all" <?= (isset($old['city_count']) && (string)$old['city_count'] === 'all') ? 'selected' : '' ?>>6+ / все города</option>
                                 </select>
-                                <div class="form-text">1–5 городов: 2 000 ₸ × город / мес. 6+ или все города: 25 000 ₸ / мес. Оплата подтверждается администрацией, чек приходит на email и в сообщения.</div>
+                               
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="tariff_period" class="form-label">Период размещения *</label>
                                 <select class="form-select d-none" id="tariff_period" name="tariff_period">
                                     <option value="1" <?= (isset($old['tariff_period']) && (string)$old['tariff_period'] === '1') ? 'selected' : '' ?>>1 месяц</option>
-                                    <option value="3" <?= (isset($old['tariff_period']) && (string)$old['tariff_period'] === '3') ? 'selected' : '' ?>>3 месяца (экономия 20%)</option>
-                                    <option value="6" <?= (isset($old['tariff_period']) && (string)$old['tariff_period'] === '6') ? 'selected' : '' ?>>6 месяцев (экономия 30%)</option>
+                                    <option value="3" <?= (isset($old['tariff_period']) && (string)$old['tariff_period'] === '3') ? 'selected' : '' ?>>3 месяца</option>
+                                    <option value="6" <?= (isset($old['tariff_period']) && (string)$old['tariff_period'] === '6') ? 'selected' : '' ?>>6 месяцев</option>
                                 </select>
                                 <div class="currency-switch d-none" id="currencySwitch" aria-hidden="true">
                                     <button type="button" class="currency-btn active" data-currency="KZT" id="currencyKztBtn">₸ KZT</button>
@@ -1057,27 +1067,17 @@ ob_start();
                                     <div class="price-card active" data-period="1">
                                         <div class="price-card-period">1 месяц</div>
                                         <div class="price-card-amount" data-amount-period="1">2 000 тг</div>
-                                        <div class="price-card-old" data-old-period="1"></div>
-                                        <div class="price-card-save" data-save-period="1"></div>
                                         <div class="price-card-monthly" data-monthly-period="1">2 000 тг / мес</div>
-                                        <div class="price-card-note">Стартовый тариф</div>
                                     </div>
-                                    <div class="price-card recommended" data-period="3">
-                                        <div class="price-card-recommend">Рекомендуем</div>
+                                    <div class="price-card" data-period="3">
                                         <div class="price-card-period">3 месяца</div>
-                                        <div class="price-card-amount" data-amount-period="3">4 800 тг</div>
-                                        <div class="price-card-old" data-old-period="3">6 000 тг</div>
-                                        <div class="price-card-save" data-save-period="3">Экономия 1 200 тг</div>
-                                        <div class="price-card-monthly" data-monthly-period="3">1 600 тг / мес</div>
-                                        <div class="price-card-note">Экономия 20%</div>
+                                        <div class="price-card-amount" data-amount-period="3">6 000 тг</div>
+                                        <div class="price-card-monthly" data-monthly-period="3">2 000 тг / мес</div>
                                     </div>
                                     <div class="price-card" data-period="6">
                                         <div class="price-card-period">6 месяцев</div>
-                                        <div class="price-card-amount" data-amount-period="6">8 400 тг</div>
-                                        <div class="price-card-old" data-old-period="6">12 000 тг</div>
-                                        <div class="price-card-save" data-save-period="6">Экономия 3 600 тг</div>
-                                        <div class="price-card-monthly" data-monthly-period="6">1 400 тг / мес</div>
-                                        <div class="price-card-note">Экономия 30%</div>
+                                        <div class="price-card-amount" data-amount-period="6">12 000 тг</div>
+                                        <div class="price-card-monthly" data-monthly-period="6">2 000 тг / мес</div>
                                     </div>
                                 </div>
                             </div>
@@ -1087,17 +1087,7 @@ ob_start();
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="click_url" class="form-label">URL для перехода *</label>
-                        <input type="url"
-                            class="form-control"
-                            id="click_url"
-                            name="click_url"
-                            value="<?= isset($old['click_url']) ? Helper::escape($old['click_url']) : '' ?>"
-                            required
-                            placeholder="example.com (https:// добавится автоматически)">
-                        <div class="form-text">Ссылка, на которую будет переходить пользователь при клике на рекламу.</div>
-                    </div>
+                    
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -1106,7 +1096,6 @@ ob_start();
                                 class="form-control"
                                 id="start_date"
                                 name="start_date"
-                                max="<?= date('Y') ?>-12-31"
                                 value="<?= isset($old['start_date']) ? Helper::escape($old['start_date']) : '' ?>"
                                 required>
                         </div>
@@ -1118,10 +1107,9 @@ ob_start();
                                 id="end_date"
                                 name="end_date"
                                 readonly
-                                max="<?= date('Y') ?>-12-31"
                                 value="<?= isset($old['end_date']) ? Helper::escape($old['end_date']) : '' ?>"
                                 required>
-                            <div class="form-text">Автоматически считается по выбранному периоду (1/3/6 мес).</div>
+                            <div class="form-text" id="endDateHint">Сначала выберите дату начала показа — дата окончания рассчитается по выбранному периоду.</div>
                         </div>
                     </div>
 
@@ -1747,37 +1735,37 @@ ob_start();
         // Запоминаем последние выбранные города (не "ВСЕ ГОРОДА"), чтобы вернуть их при переключении режимов
         let lastNonAllCityValues = [];
 
-        // Синхронизировано с PartnerReferral::tariffs()
+        // Синхронизировано с PartnerReferral::tariffs() (без скидки)
         const adTariffs = {
             '1': {
                 '1': 2000,
-                '3': 4800,
-                '6': 8400
+                '3': 6000,
+                '6': 12000
             },
             '2': {
                 '1': 4000,
-                '3': 9600,
-                '6': 16800
+                '3': 12000,
+                '6': 24000
             },
             '3': {
                 '1': 6000,
-                '3': 14400,
-                '6': 25200
+                '3': 18000,
+                '6': 36000
             },
             '4': {
                 '1': 8000,
-                '3': 19200,
-                '6': 33600
+                '3': 24000,
+                '6': 48000
             },
             '5': {
                 '1': 10000,
-                '3': 24000,
-                '6': 42000
+                '3': 30000,
+                '6': 60000
             },
             'all': {
                 '1': 25000,
-                '3': 60000,
-                '6': 105000
+                '3': 75000,
+                '6': 150000
             }
         };
 
@@ -2092,10 +2080,20 @@ ob_start();
         // end_date считается как: (start_date + период) - 1 день (включительно по времени показа)
         function computeEndDate() {
             if (!startDateInput || !endDateInput || !tariffPeriodSelect) return;
+            const periodVal = String(tariffPeriodSelect.value || '1');
+            const months = Number(periodVal);
+            const periodLabel = getPeriodLabel(periodVal);
+            const endDateHint = document.getElementById('endDateHint');
             const startVal = startDateInput.value;
-            if (!startVal) return;
 
-            const months = Number(tariffPeriodSelect.value || 1);
+            if (!startVal) {
+                endDateInput.value = '';
+                if (endDateHint) {
+                    endDateHint.textContent = 'Сначала выберите дату начала показа — дата окончания рассчитается автоматически (' + periodLabel + ').';
+                }
+                return;
+            }
+
             if (!months || months < 1) return;
 
             const startDate = new Date(startVal + 'T00:00:00');
@@ -2105,11 +2103,8 @@ ob_start();
             endDate.setDate(endDate.getDate() - 1);
 
             endDateInput.value = toISODateLocal(endDate);
-
-            // Не даем end_date выйти за допустимую границу (31 декабря текущего года)
-            const maxVal = endDateInput.getAttribute('max');
-            if (maxVal && endDateInput.value > maxVal) {
-                endDateInput.value = maxVal;
+            if (endDateHint) {
+                endDateHint.textContent = 'Рассчитано автоматически на выбранный период: ' + periodLabel + '.';
             }
         }
 
@@ -2385,9 +2380,18 @@ ob_start();
             });
         }
 
-        // При смене страны — список городов и валюта отображения тарифа (например Россия → ₽)
+        const tariffBox = document.getElementById('tariffBox');
+
+        function toggleTariffBoxByCountry() {
+            if (!tariffBox || !countrySelect) return;
+            const hasCountry = Boolean(countrySelect.value && countrySelect.value.trim() !== '');
+            tariffBox.classList.toggle('d-none', !hasCountry);
+        }
+
+        // При смене страны — список городов, показ блока тарифа/периода и валюта отображения
         if (countrySelect) {
             countrySelect.addEventListener('change', function() {
+                toggleTariffBoxByCountry();
                 renderCitySelectors();
                 const mapped = countrySelect.value ? displayCurrencyByCountry[countrySelect.value] : null;
                 if (mapped && (mapped === 'KZT' || exchangeRates[mapped])) {
@@ -2396,7 +2400,8 @@ ob_start();
             });
         }
 
-        // Первичный рендер списка городов при загрузке страницы
+        // Первичный рендер списка городов и видимости блока тарифа при загрузке страницы
+        toggleTariffBoxByCountry();
         renderCitySelectors();
 
         // Автоматически добавляем https:// к URL
@@ -2439,6 +2444,15 @@ ob_start();
 
         if (startDateInput) {
             startDateInput.addEventListener('change', computeEndDate);
+            startDateInput.addEventListener('input', computeEndDate);
+        }
+
+        if (endDateInput && startDateInput) {
+            endDateInput.addEventListener('click', function() {
+                if (!startDateInput.value) {
+                    startDateInput.focus();
+                }
+            });
         }
 
         // Один раз посчитаем сразу при открытии страницы

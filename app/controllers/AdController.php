@@ -197,14 +197,6 @@ class AdController
             $errors[] = 'Дата окончания должна быть позже даты начала';
         }
 
-        $endOfCurrentYear = strtotime(date('Y') . '-12-31 23:59:59');
-        if (!empty($startDate) && strtotime($startDate) > $endOfCurrentYear) {
-            $errors[] = 'Дата начала показа не может быть позже 31 декабря ' . date('Y') . ' года';
-        }
-        if (!empty($endDate) && strtotime($endDate) > $endOfCurrentYear) {
-            $errors[] = 'Дата окончания показа не может быть позже 31 декабря ' . date('Y') . ' года';
-        }
-
         if (($_POST['payment_agree'] ?? '') !== '1') {
             $errors[] = 'Для размещения рекламы подтвердите оплату: нажмите «СОГЛАСЕН ОПЛАТИТЬ».';
         }
