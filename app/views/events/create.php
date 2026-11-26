@@ -1008,7 +1008,7 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" id="event-create-submit-btn">
-                    <i class="bi bi-credit-card"></i> Оплатить и создать мероприятие
+                    <i class="bi bi-credit-card"></i> Создать мероприятие
                 </button>
                 <a href="<?= BASE_URL ?>events" class="btn btn-outline-secondary btn-lg">
                     Отмена
