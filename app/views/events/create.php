@@ -899,8 +899,11 @@ $eventBannerExportH = (int) round($eventBannerExportW * $eventBannerAspectH / $e
                         id="event_date"
                         name="event_date"
                         max="<?= Helper::getMaxPlanningDateTimeLocal() ?>"
-                        aria-describedby="event_date_hint"
+                        aria-describedby="event_date_hint event_date_error"
                         required>
+                    <div id="event_date_error" class="invalid-feedback" role="alert">
+                        Нельзя указать дату позже <?= date('d.m.Y H:i', Helper::getMaxPlanningTimestamp()) ?> — выберите дату в пределах <?= Helper::getMaxPlanningDays() ?> дней от сегодня.
+                    </div>
                     <small id="event_date_hint" class="form-text text-muted">
                         Укажите дату в пределах <?= Helper::getMaxPlanningDays() ?> дней от сегодня.
                     </small>
@@ -3195,16 +3198,59 @@ out skel qt;`;
 
 <script>
     const eventDateInput = document.getElementById('event_date');
+    const eventCreateForm = document.querySelector('.event-create-form');
+    const maxEventDateTime = <?= json_encode(Helper::getMaxPlanningDateTimeLocal()) ?>;
+    const maxEventDateTimeDisplay = <?= json_encode(date('d.m.Y H:i', Helper::getMaxPlanningTimestamp())) ?>;
+    const maxEventPlanningDays = <?= (int) Helper::getMaxPlanningDays() ?>;
+    const eventDateOverflowMsg = 'Нельзя указать дату позже ' + maxEventDateTimeDisplay + ' (не более ' + maxEventPlanningDays + ' дней от сегодня).';
 
-    eventDateInput.addEventListener('invalid', function() {
-        if (this.validity.rangeOverflow) {
-            this.setCustomValidity('Не более <?= Helper::getMaxPlanningDays() ?> дней.\nВыберите другую дату.');
+    function isEventDateOverflow() {
+        if (!eventDateInput) return false;
+        const val = (eventDateInput.value || '').trim();
+        return Boolean((val && maxEventDateTime && val > maxEventDateTime) || eventDateInput.validity.rangeOverflow);
+    }
+
+    function validateEventDateRange(showPopup) {
+        if (!eventDateInput) return true;
+        if (isEventDateOverflow()) {
+            eventDateInput.classList.add('is-invalid');
+            eventDateInput.setCustomValidity(eventDateOverflowMsg);
+            if (showPopup && typeof eventDateInput.reportValidity === 'function') {
+                eventDateInput.reportValidity();
+            }
+            return false;
         }
-    });
+        eventDateInput.classList.remove('is-invalid');
+        eventDateInput.setCustomValidity('');
+        return true;
+    }
 
-    eventDateInput.addEventListener('input', function() {
-        this.setCustomValidity('');
-    });
+    if (eventDateInput) {
+        eventDateInput.addEventListener('invalid', function() {
+            if (isEventDateOverflow()) {
+                this.classList.add('is-invalid');
+                this.setCustomValidity(eventDateOverflowMsg);
+            }
+        });
+
+        eventDateInput.addEventListener('input', function() {
+            validateEventDateRange(false);
+        });
+
+        eventDateInput.addEventListener('change', function() {
+            validateEventDateRange(true);
+        });
+    }
+
+    if (eventCreateForm) {
+        eventCreateForm.addEventListener('submit', function(e) {
+            if (!validateEventDateRange(true)) {
+                e.preventDefault();
+                if (eventDateInput) eventDateInput.focus();
+                return false;
+            }
+        });
+    }
 </script>
 
 <?php
