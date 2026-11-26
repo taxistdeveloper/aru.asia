@@ -24,12 +24,32 @@ class DemoDates
     public static function templates(): array
     {
         return [
-            ['title' => 'ИНТЕРЕСНО: серьёзные отношения', 'hour' => 19],
-            ['title' => 'ИНТЕРЕСНО: новые друзья', 'hour' => 18],
-            ['title' => 'ИНТЕРЕСНО: прогулка и кофе', 'hour' => 17],
-            ['title' => 'ИНТЕРЕСНО: ужин в ресторане', 'hour' => 20],
-            ['title' => 'ИНТЕРЕСНО: спонтанное приключение', 'hour' => 15],
+            ['title' => 'ИНТЕРЕСНО: серьёзные отношения', 'hour' => 19, 'slug' => 'serious'],
+            ['title' => 'ИНТЕРЕСНО: новые друзья', 'hour' => 18, 'slug' => 'friends'],
+            ['title' => 'ИНТЕРЕСНО: прогулка и кофе', 'hour' => 17, 'slug' => 'coffee'],
+            ['title' => 'ИНТЕРЕСНО: ужин в ресторане', 'hour' => 20, 'slug' => 'dinner'],
+            ['title' => 'ИНТЕРЕСНО: спонтанное приключение', 'hour' => 15, 'slug' => 'adventure'],
         ];
+    }
+
+    /** Возвращает относительный путь к демо-картинке (в assets/images/demo-dates) по заголовку и полу автора. */
+    public static function photoFor(string $title, ?string $gender): ?string
+    {
+        $g = ($gender === 'male') ? 'male' : 'female';
+        $slug = null;
+        foreach (self::templates() as $t) {
+            if ($t['title'] === $title) {
+                $slug = $t['slug'];
+                break;
+            }
+        }
+        if ($slug === null) {
+            $templates = self::templates();
+            $slug = $templates[abs(crc32($title)) % count($templates)]['slug'];
+        }
+        $rel = 'assets/images/demo-dates/' . $g . '-' . $slug . '.jpg';
+        $abs = dirname(__DIR__, 2) . '/' . $rel;
+        return is_file($abs) ? $rel : null;
     }
 
     public static function ensureSchema(PDO $db): void
@@ -95,7 +115,12 @@ class DemoDates
             ORDER BY d.date_time
         ");
         $stmt->execute(array_merge(['%' . $name], $genders));
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$row) {
+            $row['photo_url'] = self::photoFor((string)($row['title'] ?? ''), $row['gender'] ?? null);
+        }
+        unset($row);
+        return $rows;
     }
 
     public static function isDemo($date): bool

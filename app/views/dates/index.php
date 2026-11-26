@@ -246,9 +246,14 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
                         <?php if (!empty($date['is_demo'])): ?>
                             <span class="date-demo-chip">Пример</span>
                         <?php endif; ?>
-                        <?php if (!empty($date['photo'])): ?>
+                        <?php
+                        $datePhotoUrl = !empty($date['photo_url'])
+                            ? BASE_URL . ltrim($date['photo_url'], '/')
+                            : (!empty($date['photo']) ? BASE_URL . UPLOAD_DIR . 'photos/' . $date['photo'] : '');
+                        ?>
+                        <?php if ($datePhotoUrl !== ''): ?>
                             <div class="date-banner">
-                                <img src="<?= BASE_URL . UPLOAD_DIR . 'photos/' . $date['photo'] ?>" alt="Фото">
+                                <img src="<?= Helper::escape($datePhotoUrl) ?>" alt="Фото" loading="lazy">
                             </div>
                         <?php else: ?>
                             <div class="date-banner-placeholder">
@@ -606,10 +611,12 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             let html = '';
 
             // Баннер
-            if (date.photo) {
-                const photoUrl = BASE_URL + UPLOAD_DIR + 'photos/' + date.photo;
-                html += '<div class="date-modal-banner" onclick="openPhotoModal(\'' + photoUrl + '\')">';
-                html += '<img src="' + photoUrl + '" alt="Фото">';
+            const photoUrl = date.photo_url
+                ? (BASE_URL + String(date.photo_url).replace(/^\/+/, ''))
+                : (date.photo ? (BASE_URL + UPLOAD_DIR + 'photos/' + date.photo) : '');
+            if (photoUrl) {
+                html += '<div class="date-modal-banner" data-photo-url="' + escapeHtml(photoUrl).replace(/"/g, '&quot;') + '" onclick="openPhotoModal(this.dataset.photoUrl)">';
+                html += '<img src="' + escapeHtml(photoUrl) + '" alt="Фото">';
                 html += '</div>';
             } else {
                 html += '<div class="date-modal-banner-placeholder">';
@@ -1316,6 +1323,7 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center 22%;
         }
 
         .date-banner-placeholder {
@@ -1394,6 +1402,7 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center 22%;
         }
 
         .date-modal-banner-placeholder {
@@ -2476,6 +2485,7 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center 22%;
             transition: transform 0.3s ease;
         }
 
@@ -2585,6 +2595,7 @@ if (Helper::isLoggedIn() && !empty($myDates) && is_array($myDates)) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center 22%;
             transition: transform 0.3s;
         }
 
