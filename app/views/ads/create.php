@@ -1081,9 +1081,6 @@ ob_start();
                                 </div>
                             </div>
                         </div>
-                        <div id="tariffSummary" class="tariff-summary">
-                            Итоговый тариф: <strong>2 000 тг</strong>
-                        </div>
                     </div>
 
                     
@@ -1680,7 +1677,6 @@ ob_start();
         const clickUrlInput = document.getElementById('click_url');
         const cityCountSelect = document.getElementById('city_count');
         const tariffPeriodSelect = document.getElementById('tariff_period');
-        const tariffSummary = document.getElementById('tariffSummary');
         const startDateInput = document.getElementById('start_date');
         const endDateInput = document.getElementById('end_date');
         const priceCards = document.querySelectorAll('.price-card');
@@ -2040,16 +2036,6 @@ ob_start();
             return 'городов';
         }
 
-        function getCityLabel(cityCount) {
-            if (cityCount === 'all') return 'все города';
-            if (cityCount === '1') return '1 город';
-            if (cityCount === '2') return '2 города';
-            if (cityCount === '3') return '3 города';
-            if (cityCount === '4') return '4 города';
-            if (cityCount === '5') return '5 городов';
-            return cityCount + ' город(а)';
-        }
-
         function getPeriodLabel(period) {
             if (period === '1') return '1 месяц';
             if (period === '3') return '3 месяца';
@@ -2217,40 +2203,13 @@ ob_start();
         }
 
         function updateTariffSummary() {
-            if (!cityCountSelect || !tariffPeriodSelect || !tariffSummary) return;
+            if (!cityCountSelect || !tariffPeriodSelect) return;
             const cityCount = isAllCitiesSelected() ? 'all' : cityCountSelect.value;
-            const period = tariffPeriodSelect.value;
-            const amount = adTariffs[cityCount] ? adTariffs[cityCount][period] : 0;
-            const baseOneMonth = adTariffs[cityCount] ? adTariffs[cityCount]['1'] : 0;
 
             document.querySelectorAll('[data-amount-period]').forEach((el) => {
                 const cardPeriod = el.getAttribute('data-amount-period');
                 const cardAmount = adTariffs[cityCount] ? adTariffs[cityCount][cardPeriod] : 0;
                 animateNumber(el, cardAmount, formatTenge);
-            });
-
-            document.querySelectorAll('[data-old-period]').forEach((el) => {
-                const cardPeriod = Number(el.getAttribute('data-old-period'));
-                if (cardPeriod <= 1) {
-                    el.textContent = '';
-                    el.dataset.value = '0';
-                    return;
-                }
-                const oldAmount = baseOneMonth * cardPeriod;
-                animateNumber(el, oldAmount, formatTenge);
-            });
-
-            document.querySelectorAll('[data-save-period]').forEach((el) => {
-                const cardPeriod = Number(el.getAttribute('data-save-period'));
-                if (cardPeriod <= 1) {
-                    el.textContent = '';
-                    el.dataset.value = '0';
-                    return;
-                }
-                const cardAmount = adTariffs[cityCount] ? adTariffs[cityCount][String(cardPeriod)] : 0;
-                const oldAmount = baseOneMonth * cardPeriod;
-                const saveAmount = Math.max(0, oldAmount - cardAmount);
-                animateNumber(el, saveAmount, (value) => 'Экономия ' + formatTenge(value));
             });
 
             document.querySelectorAll('[data-monthly-period]').forEach((el) => {
@@ -2259,32 +2218,6 @@ ob_start();
                 const monthlyAmount = cardPeriod > 0 ? Math.round(cardAmount / cardPeriod) : cardAmount;
                 animateNumber(el, monthlyAmount, (value) => formatTenge(value) + ' / мес');
             });
-
-            const currentPeriod = Number(period) || 1;
-            const regularAmount = baseOneMonth * currentPeriod;
-            const currentSave = Math.max(0, regularAmount - amount);
-
-            let summaryHtml =
-                'Тариф: <strong>' + formatTenge(amount) + '</strong> ' +
-                'за ' + getPeriodLabel(period) + ', охват: ' + getCityLabel(cityCount) + '.';
-            if (currentSave > 0) {
-                summaryHtml +=
-                    '<br><span class="text-muted">Обычная стоимость: ' + formatTenge(regularAmount) + '</span>' +
-                    '<br><span class="text-success fw-semibold">Выгода: ' + formatTenge(currentSave) + '</span>';
-            }
-            tariffSummary.innerHTML = summaryHtml;
-
-            const summaryMainValueEl = tariffSummary.querySelector('strong');
-            const summaryRegularEl = tariffSummary.querySelector('.text-muted');
-            const summarySaveEl = tariffSummary.querySelector('.text-success.fw-semibold');
-
-            animateNumber(summaryMainValueEl, amount, formatTenge);
-            if (summaryRegularEl) {
-                animateNumber(summaryRegularEl, regularAmount, (value) => 'Обычная стоимость: ' + formatTenge(value));
-            }
-            if (summarySaveEl) {
-                animateNumber(summarySaveEl, currentSave, (value) => 'Выгода: ' + formatTenge(value));
-            }
 
             // Короткая подсветка карточек, чтобы визуально показать пересчёт цены
             priceCards.forEach((card) => {
